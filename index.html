@@ -139,7 +139,7 @@
             </div>
         </section>
 
-        <!-- STEP 2: KALKULATOR MATERIAL (7 TAB) -->
+        <!-- STEP 2: KALKULATOR MATERIAL (9 TAB) -->
         <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 space-y-4">
             <div class="flex items-center justify-between border-b border-slate-100 pb-2.5 flex-wrap gap-2">
                 <div class="flex items-center gap-2">
@@ -151,10 +151,11 @@
                     <span class="text-slate-400 font-bold text-[11px]"><i class="fa-solid fa-bolt text-amber-500"></i> Preset:</span>
                     <button onclick="applyPreset(3, 3, 3)" class="bg-slate-100 hover:bg-teal-50 text-slate-700 font-semibold px-2 py-1 rounded-lg border border-slate-200">Kamar 3×3m</button>
                     <button onclick="applyPreset(4, 6, 3.5)" class="bg-slate-100 hover:bg-teal-50 text-slate-700 font-semibold px-2 py-1 rounded-lg border border-slate-200">Rumah 4×6m</button>
+                    <button onclick="applyPresetPagar(10, 2)" class="bg-slate-100 hover:bg-teal-50 text-slate-700 font-semibold px-2 py-1 rounded-lg border border-slate-200">Pagar 10×2m</button>
                 </div>
             </div>
 
-            <!-- Tab Buttons Nav -->
+            <!-- Tab Buttons Nav (9 Tabs) -->
             <nav class="flex gap-1.5 overflow-x-auto pb-2 custom-scroll text-xs">
                 <button onclick="switchTab('tabDinding')" id="btnTabDinding" class="tab-btn bg-teal-600 text-white font-bold py-2 px-3 rounded-xl shadow-sm flex items-center gap-1.5 whitespace-nowrap">
                     <i class="fa-solid fa-cubes"></i> 1. Dinding & Cat
@@ -177,41 +178,78 @@
                 <button onclick="switchTab('tabPondasi')" id="btnTabPondasi" class="tab-btn bg-slate-100 text-slate-700 font-semibold py-2 px-3 rounded-xl border border-slate-200 flex items-center gap-1.5 whitespace-nowrap">
                     <i class="fa-solid fa-monument text-slate-600"></i> 7. Pondasi
                 </button>
+                <button onclick="switchTab('tabPaving')" id="btnTabPaving" class="tab-btn bg-slate-100 text-slate-700 font-semibold py-2 px-3 rounded-xl border border-slate-200 flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-grip text-emerald-600"></i> 8. Paving Block
+                </button>
+                <button onclick="switchTab('tabPasirBatu')" id="btnTabPasirBatu" class="tab-btn bg-slate-100 text-slate-700 font-semibold py-2 px-3 rounded-xl border border-slate-200 flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-mound text-amber-600"></i> 9. Pasir & Batu
+                </button>
             </nav>
 
             <!-- TAB 1: DINDING -->
             <div id="tabDinding" class="tab-content space-y-3">
+                <div class="flex justify-between items-center flex-wrap gap-2">
+                    <span class="text-xs font-bold text-slate-700">Mode Perhitungan Dinding:</span>
+                    <div class="bg-slate-100 p-1 rounded-lg text-xs font-bold flex gap-1 border border-slate-200">
+                        <button onclick="setModeDinding('ruangan')" id="btnModeRuangan" class="px-2.5 py-1 rounded-md bg-teal-600 text-white shadow-sm">Ruangan (PxLxT)</button>
+                        <button onclick="setModeDinding('lurus')" id="btnModeLurus" class="px-2.5 py-1 rounded-md text-slate-600">Tembok Lurus (PxT)</button>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Panjang Bangunan (m)</label>
                         <input type="number" id="dinPanjang" value="6" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:bg-white focus:outline-none">
                     </div>
-                    <div>
+                    <div id="colDinLebar">
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Lebar Ruangan (m)</label>
                         <input type="number" id="dinLebar" value="4" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:bg-white focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Tinggi Dinding (m)</label>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Tinggi Dinding Utama (m)</label>
                         <input type="number" id="dinTinggi" value="3.5" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:bg-white focus:outline-none">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Jenis Bata</label>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Jenis & Ukuran Bata</label>
                         <select id="dinTebal" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900 focus:outline-none">
-                            <option value="7.5">Bata Ringan 7.5 cm (Rp 650.000/m³)</option>
-                            <option value="10">Bata Ringan 10 cm (Rp 650.000/m³)</option>
-                            <option value="bataMerah">Bata Merah Press (Rp 900/pcs)</option>
+                            <option value="7.5">Bata Ringan 7.5 cm (1m³ ≈ 111 pcs)</option>
+                            <option value="10">Bata Ringan 10 cm (1m³ ≈ 83 pcs)</option>
+                            <option value="bataMerah">Bata Merah Press / Biasa (1m² ≈ 70 pcs)</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Jumlah Pintu</label>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Jumlah Pintu Utama/Kamar</label>
                         <input type="number" id="dinPintu" value="1" min="0" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Jumlah Jendela</label>
                         <input type="number" id="dinJendela" value="2" min="0" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- OPSIONAL GUNUNGAN SOPI-SOPI -->
+                <div class="bg-amber-50/70 p-3 rounded-xl border border-amber-200 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-amber-900 mb-1">Jumlah Segitiga Gunungan Atap (Sopi-Sopi)</label>
+                        <input type="number" id="dinJmlGunungan" value="0" min="0" class="w-full bg-white border border-amber-300 rounded-xl p-2.5 font-bold text-slate-900">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-amber-900 mb-1">Tinggi Gunungan / Segitiga (m)</label>
+                        <input type="number" id="dinTinggiGunungan" value="0" min="0" step="any" class="w-full bg-white border border-amber-300 rounded-xl p-2.5 font-bold text-slate-900" placeholder="Tinggi puncak...">
+                    </div>
+                </div>
+
+                <!-- CHECKBOXES LENGKAP -->
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <span class="block text-xs font-bold text-slate-700 mb-2">Opsi Paket Pekerjaan Lengkap:</span>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                        <label class="flex items-center gap-2 cursor-pointer font-medium"><input type="checkbox" id="chkThinbed" checked class="accent-teal-600 w-4 h-4"> Perekat (Thinbed / Semen PC + Pasir)</label>
+                        <label class="flex items-center gap-2 cursor-pointer font-medium"><input type="checkbox" id="chkPlester" checked class="accent-teal-600 w-4 h-4"> Semen Plesteran (Dua Sisi)</label>
+                        <label class="flex items-center gap-2 cursor-pointer font-medium"><input type="checkbox" id="chkAcian" checked class="accent-teal-600 w-4 h-4"> Semen Acian (Dua Sisi)</label>
+                        <label class="flex items-center gap-2 cursor-pointer font-medium"><input type="checkbox" id="chkCat" checked class="accent-teal-600 w-4 h-4"> Cat Dinding + Cat Dasar</label>
                     </div>
                 </div>
 
@@ -234,10 +272,23 @@
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Ukuran Keramik / Granit</label>
                         <select id="kerUkuran" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900">
-                            <option value="40x40">Keramik 40×40 cm (Rp 68.000/dus)</option>
-                            <option value="50x50">Keramik 50×50 cm (Rp 75.000/dus)</option>
-                            <option value="60x60" selected>Granit 60×60 cm (Rp 125.000/dus)</option>
+                            <option value="20x20">20 × 20 cm (1 Dus = 1.00 m²)</option>
+                            <option value="25x25">25 × 25 cm (1 Dus = 1.00 m²)</option>
+                            <option value="30x30">30 × 30 cm (1 Dus = 0.99 m²)</option>
+                            <option value="40x40">40 × 40 cm (1 Dus = 0.96 m²)</option>
+                            <option value="50x50">50 × 50 cm (1 Dus = 1.00 m²)</option>
+                            <option value="60x60" selected>60 × 60 cm Granit (1 Dus = 1.44 m²)</option>
+                            <option value="80x80">80 × 80 cm Granit (1 Dus = 1.92 m²)</option>
+                            <option value="15x60">15 × 60 cm Motif Kayu (1 Dus = 1.08 m²)</option>
                         </select>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <span class="block text-xs font-bold text-slate-700 mb-2">Opsi Tambahan Material:</span>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <label class="flex items-center gap-2 cursor-pointer font-medium"><input type="checkbox" id="chkKerSemenNat" checked class="accent-teal-600 w-4 h-4"> Semen Pengisi Nat (1kg)</label>
+                        <label class="flex items-center gap-2 cursor-pointer font-medium"><input type="checkbox" id="chkKerMortar" checked class="accent-teal-600 w-4 h-4"> Semen Mortar Perekat Keramik (40kg)</label>
                     </div>
                 </div>
 
@@ -260,9 +311,18 @@
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Jenis Papan</label>
                         <select id="plfJenis" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900">
-                            <option value="gypsum9mm">Gypsum Board 9mm (Rp 65.000/lbr)</option>
-                            <option value="grc4mm">GRC Board 4mm (Rp 60.000/lbr)</option>
+                            <option value="gypsum9mm">Gypsum Board 9mm (1.2m × 2.4m)</option>
+                            <option value="grc4mm">GRC Board Anti Air 4mm (1.2m × 2.4m)</option>
                         </select>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <span class="block text-xs font-bold text-slate-700 mb-2">Aksesoris & Rangka:</span>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                        <label class="flex items-center gap-2 cursor-pointer font-medium"><input type="checkbox" id="chkPlfHollow" checked class="accent-teal-600 w-4 h-4"> Hollow Galvanis (4x4 & 2x4)</label>
+                        <label class="flex items-center gap-2 cursor-pointer font-medium"><input type="checkbox" id="chkPlfSekrup" checked class="accent-teal-600 w-4 h-4"> Sekrup Gypsum (Dus)</label>
+                        <label class="flex items-center gap-2 cursor-pointer font-medium"><input type="checkbox" id="chkPlfCompound" checked class="accent-teal-600 w-4 h-4"> Compound Gypsum (20kg)</label>
                     </div>
                 </div>
 
@@ -273,7 +333,7 @@
 
             <!-- TAB 4: BESI BETON -->
             <div id="tabPembesian" class="tab-content hidden space-y-3">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Panjang Struktur (m)</label>
                         <input type="number" id="besPanjang" value="20" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
@@ -281,15 +341,26 @@
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Besi Utama (4 btg)</label>
                         <select id="besUtama" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900">
-                            <option value="besi8mm">Besi Ø 8mm SNI (Rp 48.000)</option>
-                            <option value="besi10mm" selected>Besi Ø 10mm SNI (Rp 72.000)</option>
-                            <option value="besi12mm">Besi Ø 12mm SNI (Rp 105.000)</option>
+                            <option value="besi8mm">Besi Ø 8mm SNI (12m)</option>
+                            <option value="besi10mm" selected>Besi Ø 10mm SNI (12m)</option>
+                            <option value="besi12mm">Besi Ø 12mm SNI (12m)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Besi Begel / Sengkang</label>
+                        <select id="besBegel" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900">
+                            <option value="besi6mm" selected>Besi Ø 6mm (12m)</option>
+                            <option value="besi8mm">Besi Ø 8mm (12m)</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Jarak Begel (cm)</label>
                         <input type="number" id="besJarak" value="15" min="5" max="50" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
                     </div>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <label class="flex items-center gap-2 cursor-pointer font-medium text-xs"><input type="checkbox" id="chkBesBendrat" checked class="accent-teal-600 w-4 h-4"> Kawat Beton / Bendrat</label>
                 </div>
 
                 <button onclick="calcPembesian()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-black py-3 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2">
@@ -299,7 +370,7 @@
 
             <!-- TAB 5: ATAP -->
             <div id="tabAtap" class="tab-content hidden space-y-3">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Panjang Bangunan (m)</label>
                         <input type="number" id="atpPanjang" value="8" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
@@ -309,13 +380,34 @@
                         <input type="number" id="atpLebar" value="6" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
                     </div>
                     <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Overtek/Tiris (m)</label>
+                        <input type="number" id="atpOvertek" value="0.8" min="0" step="0.1" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Sudut Kemiringan (°)</label>
+                        <input type="number" id="atpSudut" value="30" min="0" max="89" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Jenis Genteng</label>
                         <select id="atpJenis" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900">
-                            <option value="gtgKeramik">Genteng Keramik (Rp 11.500/pcs)</option>
-                            <option value="gtgBeton">Genteng Beton (Rp 9.500/pcs)</option>
-                            <option value="gtgMetal">Genteng Metal Pasir (Rp 45.000/lbr)</option>
+                            <option value="gtgKeramik">Genteng Keramik (≈ 14 pcs/m²)</option>
+                            <option value="gtgBeton">Genteng Beton (≈ 10 pcs/m²)</option>
+                            <option value="gtgMetal">Genteng Metal Pasir (≈ 1.6 lbr/m²)</option>
+                            <option value="gtgMorando">Genteng Morando (≈ 18 pcs/m²)</option>
+                            <option value="gtgTanah">Genteng Tanah Liat (≈ 25 pcs/m²)</option>
                         </select>
                     </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Panjang Bubungan / Nok (m)</label>
+                        <input type="number" id="atpNok" value="8" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <label class="flex items-center gap-2 cursor-pointer font-bold text-xs text-slate-800"><input type="checkbox" id="chkAtpBajaRingan" checked class="accent-teal-600 w-4 h-4"> Sertakan Paket Rangka Baja Ringan (Kanal C75, Reng, Baut Roofing)</label>
                 </div>
 
                 <button onclick="calcAtap()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-black py-3 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2">
@@ -340,6 +432,10 @@
                     </div>
                 </div>
 
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <label class="flex items-center gap-2 cursor-pointer font-bold text-xs text-slate-800"><input type="checkbox" id="chkBtnWiremesh" checked class="accent-teal-600 w-4 h-4"> Sertakan Besi Wiremesh M8 (Ukuran 2.1m × 5.4m)</label>
+                </div>
+
                 <button onclick="calcBeton()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-black py-3 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2">
                     <i class="fa-solid fa-calculator"></i> Hitung Material Cor Dak
                 </button>
@@ -347,26 +443,110 @@
 
             <!-- TAB 7: PONDASI -->
             <div id="tabPondasi" class="tab-content hidden space-y-3">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Panjang Pondasi (m)</label>
                         <input type="number" id="ponPanjang" value="25" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Lebar Atas / Bawah (m)</label>
-                        <div class="grid grid-cols-2 gap-1">
-                            <input type="number" id="ponAtas" value="0.3" step="0.1" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-xs font-bold">
-                            <input type="number" id="ponBawah" value="0.6" step="0.1" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-xs font-bold">
-                        </div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Lebar Atas (a) (m)</label>
+                        <input type="number" id="ponAtas" value="0.3" step="0.1" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Tinggi (m)</label>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Lebar Bawah (b) (m)</label>
+                        <input type="number" id="ponBawah" value="0.6" step="0.1" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Tinggi Utama (h) (m)</label>
                         <input type="number" id="ponTinggi" value="0.6" step="0.1" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Campuran Adukan Mortar SNI</label>
+                    <select id="ponCampuran" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900">
+                        <option value="1pc4ps">1 PC : 4 PP (Standar Kedap Air)</option>
+                        <option value="1pc5ps">1 PC : 5 PP (Pagar & Bangunan Ringan)</option>
+                    </select>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <span class="block text-xs font-bold text-slate-700 mb-2">Opsi Pekerjaan Lapisan Bawah (Sub-Struktur):</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <label class="flex items-center gap-2 cursor-pointer font-medium"><input type="checkbox" id="chkPondasiAan" checked class="accent-teal-600 w-4 h-4"> Pasangan Batu Kosong / Aanstamping (15cm)</label>
+                        <label class="flex items-center gap-2 cursor-pointer font-medium"><input type="checkbox" id="chkPondasiPasir" checked class="accent-teal-600 w-4 h-4"> Lapisan Pasir Urug Bedding Alas (5cm)</label>
                     </div>
                 </div>
 
                 <button onclick="calcPondasi()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-black py-3 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2">
                     <i class="fa-solid fa-calculator"></i> Hitung Material Pondasi
+                </button>
+            </div>
+
+            <!-- TAB 8: PAVING BLOCK -->
+            <div id="tabPaving" class="tab-content hidden space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Panjang Teras / Jalan (m)</label>
+                        <input type="number" id="pvgPanjang" value="10" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Lebar Area (m)</label>
+                        <input type="number" id="pvgLebar" value="3" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Model Paving Block</label>
+                        <select id="pvgModel" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900">
+                            <option value="bata">Paving Bata / Rectangular 10x20 cm (≈ 44 pcs/m²)</option>
+                            <option value="hexagon">Paving Segienam / Hexagon (≈ 27 pcs/m²)</option>
+                            <option value="cacing">Paving Cacing / Wave (≈ 39 pcs/m²)</option>
+                            <option value="rumput">Grass Block / Paving Rumput (≈ 8 pcs/m²)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <span class="block text-xs font-bold text-slate-700 mb-2">Opsi Tambahan Lapisan & Pembatas:</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <label class="flex items-center gap-2 cursor-pointer font-medium"><input type="checkbox" id="chkPvgPasir" checked class="accent-teal-600 w-4 h-4"> Pasir Alas Bedding Urug (Tebal 5 cm)</label>
+                        <label class="flex items-center gap-2 cursor-pointer font-medium"><input type="checkbox" id="chkPvgKanstin" checked class="accent-teal-600 w-4 h-4"> Kanstin / Pembatas Beton Keliling</label>
+                    </div>
+                </div>
+
+                <button onclick="calcPaving()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-black py-3 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-calculator"></i> Hitung Paving Block & Pasir
+                </button>
+            </div>
+
+            <!-- TAB 9: PASIR & BATU -->
+            <div id="tabPasirBatu" class="tab-content hidden space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Panjang Area (m)</label>
+                        <input type="number" id="pbPanjang" value="5" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Lebar Area (m)</label>
+                        <input type="number" id="pbLebar" value="4" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Tebal Urugan / Lapisan (cm)</label>
+                        <input type="number" id="pbTebal" value="10" min="1" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:bg-white">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Kategori Material Pasir / Batu</label>
+                    <select id="pbJenis" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900">
+                        <option value="pasirUrug">Pasir Urug (Peninggi Lantai / Bedding / Landasan)</option>
+                        <option value="pasirPasang">Pasir Pasang (Adukan Pasang Bata / Keramik / Plaster)</option>
+                        <option value="pasirCorSplit">Paket Cor: Pasir Cor + Batu Koral / Split + Semen PC</option>
+                        <option value="batuKali">Batu Kali / Batu Belah (Material Pondasi)</option>
+                    </select>
+                </div>
+
+                <button onclick="calcPasirBatu()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-black py-3 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-calculator"></i> Hitung Kebutuhan Pasir & Batu
                 </button>
             </div>
         </section>
@@ -481,6 +661,7 @@
         let currentCart = [];
         let selectedMode = 'DISKON_NOTA';
         let currentTrxId = '';
+        let modeDinding = 'ruangan';
 
         window.addEventListener('DOMContentLoaded', () => {
             if (GAS_WEB_APP_URL) loadStoresFromGAS();
@@ -544,92 +725,398 @@
             if (activeBtn) activeBtn.className = 'tab-btn bg-teal-600 text-white font-bold py-2 px-3 rounded-xl shadow-sm flex items-center gap-1.5 whitespace-nowrap';
         }
 
+        function setModeDinding(mode) {
+            modeDinding = mode;
+            const btnRuangan = document.getElementById('btnModeRuangan');
+            const btnLurus = document.getElementById('btnModeLurus');
+            const colLebar = document.getElementById('colDinLebar');
+
+            if (mode === 'ruangan') {
+                btnRuangan.className = 'px-2.5 py-1 rounded-md bg-teal-600 text-white shadow-sm';
+                btnLurus.className = 'px-2.5 py-1 rounded-md text-slate-600';
+                colLebar.classList.remove('hidden');
+            } else {
+                btnLurus.className = 'px-2.5 py-1 rounded-md bg-teal-600 text-white shadow-sm';
+                btnRuangan.className = 'px-2.5 py-1 rounded-md text-slate-600';
+                colLebar.classList.add('hidden');
+            }
+        }
+
         function applyPreset(p, l, t) {
             switchTab('tabDinding');
+            setModeDinding('ruangan');
             document.getElementById('dinPanjang').value = p;
             document.getElementById('dinLebar').value = l;
             document.getElementById('dinTinggi').value = t;
-            alert(`Preset ${p}x${l}x${t}m diterapkan pada Dinding!`);
+            alert(`Preset Ruangan ${p}x${l}x${t}m diterapkan pada Dinding!`);
         }
 
-        // CALCULATORS
+        function applyPresetPagar(p, t) {
+            switchTab('tabDinding');
+            setModeDinding('lurus');
+            document.getElementById('dinPanjang').value = p;
+            document.getElementById('dinTinggi').value = t;
+            alert(`Preset Pagar ${p}x${t}m diterapkan pada Dinding!`);
+        }
+
+        // ==========================================
+        // RUMUS-RUMUS KALKULATOR MATERIAL
+        // ==========================================
+
+        // 1. DINDING, PLESTERAN, ACIAN & CAT
         function calcDinding() {
             const p = parseFloat(document.getElementById('dinPanjang').value) || 0;
-            const l = parseFloat(document.getElementById('dinLebar').value) || 0;
+            const l = (modeDinding === 'ruangan') ? (parseFloat(document.getElementById('dinLebar').value) || 0) : 0;
             const t = parseFloat(document.getElementById('dinTinggi').value) || 0;
+            const pintu = parseFloat(document.getElementById('dinPintu').value) || 0;
+            const jendela = parseFloat(document.getElementById('dinJendela').value) || 0;
             const tebal = document.getElementById('dinTebal').value;
 
-            let keliling = 2 * (p + l);
-            let luas = keliling * t * 1.05;
+            const jmlGunungan = parseFloat(document.getElementById('dinJmlGunungan').value) || 0;
+            const tGunungan = parseFloat(document.getElementById('dinTinggiGunungan').value) || 0;
+
+            let keliling = (modeDinding === 'ruangan') ? (2 * (p + l)) : p;
+            let luasPersegi = keliling * t;
+
+            let alasGunungan = (modeDinding === 'ruangan') ? (l > 0 ? l : p) : p;
+            let luasGunungan = jmlGunungan * (0.5 * alasGunungan * tGunungan);
+
+            let luasKotor = luasPersegi + luasGunungan;
+            let luasPengurang = (pintu * 1.8) + (jendela * 1.2);
+            let luasBersih = Math.max(0, luasKotor - luasPengurang) * 1.05;
 
             let items = [];
-            if (tebal === 'bataMerah') {
-                let pcs = Math.ceil(luas * 70);
-                items.push({ name: '[Dinding] Bata Merah Press', qty: pcs, unit: 'pcs', price: 900, total: pcs * 900 });
-            } else {
-                let m3 = (luas / 13.3).toFixed(1);
-                items.push({ name: `[Dinding] Bata Ringan Hebel ${tebal}cm`, qty: m3, unit: 'm³', price: 650000, total: m3 * 650000 });
+
+            if (luasBersih > 0) {
+                if (tebal === 'bataMerah') {
+                    let qtyBata = Math.ceil(luasBersih * 70);
+                    items.push({ name: '[Dinding] Bata Merah Press / Biasa', qty: qtyBata, unit: 'pcs', price: 900, total: qtyBata * 900 });
+
+                    if (document.getElementById('chkThinbed').checked) {
+                        let sakSemenPC = Math.ceil(luasBersih / 12);
+                        items.push({ name: '[Dinding] Semen PC Pasang Bata (40kg)', qty: sakSemenPC, unit: 'sak', price: 68000, total: sakSemenPC * 68000 });
+
+                        let volPasirPasang = (luasBersih * 0.043).toFixed(2);
+                        items.push({ name: '[Dinding] Pasir Pasang Dinding', qty: volPasirPasang, unit: 'm³', price: 290000, total: volPasirPasang * 290000 });
+                    }
+                } else {
+                    let m2PerM3 = (tebal === '7.5') ? 13.3 : 10;
+                    let pcsPerM3 = (tebal === '7.5') ? 111 : 83;
+                    let volM3 = luasBersih / m2PerM3;
+                    let qtyHebel = Math.ceil(volM3 * 10) / 10;
+                    let estimasiPcs = Math.round(qtyHebel * pcsPerM3);
+                    items.push({ name: `[Dinding] Bata Ringan Hebel ${tebal}cm (± ${estimasiPcs} pcs)`, qty: qtyHebel, unit: 'm³', price: 650000, total: qtyHebel * 650000 });
+
+                    if (document.getElementById('chkThinbed').checked) {
+                        let sakThinbed = Math.ceil(luasBersih / 10);
+                        items.push({ name: '[Dinding] Semen Thinbed Perekat (40kg)', qty: sakThinbed, unit: 'sak', price: 85000, total: sakThinbed * 85000 });
+                    }
+                }
+
+                if (document.getElementById('chkPlester').checked) {
+                    let sakPlester = Math.ceil((luasBersih * 2) / 6);
+                    items.push({ name: '[Dinding] Semen Plesteran (Dua Sisi)', qty: sakPlester, unit: 'sak', price: 55000, total: sakPlester * 55000 });
+                }
+                if (document.getElementById('chkAcian').checked) {
+                    let sakAcian = Math.ceil((luasBersih * 2) / 12);
+                    items.push({ name: '[Dinding] Semen Acian (Dua Sisi)', qty: sakAcian, unit: 'sak', price: 65000, total: sakAcian * 65000 });
+                }
+                if (document.getElementById('chkCat').checked) {
+                    let galonCat = Math.ceil((luasBersih * 2) / 25);
+                    items.push({ name: '[Dinding] Cat Dinding Interior (5kg)', qty: galonCat, unit: 'galon', price: 135000, total: galonCat * 135000 });
+
+                    let galonCatDasar = Math.ceil(luasBersih / 30);
+                    items.push({ name: '[Dinding] Cat Dasar / Alkali Sealer (4kg)', qty: galonCatDasar, unit: 'galon', price: 110000, total: galonCatDasar * 110000 });
+                }
             }
             addToCart(items);
         }
 
+        // 2. KERAMIK & GRANIT
         function calcKeramik() {
             const p = parseFloat(document.getElementById('kerPanjang').value) || 0;
             const l = parseFloat(document.getElementById('kerLebar').value) || 0;
             const uk = document.getElementById('kerUkuran').value;
-            let luas = p * l * 1.05;
+            let luas = (p * l) * 1.05;
 
-            let m2PerDus = uk === '60x60' ? 1.44 : 1.00;
-            let price = uk === '60x60' ? 125000 : (uk === '50x50' ? 75000 : 68000);
-            let dus = Math.ceil(luas / m2PerDus);
+            let m2PerDus = 1.00;
+            let price = 68000;
 
-            addToCart([{ name: `[Keramik] Lantai ${uk}`, qty: dus, unit: 'dus', price: price, total: dus * price }]);
+            if (uk === '20x20') { m2PerDus = 1.00; price = 55000; }
+            else if (uk === '25x25') { m2PerDus = 1.00; price = 60000; }
+            else if (uk === '30x30') { m2PerDus = 0.99; price = 62000; }
+            else if (uk === '40x40') { m2PerDus = 0.96; price = 68000; }
+            else if (uk === '50x50') { m2PerDus = 1.00; price = 75000; }
+            else if (uk === '60x60') { m2PerDus = 1.44; price = 125000; }
+            else if (uk === '80x80') { m2PerDus = 1.92; price = 195000; }
+            else if (uk === '15x60') { m2PerDus = 1.08; price = 110000; }
+
+            let items = [];
+            if (luas > 0) {
+                let dus = Math.ceil(luas / m2PerDus);
+                items.push({ name: `[Keramik] Lantai ${uk}`, qty: dus, unit: 'dus', price: price, total: dus * price });
+
+                if (document.getElementById('chkKerSemenNat').checked) {
+                    let kgNat = Math.ceil(luas / 8);
+                    items.push({ name: '[Keramik] Semen Pengisi Nat (1kg)', qty: kgNat, unit: 'kg', price: 18000, total: kgNat * 18000 });
+                }
+
+                if (document.getElementById('chkKerMortar').checked) {
+                    let sakMortar = Math.ceil(luas / 5);
+                    items.push({ name: '[Keramik] Semen Mortar Perekat (40kg)', qty: sakMortar, unit: 'sak', price: 95000, total: sakMortar * 95000 });
+                }
+            }
+            addToCart(items);
         }
 
+        // 3. PLAFON GYPSUM
         function calcPlafon() {
             const p = parseFloat(document.getElementById('plfPanjang').value) || 0;
             const l = parseFloat(document.getElementById('plfLebar').value) || 0;
             const jenis = document.getElementById('plfJenis').value;
-            let luas = p * l * 1.05;
-            let lbr = Math.ceil(luas / 2.88);
-            let prc = jenis === 'gypsum9mm' ? 65000 : 60000;
-            addToCart([{ name: `[Plafon] Papan ${jenis === 'gypsum9mm' ? 'Gypsum 9mm' : 'GRC 4mm'}`, qty: lbr, unit: 'lembar', price: prc, total: lbr * prc }]);
+            let luas = (p * l) * 1.05;
+
+            let items = [];
+            if (luas > 0) {
+                let lembarBoard = Math.ceil(luas / 2.88);
+                let prcBoard = jenis === 'gypsum9mm' ? 65000 : 60000;
+                let nameBoard = jenis === 'gypsum9mm' ? '[Plafon] Gypsum Board 9mm' : '[Plafon] GRC Board 4mm';
+                items.push({ name: nameBoard, qty: lembarBoard, unit: 'lembar', price: prcBoard, total: lembarBoard * prcBoard });
+
+                if (document.getElementById('chkPlfHollow').checked) {
+                    let btgHollow4 = Math.ceil(luas * 1.1);
+                    items.push({ name: '[Plafon] Hollow Galvanis 4x4 (4m)', qty: btgHollow4, unit: 'batang', price: 32000, total: btgHollow4 * 32000 });
+
+                    let btgHollow2 = Math.ceil(luas * 0.8);
+                    items.push({ name: '[Plafon] Hollow Galvanis 2x4 (4m)', qty: btgHollow2, unit: 'batang', price: 24000, total: btgHollow2 * 24000 });
+                }
+
+                if (document.getElementById('chkPlfSekrup').checked) {
+                    let dusSekrup = Math.ceil(luas / 3);
+                    items.push({ name: '[Plafon] Sekrup Gypsum (Dus/100pcs)', qty: dusSekrup, unit: 'dus', price: 15000, total: dusSekrup * 15000 });
+                }
+
+                if (document.getElementById('chkPlfCompound').checked) {
+                    let sakCmp = Math.ceil(luas / 20);
+                    items.push({ name: '[Plafon] Compound Gypsum (20kg)', qty: sakCmp, unit: 'sak', price: 75000, total: sakCmp * 75000 });
+                }
+            }
+            addToCart(items);
         }
 
+        // 4. PEMBESIAN BETON
         function calcPembesian() {
             const L = parseFloat(document.getElementById('besPanjang').value) || 0;
             const ut = document.getElementById('besUtama').value;
-            let btg = Math.ceil((L * 4 * 1.05) / 12);
-            let prc = ut === 'besi12mm' ? 105000 : (ut === 'besi10mm' ? 72000 : 48000);
-            addToCart([{ name: `[Pembesian] Besi Utama ${ut}`, qty: btg, unit: 'batang', price: prc, total: btg * prc }]);
+            const bg = document.getElementById('besBegel').value;
+            const jarakCm = parseFloat(document.getElementById('besJarak').value) || 15;
+
+            let items = [];
+            if (L > 0) {
+                let totalMUtama = L * 4 * 1.05;
+                let btgUtama = Math.ceil(totalMUtama / 12);
+                let prcUtama = ut === 'besi12mm' ? 105000 : (ut === 'besi10mm' ? 72000 : 48000);
+                let lblUtama = ut === 'besi12mm' ? '12mm' : (ut === 'besi10mm' ? '10mm' : '8mm');
+                items.push({ name: `[Pembesian] Besi Utama Ø ${lblUtama} SNI`, qty: btgUtama, unit: 'batang', price: prcUtama, total: btgUtama * prcUtama });
+
+                let jmlBegel = Math.ceil(L / (jarakCm / 100));
+                let totalMBegel = jmlBegel * 0.6 * 1.05;
+                let btgBegel = Math.ceil(totalMBegel / 12);
+                let prcBegel = bg === 'besi8mm' ? 48000 : 28000;
+                let lblBegel = bg === 'besi8mm' ? '8mm' : '6mm';
+                items.push({ name: `[Pembesian] Besi Begel / Sengkang Ø ${lblBegel}`, qty: btgBegel, unit: 'batang', price: prcBegel, total: btgBegel * prcBegel });
+
+                if (document.getElementById('chkBesBendrat').checked) {
+                    let kgBendrat = Math.ceil(L * 0.05);
+                    items.push({ name: '[Pembesian] Kawat Beton / Bendrat', qty: kgBendrat, unit: 'kg', price: 22000, total: kgBendrat * 22000 });
+                }
+            }
+            addToCart(items);
         }
 
+        // 5. ATAP & RANGKA
         function calcAtap() {
             const p = parseFloat(document.getElementById('atpPanjang').value) || 0;
             const l = parseFloat(document.getElementById('atpLebar').value) || 0;
-            let luas = p * l * 1.15;
-            let pcs = Math.ceil(luas * 14);
-            addToCart([{ name: '[Atap] Genteng Utama', qty: pcs, unit: 'pcs', price: 11500, total: pcs * 11500 }]);
+            const o = parseFloat(document.getElementById('atpOvertek').value) || 0.8;
+            const s = parseFloat(document.getElementById('atpSudut').value) || 30;
+            const jG = document.getElementById('atpJenis').value;
+            const nok = parseFloat(document.getElementById('atpNok').value) || 0;
+
+            let pTot = p + (2 * o);
+            let lTot = l + (2 * o);
+            let rad = s * (Math.PI / 180);
+            let luasMiring = ((pTot * lTot) / Math.cos(rad)) * 1.05;
+
+            let items = [];
+            if (luasMiring > 0) {
+                let rateGen = 14;
+                let prcGen = 11500;
+                let nameGen = '[Atap] Genteng Keramik';
+                let unitGen = 'pcs';
+
+                if (jG === 'gtgKeramik') { rateGen = 14; prcGen = 11500; nameGen = '[Atap] Genteng Keramik'; }
+                else if (jG === 'gtgBeton') { rateGen = 10; prcGen = 9500; nameGen = '[Atap] Genteng Beton'; }
+                else if (jG === 'gtgMetal') { rateGen = 1.6; prcGen = 45000; nameGen = '[Atap] Genteng Metal Pasir'; unitGen = 'lembar'; }
+                else if (jG === 'gtgMorando') { rateGen = 18; prcGen = 4800; nameGen = '[Atap] Genteng Morando'; }
+                else if (jG === 'gtgTanah') { rateGen = 25; prcGen = 3200; nameGen = '[Atap] Genteng Tanah Liat'; }
+
+                let qtyGen = Math.ceil(luasMiring * rateGen);
+                items.push({ name: nameGen, qty: qtyGen, unit: unitGen, price: prcGen, total: qtyGen * prcGen });
+
+                if (nok > 0) {
+                    let pcsNok = Math.ceil(nok * 3.5);
+                    items.push({ name: '[Atap] Genteng Nok / Bubungan', qty: pcsNok, unit: 'pcs', price: 16000, total: pcsNok * 16000 });
+                }
+
+                if (document.getElementById('chkAtpBajaRingan').checked) {
+                    let btgC75 = Math.ceil(luasMiring * 0.8);
+                    items.push({ name: '[Atap] Baja Ringan Kanal C75 (6m)', qty: btgC75, unit: 'batang', price: 95000, total: btgC75 * 95000 });
+
+                    let btgReng = Math.ceil(luasMiring * 1.2);
+                    items.push({ name: '[Atap] Reng Baja Ringan (6m)', qty: btgReng, unit: 'batang', price: 48000, total: btgReng * 48000 });
+
+                    let pcsBaut = Math.ceil(luasMiring * 20);
+                    items.push({ name: '[Atap] Baut Roofing', qty: pcsBaut, unit: 'pcs', price: 350, total: pcsBaut * 350 });
+                }
+            }
+            addToCart(items);
         }
 
+        // 6. COR DAK BETON
         function calcBeton() {
             const p = parseFloat(document.getElementById('btnPanjang').value) || 0;
             const l = parseFloat(document.getElementById('btnLebar').value) || 0;
             const t = (parseFloat(document.getElementById('btnTebal').value) || 12) / 100;
             let vol = p * l * t * 1.05;
-            let sak = Math.ceil(vol * 9.2);
-            addToCart([{ name: '[Cor Dak] Semen PC (40kg)', qty: sak, unit: 'sak', price: 68000, total: sak * 68000 }]);
+
+            let items = [];
+            if (vol > 0) {
+                let sakSemen = Math.ceil(vol * 9.275);
+                items.push({ name: '[Cor Dak] Semen PC (40kg)', qty: sakSemen, unit: 'sak', price: 68000, total: sakSemen * 68000 });
+
+                let volPasir = (vol * 0.49).toFixed(2);
+                items.push({ name: '[Cor Dak] Pasir Cor', qty: volPasir, unit: 'm³', price: 320000, total: volPasir * 320000 });
+
+                let volSplit = (vol * 0.77).toFixed(2);
+                items.push({ name: '[Cor Dak] Koral / Split', qty: volSplit, unit: 'm³', price: 340000, total: volSplit * 340000 });
+
+                if (document.getElementById('chkBtnWiremesh').checked) {
+                    let lbrWm = Math.ceil((p * l * 1.05) / 11.34);
+                    items.push({ name: '[Cor Dak] Besi Wiremesh M8', qty: lbrWm, unit: 'lembar', price: 580000, total: lbrWm * 580000 });
+                }
+            }
+            addToCart(items);
         }
 
+        // 7. PONDASI BATU KALI
         function calcPondasi() {
             const p = parseFloat(document.getElementById('ponPanjang').value) || 0;
             const a = parseFloat(document.getElementById('ponAtas').value) || 0.3;
             const b = parseFloat(document.getElementById('ponBawah').value) || 0.6;
             const h = parseFloat(document.getElementById('ponTinggi').value) || 0.6;
-            let vol = ((a + b) / 2) * h * p * 1.05;
-            let m3 = vol.toFixed(1);
-            addToCart([{ name: '[Pondasi] Batu Kali / Belah', qty: m3, unit: 'm³', price: 280000, total: m3 * 280000 }]);
+            const cmp = document.getElementById('ponCampuran').value;
+
+            let volUtama = ((a + b) / 2) * h * p * 1.05;
+
+            let items = [];
+            if (volUtama > 0) {
+                let volBatu = (volUtama * 1.2).toFixed(2);
+                items.push({ name: '[Pondasi] Batu Kali / Batu Belah', qty: volBatu, unit: 'm³', price: 280000, total: volBatu * 280000 });
+
+                let rateSem = (cmp === '1pc4ps') ? 4.08 : 3.4;
+                let sakSem = Math.ceil(volUtama * rateSem);
+                items.push({ name: '[Pondasi] Semen PC (40kg)', qty: sakSem, unit: 'sak', price: 68000, total: sakSem * 68000 });
+
+                let volPasir = (volUtama * 0.52).toFixed(2);
+                items.push({ name: '[Pondasi] Pasir Pasang', qty: volPasir, unit: 'm³', price: 290000, total: volPasir * 290000 });
+
+                if (document.getElementById('chkPondasiAan').checked) {
+                    let volAan = (0.15 * b * p * 1.05 * 1.1).toFixed(2);
+                    items.push({ name: '[Pondasi] Batu Kosong / Aanstamping', qty: volAan, unit: 'm³', price: 280000, total: volAan * 280000 });
+                }
+
+                if (document.getElementById('chkPondasiPasir').checked) {
+                    let volPasUrug = (0.05 * b * p * 1.05 * 1.1).toFixed(2);
+                    items.push({ name: '[Pondasi] Pasir Urug Alas Bedding', qty: volPasUrug, unit: 'm³', price: 220000, total: volPasUrug * 220000 });
+                }
+            }
+            addToCart(items);
         }
+
+        // 8. PAVING BLOCK
+        function calcPaving() {
+            const p = parseFloat(document.getElementById('pvgPanjang').value) || 0;
+            const l = parseFloat(document.getElementById('pvgLebar').value) || 0;
+            const model = document.getElementById('pvgModel').value;
+
+            let luas = (p * l) * 1.05;
+            let items = [];
+
+            if (luas > 0) {
+                let ratePvg = 44;
+                let prcPvg = 2500;
+                let namePvg = '[Paving] Paving Block Bata 10x20 cm';
+
+                if (model === 'bata') { ratePvg = 44; prcPvg = 2500; namePvg = '[Paving] Paving Block Bata 10x20 cm'; }
+                else if (model === 'hexagon') { ratePvg = 27; prcPvg = 3500; namePvg = '[Paving] Paving Segienam Hexagon'; }
+                else if (model === 'cacing') { ratePvg = 39; prcPvg = 3000; namePvg = '[Paving] Paving Cacing / Wave'; }
+                else if (model === 'rumput') { ratePvg = 8; prcPvg = 18000; namePvg = '[Paving] Grass Block / Paving Rumput'; }
+
+                let qtyPvg = Math.ceil(luas * ratePvg);
+                items.push({ name: namePvg, qty: qtyPvg, unit: 'pcs', price: prcPvg, total: qtyPvg * prcPvg });
+
+                if (document.getElementById('chkPvgPasir').checked) {
+                    let volPasir = (luas * 0.05 * 1.1).toFixed(2);
+                    items.push({ name: '[Paving] Pasir Urug Alas Bedding (Tebal 5cm)', qty: volPasir, unit: 'm³', price: 220000, total: volPasir * 220000 });
+                }
+
+                if (document.getElementById('chkPvgKanstin').checked) {
+                    let keliling = 2 * (p + l);
+                    let pcsKanstin = Math.ceil(keliling / 0.4);
+                    items.push({ name: '[Paving] Kanstin / Pembatas Beton Pinggir', qty: pcsKanstin, unit: 'pcs', price: 25000, total: pcsKanstin * 25000 });
+                }
+            }
+            addToCart(items);
+        }
+
+        // 9. PASIR & BATU
+        function calcPasirBatu() {
+            const p = parseFloat(document.getElementById('pbPanjang').value) || 0;
+            const l = parseFloat(document.getElementById('pbLebar').value) || 0;
+            const t = (parseFloat(document.getElementById('pbTebal').value) || 10) / 100;
+            const jenis = document.getElementById('pbJenis').value;
+
+            let vol = p * l * t * 1.1;
+            let items = [];
+
+            if (vol > 0) {
+                if (jenis === 'pasirUrug') {
+                    let volUrug = vol.toFixed(2);
+                    items.push({ name: '[Pasir] Pasir Urug Peninggi Lantai / Bedding', qty: volUrug, unit: 'm³', price: 220000, total: volUrug * 220000 });
+                } else if (jenis === 'pasirPasang') {
+                    let volPasang = vol.toFixed(2);
+                    items.push({ name: '[Pasir] Pasir Pasang Dinding / Keramik', qty: volPasang, unit: 'm³', price: 290000, total: volPasang * 290000 });
+                } else if (jenis === 'pasirCorSplit') {
+                    let volPasCor = (vol * 0.5).toFixed(2);
+                    items.push({ name: '[Cor Paket] Pasir Cor Halus', qty: volPasCor, unit: 'm³', price: 320000, total: volPasCor * 320000 });
+
+                    let volSplit = (vol * 0.8).toFixed(2);
+                    items.push({ name: '[Cor Paket] Batu Koral / Split', qty: volSplit, unit: 'm³', price: 340000, total: volSplit * 340000 });
+
+                    let sakSem = Math.ceil(vol * 8);
+                    items.push({ name: '[Cor Paket] Semen PC (40kg)', qty: sakSem, unit: 'sak', price: 68000, total: sakSem * 68000 });
+                } else if (jenis === 'batuKali') {
+                    let volBatu = (vol * 1.1).toFixed(2);
+                    items.push({ name: '[Batu] Batu Kali / Batu Belah', qty: volBatu, unit: 'm³', price: 280000, total: volBatu * 280000 });
+                }
+            }
+            addToCart(items);
+        }
+
+        // ==========================================
+        // MANAJEMEN PENAWARAN (CART)
+        // ==========================================
 
         function addToCart(items) {
             items.forEach(it => currentCart.push(it));
@@ -748,13 +1235,9 @@
         }
 
         function shareWA() {
-            let text = `*PENAWARAN MITRA BANGUNAN*
-Kode QR: ${currentTrxId || 'MB-XXXXXX'}
-`;
-            text += `Toko: ${document.getElementById('dispCartStoreName').innerText}
-`;
-            text += `Total: ${document.getElementById('cartGrandTotal').innerText}
-`;
+            let text = `*PENAWARAN MITRA BANGUNAN*\nKode QR: ${currentTrxId || 'MB-XXXXXX'}\n`;
+            text += `Toko: ${document.getElementById('dispCartStoreName').innerText}\n`;
+            text += `Total: ${document.getElementById('cartGrandTotal').innerText}\n`;
             window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
         }
 
