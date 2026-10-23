@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mitra Bangunan - Kalkulator Material & Diskon Toko</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- QRCode JS Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        pastel: {
+                            mint: '#E6F4F1',
+                            emerald: '#10B981',
+                            darkEmerald: '#065F46',
+                            sage: '#D1E7DD',
+                            amber: '#FEF3C7',
+                            darkAmber: '#D97706',
+                            rose: '#FFE4E6',
+                            sky: '#E0F2FE',
+                            slate: '#1E293B'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; }
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 999px; }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen pb-16">
+
+    <!-- HEADER / TOP NAV -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+                <div class="w-10 h-10 rounded-2xl bg-teal-500 text-white flex items-center justify-center font-black text-xl shadow-md">
+                    <i class="fa-solid fa-calculator"></i>
+                </div>
+                <div>
+                    <h1 class="font-black text-lg text-slate-900 leading-tight flex items-center gap-2">
+                        Mitra Bangunan
+                        <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200">100% GRATIS</span>
+                    </h1>
+                    <p class="text-xs text-slate-500">Kalkulator Material & Diskon Toko Mitra</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button onclick="openConfigModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 border border-slate-200">
+                    <i class="fa-solid fa-gear text-teal-600"></i> <span class="hidden sm:inline">Set API Web App</span>
+                </button>
+                <button onclick="openModal('modalCart')" class="bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-2 relative">
+                    <i class="fa-solid fa-file-invoice text-sm"></i>
+                    <span>Penawaran</span>
+                    <span id="cartBadge" class="bg-amber-400 text-slate-950 text-[11px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-sm">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTAINER UTAMA -->
+    <main class="max-w-6xl mx-auto px-4 mt-4 space-y-4 no-print">
+
+        <!-- STEP 1: PILIH TOKO MITRA & MODE INSENTIF -->
+        <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 space-y-4">
+            <div class="flex items-center gap-2 border-b border-slate-100 pb-2.5">
+                <span class="w-6 h-6 rounded-full bg-teal-100 text-teal-700 text-xs font-extrabold flex items-center justify-center">1</span>
+                <h2 class="font-extrabold text-sm sm:text-base text-slate-900">Pilih Toko Mitra & Mode Insentif</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Select Toko Mitra -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Toko Bangunan Tujuan</label>
+                    <div class="relative">
+                        <select id="selectStore" onchange="onStoreChange()" class="w-full bg-slate-50 border border-slate-300 text-slate-900 text-xs sm:text-sm font-bold rounded-xl p-3 appearance-none focus:bg-white focus:border-teal-600 focus:outline-none transition">
+                            <option value="">-- Muat Toko Mitra... --</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-3.5 top-3.5 text-slate-400 pointer-events-none text-xs"></i>
+                    </div>
+                    <p id="storeAddressHint" class="text-[11px] text-slate-500 mt-1 italic"><i class="fa-solid fa-location-dot text-teal-600"></i> Memuat daftar toko...</p>
+                </div>
+
+                <!-- Mode Insentif Cards -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Pilih Mode Manfaat / Diskon</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <!-- Mode A: Pemilik Rumah -->
+                        <label id="cardModeNota" onclick="selectMode('DISKON_NOTA')" class="cursor-pointer border-2 border-teal-500 bg-teal-50/60 p-2.5 rounded-xl flex flex-col justify-between transition hover:border-teal-600">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-extrabold uppercase text-teal-800 bg-teal-200 px-1.5 py-0.5 rounded">Pemilik Rumah</span>
+                                <input type="radio" name="modeIncentive" value="DISKON_NOTA" checked class="accent-teal-600 w-4 h-4">
+                            </div>
+                            <strong class="text-xs text-slate-900 font-bold block">Diskon Nota 1,0%</strong>
+                            <p class="text-[10px] text-slate-600 leading-tight">Harga di nota langsung dipotong kasir toko.</p>
+                        </label>
+
+                        <!-- Mode B: Tukang / Broker -->
+                        <label id="cardModeCashback" onclick="selectMode('CASHBACK_TUKANG')" class="cursor-pointer border-2 border-slate-200 bg-slate-50 p-2.5 rounded-xl flex flex-col justify-between transition hover:border-amber-400">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-extrabold uppercase text-amber-800 bg-amber-200 px-1.5 py-0.5 rounded">Tukang / Broker</span>
+                                <input type="radio" name="modeIncentive" value="CASHBACK_TUKANG" class="accent-amber-600 w-4 h-4">
+                            </div>
+                            <strong class="text-xs text-slate-900 font-bold block">Komisi Tunai 1,0%</strong>
+                            <p class="text-[10px] text-slate-600 leading-tight">Nota utuh untuk klien + komisi cair dari kasir.</p>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Identitas Pelanggan -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Pemesan / Proyek</label>
+                    <input type="text" id="custName" placeholder="Contoh: Pak Budi (Rumah 2 Lantai)" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900 focus:bg-white focus:border-teal-600 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">No. WhatsApp</label>
+                    <input type="text" id="custPhone" placeholder="Contoh: 081234567890" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900 focus:bg-white focus:border-teal-600 focus:outline-none">
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP 2: KALKULATOR MATERIAL (7 TAB) -->
+        <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2.5 flex-wrap gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-teal-100 text-teal-700 text-xs font-extrabold flex items-center justify-center">2</span>
+                    <h2 class="font-extrabold text-sm sm:text-base text-slate-900">Hitung Material Bangunan</h2>
+                </div>
+                <!-- Preset Cepat -->
+                <div class="flex items-center gap-1.5 flex-wrap text-xs">
+                    <span class="text-slate-400 font-bold text-[11px]"><i class="fa-solid fa-bolt text-amber-500"></i> Preset:</span>
+                    <button onclick="applyPreset(3, 3, 3)" class="bg-slate-100 hover:bg-teal-50 text-slate-700 font-semibold px-2 py-1 rounded-lg border border-slate-200">Kamar 3×3m</button>
+                    <button onclick="applyPreset(4, 6, 3.5)" class="bg-slate-100 hover:bg-teal-50 text-slate-700 font-semibold px-2 py-1 rounded-lg border border-slate-200">Rumah 4×6m</button>
+                </div>
+            </div>
+
+            <!-- Tab Buttons Nav -->
+            <nav class="flex gap-1.5 overflow-x-auto pb-2 custom-scroll text-xs">
+                <button onclick="switchTab('tabDinding')" id="btnTabDinding" class="tab-btn bg-teal-600 text-white font-bold py-2 px-3 rounded-xl shadow-sm flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-cubes"></i> 1. Dinding & Cat
+                </button>
+                <button onclick="switchTab('tabKeramik')" id="btnTabKeramik" class="tab-btn bg-slate-100 text-slate-700 font-semibold py-2 px-3 rounded-xl border border-slate-200 flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-border-all text-teal-600"></i> 2. Keramik
+                </button>
+                <button onclick="switchTab('tabPlafon')" id="btnTabPlafon" class="tab-btn bg-slate-100 text-slate-700 font-semibold py-2 px-3 rounded-xl border border-slate-200 flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-vector-square text-amber-500"></i> 3. Plafon
+                </button>
+                <button onclick="switchTab('tabPembesian')" id="btnTabPembesian" class="tab-btn bg-slate-100 text-slate-700 font-semibold py-2 px-3 rounded-xl border border-slate-200 flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-bars-staggered text-blue-500"></i> 4. Besi Beton
+                </button>
+                <button onclick="switchTab('tabAtap')" id="btnTabAtap" class="tab-btn bg-slate-100 text-slate-700 font-semibold py-2 px-3 rounded-xl border border-slate-200 flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-house-chimney text-amber-600"></i> 5. Atap
+                </button>
+                <button onclick="switchTab('tabBeton')" id="btnTabBeton" class="tab-btn bg-slate-100 text-slate-700 font-semibold py-2 px-3 rounded-xl border border-slate-200 flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-layer-group text-slate-600"></i> 6. Cor Dak
+                </button>
+                <button onclick="switchTab('tabPondasi')" id="btnTabPondasi" class="tab-btn bg-slate-100 text-slate-700 font-semibold py-2 px-3 rounded-xl border border-slate-200 flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-monument text-slate-600"></i> 7. Pondasi
+                </button>
+            </nav>
+
+            <!-- TAB 1: DINDING -->
+            <div id="tabDinding" class="tab-content space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Panjang Bangunan (m)</label>
+                        <input type="number" id="dinPanjang" value="6" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:bg-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Lebar Ruangan (m)</label>
+                        <input type="number" id="dinLebar" value="4" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:bg-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Tinggi Dinding (m)</label>
+                        <input type="number" id="dinTinggi" value="3.5" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:bg-white focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Jenis Bata</label>
+                        <select id="dinTebal" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900 focus:outline-none">
+                            <option value="7.5">Bata Ringan 7.5 cm (Rp 650.000/m³)</option>
+                            <option value="10">Bata Ringan 10 cm (Rp 650.000/m³)</option>
+                            <option value="bataMerah">Bata Merah Press (Rp 900/pcs)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Jumlah Pintu</label>
+                        <input type="number" id="dinPintu" value="1" min="0" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Jumlah Jendela</label>
+                        <input type="number" id="dinJendela" value="2" min="0" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:outline-none">
+                    </div>
+                </div>
+
+                <button onclick="calcDinding()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-black py-3 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-calculator"></i> Hitung Material Dinding & Cat
+                </button>
+            </div>
+
+            <!-- TAB 2: KERAMIK -->
+            <div id="tabKeramik" class="tab-content hidden space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Panjang Ruangan (m)</label>
+                        <input type="number" id="kerPanjang" value="6" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Lebar Ruangan (m)</label>
+                        <input type="number" id="kerLebar" value="4" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Ukuran Keramik / Granit</label>
+                        <select id="kerUkuran" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900">
+                            <option value="40x40">Keramik 40×40 cm (Rp 68.000/dus)</option>
+                            <option value="50x50">Keramik 50×50 cm (Rp 75.000/dus)</option>
+                            <option value="60x60" selected>Granit 60×60 cm (Rp 125.000/dus)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="calcKeramik()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-black py-3 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-calculator"></i> Hitung Material Keramik
+                </button>
+            </div>
+
+            <!-- TAB 3: PLAFON -->
+            <div id="tabPlafon" class="tab-content hidden space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Panjang Ruangan (m)</label>
+                        <input type="number" id="plfPanjang" value="6" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Lebar Ruangan (m)</label>
+                        <input type="number" id="plfLebar" value="4" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Jenis Papan</label>
+                        <select id="plfJenis" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900">
+                            <option value="gypsum9mm">Gypsum Board 9mm (Rp 65.000/lbr)</option>
+                            <option value="grc4mm">GRC Board 4mm (Rp 60.000/lbr)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="calcPlafon()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-black py-3 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-calculator"></i> Hitung Plafon & Rangka
+                </button>
+            </div>
+
+            <!-- TAB 4: BESI BETON -->
+            <div id="tabPembesian" class="tab-content hidden space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Panjang Struktur (m)</label>
+                        <input type="number" id="besPanjang" value="20" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Besi Utama (4 btg)</label>
+                        <select id="besUtama" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900">
+                            <option value="besi8mm">Besi Ø 8mm SNI (Rp 48.000)</option>
+                            <option value="besi10mm" selected>Besi Ø 10mm SNI (Rp 72.000)</option>
+                            <option value="besi12mm">Besi Ø 12mm SNI (Rp 105.000)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Jarak Begel (cm)</label>
+                        <input type="number" id="besJarak" value="15" min="5" max="50" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
+                    </div>
+                </div>
+
+                <button onclick="calcPembesian()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-black py-3 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-calculator"></i> Hitung Besi Beton
+                </button>
+            </div>
+
+            <!-- TAB 5: ATAP -->
+            <div id="tabAtap" class="tab-content hidden space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Panjang Bangunan (m)</label>
+                        <input type="number" id="atpPanjang" value="8" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Lebar Bangunan (m)</label>
+                        <input type="number" id="atpLebar" value="6" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Jenis Genteng</label>
+                        <select id="atpJenis" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900">
+                            <option value="gtgKeramik">Genteng Keramik (Rp 11.500/pcs)</option>
+                            <option value="gtgBeton">Genteng Beton (Rp 9.500/pcs)</option>
+                            <option value="gtgMetal">Genteng Metal Pasir (Rp 45.000/lbr)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="calcAtap()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-black py-3 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-calculator"></i> Hitung Atap & Rangka
+                </button>
+            </div>
+
+            <!-- TAB 6: COR DAK -->
+            <div id="tabBeton" class="tab-content hidden space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Panjang Dak (m)</label>
+                        <input type="number" id="btnPanjang" value="6" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Lebar Dak (m)</label>
+                        <input type="number" id="btnLebar" value="4" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Tebal Dak (cm)</label>
+                        <input type="number" id="btnTebal" value="12" min="5" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
+                    </div>
+                </div>
+
+                <button onclick="calcBeton()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-black py-3 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-calculator"></i> Hitung Material Cor Dak
+                </button>
+            </div>
+
+            <!-- TAB 7: PONDASI -->
+            <div id="tabPondasi" class="tab-content hidden space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Panjang Pondasi (m)</label>
+                        <input type="number" id="ponPanjang" value="25" min="0" step="any" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Lebar Atas / Bawah (m)</label>
+                        <div class="grid grid-cols-2 gap-1">
+                            <input type="number" id="ponAtas" value="0.3" step="0.1" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-xs font-bold">
+                            <input type="number" id="ponBawah" value="0.6" step="0.1" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-xs font-bold">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Tinggi (m)</label>
+                        <input type="number" id="ponTinggi" value="0.6" step="0.1" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900">
+                    </div>
+                </div>
+
+                <button onclick="calcPondasi()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-black py-3 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-calculator"></i> Hitung Material Pondasi
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODAL PENAWARAN & GENERATE QR -->
+    <div id="modalCart" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden">
+            <div class="bg-slate-900 text-white p-4 flex justify-between items-center">
+                <h3 class="font-extrabold text-sm sm:text-base flex items-center gap-2">
+                    <i class="fa-solid fa-qrcode text-amber-400"></i> Invoice Penawaran & QR Code Diskon
+                </h3>
+                <button onclick="closeModal('modalCart')" class="text-slate-400 hover:text-white text-2xl font-bold">&times;</button>
+            </div>
+
+            <div class="p-4 sm:p-6 overflow-y-auto space-y-4 text-xs sm:text-sm">
+                <!-- Info Toko & Mode -->
+                <div class="bg-teal-50 border border-teal-200 rounded-2xl p-3 flex justify-between items-center flex-wrap gap-2">
+                    <div>
+                        <span class="text-[10px] font-bold text-teal-700 uppercase tracking-wider block">Toko Bangunan Tujuan</span>
+                        <strong id="dispCartStoreName" class="text-slate-900 text-sm block">-- Belum Dipilih --</strong>
+                        <span id="dispCartModeBadge" class="bg-teal-200 text-teal-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full inline-block mt-1">Diskon Nota 1,0%</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase block">Pemesan</span>
+                        <strong id="dispCartCustName" class="text-slate-900 font-bold">Umum</strong>
+                    </div>
+                </div>
+
+                <!-- Tabel Item -->
+                <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-100 font-bold text-slate-700 border-b border-slate-200">
+                            <tr>
+                                <th class="p-2">Material</th>
+                                <th class="p-2 text-center">Jumlah</th>
+                                <th class="p-2 text-right">Harga</th>
+                                <th class="p-2 text-right">Total</th>
+                                <th class="p-2 text-center">#</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cartTableBody" class="divide-y divide-slate-100 font-medium">
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Calculation Summary -->
+                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-1.5">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="font-semibold text-slate-600">Subtotal Belanja:</span>
+                        <span id="cartSubtotal" class="font-bold text-slate-900">Rp 0</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs">
+                        <span id="cartIncentiveLabel" class="font-bold text-emerald-700">Diskon Nota (1,0%):</span>
+                        <span id="cartIncentiveVal" class="font-bold text-emerald-700">-Rp 0</span>
+                    </div>
+                    <div class="pt-2 border-t border-slate-300 flex justify-between items-center font-extrabold text-sm sm:text-base">
+                        <span class="text-slate-900">GRAND TOTAL:</span>
+                        <span id="cartGrandTotal" class="text-teal-700">Rp 0</span>
+                    </div>
+                </div>
+
+                <!-- QR CODE DISPLAY AREA -->
+                <div id="qrContainerArea" class="bg-white border-2 border-dashed border-teal-300 rounded-2xl p-4 text-center space-y-2">
+                    <div id="qrCodeBox" class="flex justify-center my-2"></div>
+                    <strong id="qrTrxIdText" class="text-sm font-black text-slate-900 block tracking-wider">MB-XXXXXX</strong>
+                    <p id="qrInstructionText" class="text-xs text-slate-600 font-medium max-w-md mx-auto">
+                        Tunjukkan QR Code ini ke Kasir Toko Bangunan Mitra untuk klaim diskon / komisi Anda.
+                    </p>
+                </div>
+            </div>
+
+            <div class="bg-slate-100 p-3.5 border-t border-slate-200 flex flex-wrap justify-between items-center gap-2">
+                <button onclick="clearCart()" class="text-red-600 hover:text-red-700 font-bold text-xs px-3 py-2">Kosongkan</button>
+                <div class="flex gap-2">
+                    <button onclick="generateQRInvoice()" class="bg-teal-600 hover:bg-teal-700 text-white font-black text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-qrcode"></i> Generate QR
+                    </button>
+                    <button onclick="shareWA()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl transition flex items-center gap-1">
+                        <i class="fa-brands fa-whatsapp"></i> Kirim WA
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFIG API MODAL -->
+    <div id="modalConfig" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl p-5 shadow-2xl space-y-4">
+            <h3 class="font-extrabold text-base text-slate-900 flex items-center gap-2">
+                <i class="fa-solid fa-gear text-teal-600"></i> Pengaturan Web App URL (GAS)
+            </h3>
+            <p class="text-xs text-slate-500">Masukkan Google Apps Script Web App URL agar aplikasi terhubung dengan database Google Sheets Anda.</p>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Web App URL</label>
+                <input type="text" id="cfgGasUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-semibold focus:outline-none focus:border-teal-600">
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeModal('modalConfig')" class="bg-slate-200 text-slate-700 font-bold px-3 py-2 rounded-xl text-xs">Batal</button>
+                <button onclick="saveConfigUrl()" class="bg-teal-600 text-white font-bold px-4 py-2 rounded-xl text-xs shadow">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let GAS_WEB_APP_URL = localStorage.getItem('mb_gas_url') || '';
+        let storesList = [
+            { id: 'TOKO-001', name: 'TB. Maju Jaya Makmur', address: 'Jl. Raya Bangunan No. 88', wa: '081234567890' },
+            { id: 'TOKO-002', name: 'TB. Sumber Rezeki', address: 'Jl. Industri No. 12', wa: '081987654321' }
+        ];
+
+        let currentCart = [];
+        let selectedMode = 'DISKON_NOTA';
+        let currentTrxId = '';
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (GAS_WEB_APP_URL) loadStoresFromGAS();
+            else renderStoresDropdown();
+        });
+
+        function selectMode(mode) {
+            selectedMode = mode;
+            const cardNota = document.getElementById('cardModeNota');
+            const cardCashback = document.getElementById('cardModeCashback');
+
+            if (mode === 'DISKON_NOTA') {
+                cardNota.className = "cursor-pointer border-2 border-teal-500 bg-teal-50/60 p-2.5 rounded-xl flex flex-col justify-between transition";
+                cardCashback.className = "cursor-pointer border-2 border-slate-200 bg-slate-50 p-2.5 rounded-xl flex flex-col justify-between transition";
+            } else {
+                cardCashback.className = "cursor-pointer border-2 border-amber-500 bg-amber-50/60 p-2.5 rounded-xl flex flex-col justify-between transition";
+                cardNota.className = "cursor-pointer border-2 border-slate-200 bg-slate-50 p-2.5 rounded-xl flex flex-col justify-between transition";
+            }
+            renderCartModal();
+        }
+
+        async function loadStoresFromGAS() {
+            try {
+                const res = await fetch(`${GAS_WEB_APP_URL}?action=getStores`);
+                const data = await res.json();
+                if (data.success && data.stores.length > 0) {
+                    storesList = data.stores;
+                }
+            } catch(e) { console.log('Gagal memuat toko dari GAS, pakai fallback local'); }
+            renderStoresDropdown();
+        }
+
+        function renderStoresDropdown() {
+            const select = document.getElementById('selectStore');
+            select.innerHTML = '<option value="">-- Pilih Toko Bangunan Mitra --</option>';
+            storesList.forEach(s => {
+                select.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+            });
+            if (storesList.length > 0) {
+                select.value = storesList[0].id;
+                onStoreChange();
+            }
+        }
+
+        function onStoreChange() {
+            const val = document.getElementById('selectStore').value;
+            const store = storesList.find(s => s.id === val);
+            const hint = document.getElementById('storeAddressHint');
+            if (store) hint.innerHTML = `<i class="fa-solid fa-location-dot text-teal-600"></i> ${store.address} (WA: ${s.wa || '-'})`;
+            else hint.innerHTML = 'Silakan pilih toko bangunan.';
+            renderCartModal();
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = 'tab-btn bg-slate-100 text-slate-700 font-semibold py-2 px-3 rounded-xl border border-slate-200 flex items-center gap-1.5 whitespace-nowrap';
+            });
+            document.getElementById(tabId).classList.remove('hidden');
+            const activeBtn = document.getElementById('btn' + tabId.charAt(0).toUpperCase() + tabId.slice(1));
+            if (activeBtn) activeBtn.className = 'tab-btn bg-teal-600 text-white font-bold py-2 px-3 rounded-xl shadow-sm flex items-center gap-1.5 whitespace-nowrap';
+        }
+
+        function applyPreset(p, l, t) {
+            switchTab('tabDinding');
+            document.getElementById('dinPanjang').value = p;
+            document.getElementById('dinLebar').value = l;
+            document.getElementById('dinTinggi').value = t;
+            alert(`Preset ${p}x${l}x${t}m diterapkan pada Dinding!`);
+        }
+
+        // CALCULATORS
+        function calcDinding() {
+            const p = parseFloat(document.getElementById('dinPanjang').value) || 0;
+            const l = parseFloat(document.getElementById('dinLebar').value) || 0;
+            const t = parseFloat(document.getElementById('dinTinggi').value) || 0;
+            const tebal = document.getElementById('dinTebal').value;
+
+            let keliling = 2 * (p + l);
+            let luas = keliling * t * 1.05;
+
+            let items = [];
+            if (tebal === 'bataMerah') {
+                let pcs = Math.ceil(luas * 70);
+                items.push({ name: '[Dinding] Bata Merah Press', qty: pcs, unit: 'pcs', price: 900, total: pcs * 900 });
+            } else {
+                let m3 = (luas / 13.3).toFixed(1);
+                items.push({ name: `[Dinding] Bata Ringan Hebel ${tebal}cm`, qty: m3, unit: 'm³', price: 650000, total: m3 * 650000 });
+            }
+            addToCart(items);
+        }
+
+        function calcKeramik() {
+            const p = parseFloat(document.getElementById('kerPanjang').value) || 0;
+            const l = parseFloat(document.getElementById('kerLebar').value) || 0;
+            const uk = document.getElementById('kerUkuran').value;
+            let luas = p * l * 1.05;
+
+            let m2PerDus = uk === '60x60' ? 1.44 : 1.00;
+            let price = uk === '60x60' ? 125000 : (uk === '50x50' ? 75000 : 68000);
+            let dus = Math.ceil(luas / m2PerDus);
+
+            addToCart([{ name: `[Keramik] Lantai ${uk}`, qty: dus, unit: 'dus', price: price, total: dus * price }]);
+        }
+
+        function calcPlafon() {
+            const p = parseFloat(document.getElementById('plfPanjang').value) || 0;
+            const l = parseFloat(document.getElementById('plfLebar').value) || 0;
+            const jenis = document.getElementById('plfJenis').value;
+            let luas = p * l * 1.05;
+            let lbr = Math.ceil(luas / 2.88);
+            let prc = jenis === 'gypsum9mm' ? 65000 : 60000;
+            addToCart([{ name: `[Plafon] Papan ${jenis === 'gypsum9mm' ? 'Gypsum 9mm' : 'GRC 4mm'}`, qty: lbr, unit: 'lembar', price: prc, total: lbr * prc }]);
+        }
+
+        function calcPembesian() {
+            const L = parseFloat(document.getElementById('besPanjang').value) || 0;
+            const ut = document.getElementById('besUtama').value;
+            let btg = Math.ceil((L * 4 * 1.05) / 12);
+            let prc = ut === 'besi12mm' ? 105000 : (ut === 'besi10mm' ? 72000 : 48000);
+            addToCart([{ name: `[Pembesian] Besi Utama ${ut}`, qty: btg, unit: 'batang', price: prc, total: btg * prc }]);
+        }
+
+        function calcAtap() {
+            const p = parseFloat(document.getElementById('atpPanjang').value) || 0;
+            const l = parseFloat(document.getElementById('atpLebar').value) || 0;
+            let luas = p * l * 1.15;
+            let pcs = Math.ceil(luas * 14);
+            addToCart([{ name: '[Atap] Genteng Utama', qty: pcs, unit: 'pcs', price: 11500, total: pcs * 11500 }]);
+        }
+
+        function calcBeton() {
+            const p = parseFloat(document.getElementById('btnPanjang').value) || 0;
+            const l = parseFloat(document.getElementById('btnLebar').value) || 0;
+            const t = (parseFloat(document.getElementById('btnTebal').value) || 12) / 100;
+            let vol = p * l * t * 1.05;
+            let sak = Math.ceil(vol * 9.2);
+            addToCart([{ name: '[Cor Dak] Semen PC (40kg)', qty: sak, unit: 'sak', price: 68000, total: sak * 68000 }]);
+        }
+
+        function calcPondasi() {
+            const p = parseFloat(document.getElementById('ponPanjang').value) || 0;
+            const a = parseFloat(document.getElementById('ponAtas').value) || 0.3;
+            const b = parseFloat(document.getElementById('ponBawah').value) || 0.6;
+            const h = parseFloat(document.getElementById('ponTinggi').value) || 0.6;
+            let vol = ((a + b) / 2) * h * p * 1.05;
+            let m3 = vol.toFixed(1);
+            addToCart([{ name: '[Pondasi] Batu Kali / Belah', qty: m3, unit: 'm³', price: 280000, total: m3 * 280000 }]);
+        }
+
+        function addToCart(items) {
+            items.forEach(it => currentCart.push(it));
+            renderCartModal();
+            openModal('modalCart');
+        }
+
+        function renderCartModal() {
+            document.getElementById('cartBadge').innerText = currentCart.length;
+            const tbody = document.getElementById('cartTableBody');
+            tbody.innerHTML = '';
+
+            let subtotal = 0;
+            currentCart.forEach((it, idx) => {
+                subtotal += it.total;
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="p-2 font-bold">${it.name}</td>
+                        <td class="p-2 text-center">${it.qty} ${it.unit}</td>
+                        <td class="p-2 text-right">Rp ${it.price.toLocaleString('id-ID')}</td>
+                        <td class="p-2 text-right font-bold text-teal-700">Rp ${it.total.toLocaleString('id-ID')}</td>
+                        <td class="p-2 text-center"><button onclick="removeItem(${idx})" class="text-red-500 font-bold">&times;</button></td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('cartSubtotal').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
+            let incentive = subtotal * 0.01;
+            let grandTotal = selectedMode === 'DISKON_NOTA' ? Math.max(0, subtotal - incentive) : subtotal;
+
+            const lbl = document.getElementById('cartIncentiveLabel');
+            const val = document.getElementById('cartIncentiveVal');
+            const modeBadge = document.getElementById('dispCartModeBadge');
+
+            if (selectedMode === 'DISKON_NOTA') {
+                lbl.innerText = 'Diskon Nota (1,0%):';
+                lbl.className = 'font-bold text-emerald-700';
+                val.innerText = `-Rp ${incentive.toLocaleString('id-ID')}`;
+                modeBadge.innerText = 'Diskon Nota 1,0%';
+                modeBadge.className = 'bg-teal-200 text-teal-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full inline-block mt-1';
+            } else {
+                lbl.innerText = 'Komisi Tunai Tukang (1,0%):';
+                lbl.className = 'font-bold text-amber-700';
+                val.innerText = `Rp ${incentive.toLocaleString('id-ID')} (Cair di Kasir)`;
+                modeBadge.innerText = 'Komisi Tunai Tukang 1,0%';
+                modeBadge.className = 'bg-amber-200 text-amber-900 text-[10px] font-extrabold px-2 py-0.5 rounded-full inline-block mt-1';
+            }
+
+            document.getElementById('cartGrandTotal').innerText = `Rp ${grandTotal.toLocaleString('id-ID')}`;
+
+            const storeSelect = document.getElementById('selectStore');
+            const storeObj = storesList.find(s => s.id === storeSelect.value);
+            document.getElementById('dispCartStoreName').innerText = storeObj ? storeObj.name : '-- Belum Dipilih --';
+            document.getElementById('dispCartCustName').innerText = document.getElementById('custName').value.trim() || 'Umum';
+        }
+
+        function removeItem(idx) {
+            currentCart.splice(idx, 1);
+            renderCartModal();
+        }
+
+        function clearCart() {
+            currentCart = [];
+            renderCartModal();
+        }
+
+        async function generateQRInvoice() {
+            if (currentCart.length === 0) {
+                alert('Penawaran masih kosong!');
+                return;
+            }
+
+            const storeId = document.getElementById('selectStore').value;
+            if (!storeId) {
+                alert('Silakan pilih Toko Bangunan Mitra tujuan terlebih dahulu!');
+                return;
+            }
+
+            let subtotal = currentCart.reduce((a, b) => a + b.total, 0);
+            currentTrxId = 'MB-' + Date.now().toString().slice(-6);
+
+            // Save to GAS if URL present
+            if (GAS_WEB_APP_URL) {
+                try {
+                    await fetch(GAS_WEB_APP_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'createTransaction',
+                            storeId: storeId,
+                            custName: document.getElementById('custName').value || 'Umum',
+                            custPhone: document.getElementById('custPhone').value || '-',
+                            items: currentCart,
+                            grandTotal: subtotal,
+                            modeIncentive: selectedMode
+                        })
+                    });
+                } catch(e) { console.log('Simpan ke local'); }
+            }
+
+            // Render QR Code
+            const qrBox = document.getElementById('qrCodeBox');
+            qrBox.innerHTML = '';
+            new QRCode(qrBox, {
+                text: currentTrxId,
+                width: 150,
+                height: 150,
+                colorDark : "#0f172a",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+
+            document.getElementById('qrTrxIdText').innerText = currentTrxId;
+            document.getElementById('qrInstructionText').innerText = selectedMode === 'DISKON_NOTA'
+                ? "Tunjukkan QR ini ke Kasir Toko untuk menerima Potongan Nota 1%."
+                : "Tunjukkan QR ini ke Kasir Toko. Nota dicetak utuh untuk klien + Kasir menyerahkan Komisi Tunai 1% ke Anda.";
+        }
+
+        function shareWA() {
+            let text = `*PENAWARAN MITRA BANGUNAN*
+Kode QR: ${currentTrxId || 'MB-XXXXXX'}
+`;
+            text += `Toko: ${document.getElementById('dispCartStoreName').innerText}
+`;
+            text += `Total: ${document.getElementById('cartGrandTotal').innerText}
+`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        function openConfigModal() {
+            document.getElementById('cfgGasUrl').value = GAS_WEB_APP_URL;
+            openModal('modalConfig');
+        }
+        function saveConfigUrl() {
+            GAS_WEB_APP_URL = document.getElementById('cfgGasUrl').value.trim();
+            localStorage.setItem('mb_gas_url', GAS_WEB_APP_URL);
+            closeModal('modalConfig');
+            if (GAS_WEB_APP_URL) loadStoresFromGAS();
+        }
+    </script>
+</body>
+</html>
