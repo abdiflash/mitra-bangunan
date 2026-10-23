@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - Mitra Bangunan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; }</style>
+</head>
+<body class="text-slate-800 min-h-screen pb-12">
+
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-30">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-lg">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-base leading-tight">Admin Mitra Bangunan</h1>
+                    <p class="text-xs text-amber-300">Rekap Transaksi & Komisi Creator (1,0%)</p>
+                </div>
+            </div>
+            <button onclick="openConfigModal()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700">
+                <i class="fa-solid fa-gear"></i> Set API
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 mt-4 space-y-4">
+
+        <!-- 4 OVERVIEW STAT CARDS (PASTEL SCHEME) -->
+        <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div class="bg-teal-50 border border-teal-200 rounded-2xl p-4 shadow-sm">
+                <span class="text-[11px] font-extrabold text-teal-700 uppercase tracking-wider block">Total Transaksi</span>
+                <strong id="statCount" class="text-2xl sm:text-3xl font-black text-slate-900 mt-1 block">0</strong>
+            </div>
+            <div class="bg-sky-50 border border-sky-200 rounded-2xl p-4 shadow-sm">
+                <span class="text-[11px] font-extrabold text-sky-700 uppercase tracking-wider block">Omzet Belanja Toko</span>
+                <strong id="statOmzet" class="text-xl sm:text-2xl font-black text-slate-900 mt-1 block">Rp 0</strong>
+            </div>
+            <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 shadow-sm">
+                <span class="text-[11px] font-extrabold text-amber-800 uppercase tracking-wider block">Insentif Pembeli/Tukang</span>
+                <strong id="statIncentive" class="text-xl sm:text-2xl font-black text-amber-700 mt-1 block">Rp 0</strong>
+            </div>
+            <div class="bg-emerald-100 border border-emerald-300 rounded-2xl p-4 shadow-sm">
+                <span class="text-[11px] font-extrabold text-emerald-900 uppercase tracking-wider block">Komisi Creator (1%)</span>
+                <strong id="statCreator" class="text-xl sm:text-2xl font-black text-emerald-700 mt-1 block">Rp 0</strong>
+            </div>
+        </section>
+
+        <!-- TABLE DATA REKAP -->
+        <section class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 space-y-3">
+            <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 pb-3">
+                <h2 class="font-extrabold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-teal-600"></i> Laporan Transaksi
+                </h2>
+                <button onclick="loadAdminReport()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate text-xs"></i> Refresh Data
+                </button>
+            </div>
+
+            <div class="border border-slate-200 rounded-xl overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-100 font-bold text-slate-700 border-b border-slate-200">
+                        <tr>
+                            <th class="p-2.5">ID Transaksi</th>
+                            <th class="p-2.5">Pelanggan</th>
+                            <th class="p-2.5 text-right">Total Belanja</th>
+                            <th class="p-2.5 text-center">Mode Insentif</th>
+                            <th class="p-2.5 text-right">Insentif 1%</th>
+                            <th class="p-2.5 text-right">Komisi Creator 1%</th>
+                            <th class="p-2.5 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportTableBody" class="divide-y divide-slate-100 font-medium">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <div id="modalConfig" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl p-5 shadow-2xl space-y-4">
+            <h3 class="font-extrabold text-base text-slate-900">Set API Web App (GAS)</h3>
+            <input type="text" id="cfgGasUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-semibold focus:outline-none">
+            <div class="flex justify-end gap-2">
+                <button onclick="closeModal('modalConfig')" class="bg-slate-200 font-bold px-3 py-2 rounded-xl text-xs">Batal</button>
+                <button onclick="saveConfigUrl()" class="bg-teal-600 text-white font-bold px-4 py-2 rounded-xl text-xs">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let GAS_WEB_APP_URL = localStorage.getItem('mb_gas_url') || '';
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadAdminReport();
+        });
+
+        async function loadAdminReport() {
+            if (!GAS_WEB_APP_URL) {
+                // Mock Data for Demo
+                const mockList = [
+                    { id: 'MB-102938', custName: 'Pak Budi', total: 12500000, mode: 'DISKON_NOTA', incentive: 125000, creator: 125000, status: 'LUNAS' },
+                    { id: 'MB-102939', custName: 'Tukang Slamet', total: 8400000, mode: 'CASHBACK_TUKANG', incentive: 84000, creator: 84000, status: 'PENDING' }
+                ];
+                renderReport(mockList);
+                return;
+            }
+
+            try {
+                const res = await fetch(`${GAS_WEB_APP_URL}?action=getAdminReport`);
+                const data = await res.json();
+                if (data.success) {
+                    renderReport(data.report);
+                }
+            } catch(e) { alert('Gagal mengambil laporan dari GAS'); }
+        }
+
+        function renderReport(list) {
+            let totalOmzet = 0;
+            let totalIncentive = 0;
+            let totalCreator = 0;
+
+            const tbody = document.getElementById('reportTableBody');
+            tbody.innerHTML = '';
+
+            list.forEach(r => {
+                const tot = parseFloat(r.total) || 0;
+                const inc = parseFloat(r.incentive) || (tot * 0.01);
+                const cre = parseFloat(r.creator) || (tot * 0.01);
+
+                totalOmzet += tot;
+                totalIncentive += inc;
+                totalCreator += cre;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="p-2.5 font-bold text-teal-700">${r.id}</td>
+                        <td class="p-2.5 font-bold text-slate-900">${r.custName || 'Umum'}</td>
+                        <td class="p-2.5 text-right font-bold">Rp ${tot.toLocaleString('id-ID')}</td>
+                        <td class="p-2.5 text-center">
+                            <span class="${r.mode === 'DISKON_NOTA' ? 'bg-teal-100 text-teal-800' : 'bg-amber-100 text-amber-800'} text-[10px] font-extrabold px-2 py-0.5 rounded-full">
+                                ${r.mode === 'DISKON_NOTA' ? 'Diskon Nota' : 'Cashback Tukang'}
+                            </span>
+                        </td>
+                        <td class="p-2.5 text-right font-bold text-amber-700">Rp ${inc.toLocaleString('id-ID')}</td>
+                        <td class="p-2.5 text-right font-black text-emerald-700">Rp ${cre.toLocaleString('id-ID')}</td>
+                        <td class="p-2.5 text-center">
+                            <span class="${r.status === 'LUNAS' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'} text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                ${r.status || 'PENDING'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('statCount').innerText = list.length;
+            document.getElementById('statOmzet').innerText = `Rp ${totalOmzet.toLocaleString('id-ID')}`;
+            document.getElementById('statIncentive').innerText = `Rp ${totalIncentive.toLocaleString('id-ID')}`;
+            document.getElementById('statCreator').innerText = `Rp ${totalCreator.toLocaleString('id-ID')}`;
+        }
+
+        function openConfigModal() {
+            document.getElementById('cfgGasUrl').value = GAS_WEB_APP_URL;
+            document.getElementById('modalConfig').classList.remove('hidden');
+        }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        function saveConfigUrl() {
+            GAS_WEB_APP_URL = document.getElementById('cfgGasUrl').value.trim();
+            localStorage.setItem('mb_gas_url', GAS_WEB_APP_URL);
+            closeModal('modalConfig');
+            loadAdminReport();
+        }
+    </script>
+</body>
+</html>
