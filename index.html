@@ -47,6 +47,16 @@
 </head>
 <body class="text-slate-800 min-h-screen pb-16">
 
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl z-50 flex items-center gap-3 transition-all transform translate-y-20 opacity-0 duration-300">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+        <div>
+            <p id="toastTitle" class="font-bold text-xs">Material Ditambahkan!</p>
+            <p id="toastMsg" class="text-[11px] text-slate-300">Penawaran & QR Code diperbarui otomatis.</p>
+        </div>
+        <button onclick="openModal('modalCart')" class="bg-teal-600 hover:bg-teal-500 text-white font-bold text-[11px] px-3 py-1.5 rounded-xl ml-2 shadow">Lihat</button>
+    </div>
+
     <!-- HEADER / TOP NAV -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
         <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
@@ -130,11 +140,11 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Pemesan / Proyek</label>
-                    <input type="text" id="custName" placeholder="Contoh: Pak Budi (Rumah 2 Lantai)" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900 focus:bg-white focus:border-teal-600 focus:outline-none">
+                    <input type="text" id="custName" onchange="autoUpdateQR()" placeholder="Contoh: Pak Budi (Rumah 2 Lantai)" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900 focus:bg-white focus:border-teal-600 focus:outline-none">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">No. WhatsApp</label>
-                    <input type="text" id="custPhone" placeholder="Contoh: 081234567890" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900 focus:bg-white focus:border-teal-600 focus:outline-none">
+                    <input type="text" id="custPhone" onchange="autoUpdateQR()" placeholder="Contoh: 081234567890" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900 focus:bg-white focus:border-teal-600 focus:outline-none">
                 </div>
             </div>
         </section>
@@ -254,7 +264,7 @@
                 </div>
 
                 <button onclick="calcDinding()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-black py-3 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-calculator"></i> Hitung Material Dinding & Cat
+                    <i class="fa-solid fa-plus-circle"></i> Tambah Material Dinding & Cat ke Penawaran
                 </button>
             </div>
 
@@ -293,7 +303,7 @@
                 </div>
 
                 <button onclick="calcKeramik()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-black py-3 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-calculator"></i> Hitung Material Keramik
+                    <i class="fa-solid fa-plus-circle"></i> Tambah Material Keramik ke Penawaran
                 </button>
             </div>
 
@@ -327,7 +337,7 @@
                 </div>
 
                 <button onclick="calcPlafon()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-black py-3 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-calculator"></i> Hitung Plafon & Rangka
+                    <i class="fa-solid fa-plus-circle"></i> Tambah Material Plafon ke Penawaran
                 </button>
             </div>
 
@@ -364,7 +374,7 @@
                 </div>
 
                 <button onclick="calcPembesian()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-black py-3 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-calculator"></i> Hitung Besi Beton
+                    <i class="fa-solid fa-plus-circle"></i> Tambah Besi Beton ke Penawaran
                 </button>
             </div>
 
@@ -411,7 +421,7 @@
                 </div>
 
                 <button onclick="calcAtap()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-black py-3 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-calculator"></i> Hitung Atap & Rangka
+                    <i class="fa-solid fa-plus-circle"></i> Tambah Material Atap ke Penawaran
                 </button>
             </div>
 
@@ -437,7 +447,7 @@
                 </div>
 
                 <button onclick="calcBeton()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-black py-3 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-calculator"></i> Hitung Material Cor Dak
+                    <i class="fa-solid fa-plus-circle"></i> Tambah Material Cor Dak ke Penawaran
                 </button>
             </div>
 
@@ -479,7 +489,7 @@
                 </div>
 
                 <button onclick="calcPondasi()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-black py-3 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-calculator"></i> Hitung Material Pondasi
+                    <i class="fa-solid fa-plus-circle"></i> Tambah Material Pondasi ke Penawaran
                 </button>
             </div>
 
@@ -514,7 +524,7 @@
                 </div>
 
                 <button onclick="calcPaving()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-black py-3 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-calculator"></i> Hitung Paving Block & Pasir
+                    <i class="fa-solid fa-plus-circle"></i> Tambah Paving Block ke Penawaran
                 </button>
             </div>
 
@@ -546,7 +556,7 @@
                 </div>
 
                 <button onclick="calcPasirBatu()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-black py-3 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-calculator"></i> Hitung Kebutuhan Pasir & Batu
+                    <i class="fa-solid fa-plus-circle"></i> Tambah Pasir & Batu ke Penawaran
                 </button>
             </div>
         </section>
@@ -609,9 +619,12 @@
                     </div>
                 </div>
 
-                <!-- QR CODE DISPLAY AREA -->
-                <div id="qrContainerArea" class="bg-white border-2 border-dashed border-teal-300 rounded-2xl p-4 text-center space-y-2">
-                    <div id="qrCodeBox" class="flex justify-center my-2"></div>
+                <!-- QR CODE DISPLAY AREA (OTOMATIS DI-GENERATE) -->
+                <div id="qrContainerArea" class="bg-white border-2 border-dashed border-teal-300 rounded-2xl p-4 text-center space-y-2 relative">
+                    <span class="bg-emerald-500 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full absolute -top-3 left-1/2 transform -translate-x-1/2 shadow-sm uppercase tracking-wider">
+                        <i class="fa-solid fa-bolt"></i> Live Auto QR Code
+                    </span>
+                    <div id="qrCodeBox" class="flex justify-center my-2 min-h-[150px] items-center"></div>
                     <strong id="qrTrxIdText" class="text-sm font-black text-slate-900 block tracking-wider">MB-XXXXXX</strong>
                     <p id="qrInstructionText" class="text-xs text-slate-600 font-medium max-w-md mx-auto">
                         Tunjukkan QR Code ini ke Kasir Toko Bangunan Mitra untuk klaim diskon / komisi Anda.
@@ -620,13 +633,12 @@
             </div>
 
             <div class="bg-slate-100 p-3.5 border-t border-slate-200 flex flex-wrap justify-between items-center gap-2">
-                <button onclick="clearCart()" class="text-red-600 hover:text-red-700 font-bold text-xs px-3 py-2">Kosongkan</button>
+                <button onclick="clearCart()" class="text-red-600 hover:text-red-700 font-bold text-xs px-3 py-2 flex items-center gap-1">
+                    <i class="fa-solid fa-trash"></i> Kosongkan Keranjang
+                </button>
                 <div class="flex gap-2">
-                    <button onclick="generateQRInvoice()" class="bg-teal-600 hover:bg-teal-700 text-white font-black text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-qrcode"></i> Generate QR
-                    </button>
-                    <button onclick="shareWA()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl transition flex items-center gap-1">
-                        <i class="fa-brands fa-whatsapp"></i> Kirim WA
+                    <button onclick="shareWA()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center gap-2">
+                        <i class="fa-brands fa-whatsapp text-sm"></i> Kirim Rincian ke WhatsApp
                     </button>
                 </div>
             </div>
@@ -666,7 +678,14 @@
         window.addEventListener('DOMContentLoaded', () => {
             if (GAS_WEB_APP_URL) loadStoresFromGAS();
             else renderStoresDropdown();
+            generateTrxId();
         });
+
+        function generateTrxId() {
+            if (!currentTrxId) {
+                currentTrxId = 'MB-' + Date.now().toString().slice(-6);
+            }
+        }
 
         function selectMode(mode) {
             selectedMode = mode;
@@ -674,13 +693,14 @@
             const cardCashback = document.getElementById('cardModeCashback');
 
             if (mode === 'DISKON_NOTA') {
-                cardNota.className = "cursor-pointer border-2 border-teal-500 bg-teal-50/60 p-2.5 rounded-xl flex flex-col justify-between transition";
-                cardCashback.className = "cursor-pointer border-2 border-slate-200 bg-slate-50 p-2.5 rounded-xl flex flex-col justify-between transition";
+                cardNota.className = "cursor-pointer border-2 border-teal-500 bg-teal-50/60 p-2.5 rounded-xl flex flex-col justify-between transition hover:border-teal-600";
+                cardCashback.className = "cursor-pointer border-2 border-slate-200 bg-slate-50 p-2.5 rounded-xl flex flex-col justify-between transition hover:border-amber-400";
             } else {
-                cardCashback.className = "cursor-pointer border-2 border-amber-500 bg-amber-50/60 p-2.5 rounded-xl flex flex-col justify-between transition";
-                cardNota.className = "cursor-pointer border-2 border-slate-200 bg-slate-50 p-2.5 rounded-xl flex flex-col justify-between transition";
+                cardCashback.className = "cursor-pointer border-2 border-amber-500 bg-amber-50/60 p-2.5 rounded-xl flex flex-col justify-between transition hover:border-amber-600";
+                cardNota.className = "cursor-pointer border-2 border-slate-200 bg-slate-50 p-2.5 rounded-xl flex flex-col justify-between transition hover:border-teal-400";
             }
             renderCartModal();
+            autoUpdateQR();
         }
 
         async function loadStoresFromGAS() {
@@ -710,9 +730,10 @@
             const val = document.getElementById('selectStore').value;
             const store = storesList.find(s => s.id === val);
             const hint = document.getElementById('storeAddressHint');
-            if (store) hint.innerHTML = `<i class="fa-solid fa-location-dot text-teal-600"></i> ${store.address} (WA: ${s.wa || '-'})`;
+            if (store) hint.innerHTML = `<i class="fa-solid fa-location-dot text-teal-600"></i> ${store.address} (WA: ${store.wa || '-'})`;
             else hint.innerHTML = 'Silakan pilih toko bangunan.';
             renderCartModal();
+            autoUpdateQR();
         }
 
         function switchTab(tabId) {
@@ -748,7 +769,7 @@
             document.getElementById('dinPanjang').value = p;
             document.getElementById('dinLebar').value = l;
             document.getElementById('dinTinggi').value = t;
-            alert(`Preset Ruangan ${p}x${l}x${t}m diterapkan pada Dinding!`);
+            showToast('Preset Diterapkan', `Ruangan ${p}x${l}x${t}m telah diset.`);
         }
 
         function applyPresetPagar(p, t) {
@@ -756,7 +777,7 @@
             setModeDinding('lurus');
             document.getElementById('dinPanjang').value = p;
             document.getElementById('dinTinggi').value = t;
-            alert(`Preset Pagar ${p}x${t}m diterapkan pada Dinding!`);
+            showToast('Preset Pagar', `Tembok pagar ${p}x${t}m telah diset.`);
         }
 
         // ==========================================
@@ -796,8 +817,8 @@
                         let sakSemenPC = Math.ceil(luasBersih / 12);
                         items.push({ name: '[Dinding] Semen PC Pasang Bata (40kg)', qty: sakSemenPC, unit: 'sak', price: 68000, total: sakSemenPC * 68000 });
 
-                        let volPasirPasang = (luasBersih * 0.043).toFixed(2);
-                        items.push({ name: '[Dinding] Pasir Pasang Dinding', qty: volPasirPasang, unit: 'm³', price: 290000, total: volPasirPasang * 290000 });
+                        let volPasirPasang = parseFloat((luasBersih * 0.043).toFixed(2));
+                        items.push({ name: '[Dinding] Pasir Pasang Dinding', qty: volPasirPasang, unit: 'm³', price: 290000, total: Math.round(volPasirPasang * 290000) });
                     }
                 } else {
                     let m2PerM3 = (tebal === '7.5') ? 13.3 : 10;
@@ -829,7 +850,7 @@
                     items.push({ name: '[Dinding] Cat Dasar / Alkali Sealer (4kg)', qty: galonCatDasar, unit: 'galon', price: 110000, total: galonCatDasar * 110000 });
                 }
             }
-            addToCart(items);
+            addToCart(items, 'Material Dinding');
         }
 
         // 2. KERAMIK & GRANIT
@@ -866,7 +887,7 @@
                     items.push({ name: '[Keramik] Semen Mortar Perekat (40kg)', qty: sakMortar, unit: 'sak', price: 95000, total: sakMortar * 95000 });
                 }
             }
-            addToCart(items);
+            addToCart(items, 'Material Keramik');
         }
 
         // 3. PLAFON GYPSUM
@@ -901,7 +922,7 @@
                     items.push({ name: '[Plafon] Compound Gypsum (20kg)', qty: sakCmp, unit: 'sak', price: 75000, total: sakCmp * 75000 });
                 }
             }
-            addToCart(items);
+            addToCart(items, 'Material Plafon');
         }
 
         // 4. PEMBESIAN BETON
@@ -931,7 +952,7 @@
                     items.push({ name: '[Pembesian] Kawat Beton / Bendrat', qty: kgBendrat, unit: 'kg', price: 22000, total: kgBendrat * 22000 });
                 }
             }
-            addToCart(items);
+            addToCart(items, 'Besi Beton');
         }
 
         // 5. ATAP & RANGKA
@@ -980,7 +1001,7 @@
                     items.push({ name: '[Atap] Baut Roofing', qty: pcsBaut, unit: 'pcs', price: 350, total: pcsBaut * 350 });
                 }
             }
-            addToCart(items);
+            addToCart(items, 'Material Atap');
         }
 
         // 6. COR DAK BETON
@@ -995,18 +1016,18 @@
                 let sakSemen = Math.ceil(vol * 9.275);
                 items.push({ name: '[Cor Dak] Semen PC (40kg)', qty: sakSemen, unit: 'sak', price: 68000, total: sakSemen * 68000 });
 
-                let volPasir = (vol * 0.49).toFixed(2);
-                items.push({ name: '[Cor Dak] Pasir Cor', qty: volPasir, unit: 'm³', price: 320000, total: volPasir * 320000 });
+                let volPasir = parseFloat((vol * 0.49).toFixed(2));
+                items.push({ name: '[Cor Dak] Pasir Cor', qty: volPasir, unit: 'm³', price: 320000, total: Math.round(volPasir * 320000) });
 
-                let volSplit = (vol * 0.77).toFixed(2);
-                items.push({ name: '[Cor Dak] Koral / Split', qty: volSplit, unit: 'm³', price: 340000, total: volSplit * 340000 });
+                let volSplit = parseFloat((vol * 0.77).toFixed(2));
+                items.push({ name: '[Cor Dak] Koral / Split', qty: volSplit, unit: 'm³', price: 340000, total: Math.round(volSplit * 340000) });
 
                 if (document.getElementById('chkBtnWiremesh').checked) {
                     let lbrWm = Math.ceil((p * l * 1.05) / 11.34);
                     items.push({ name: '[Cor Dak] Besi Wiremesh M8', qty: lbrWm, unit: 'lembar', price: 580000, total: lbrWm * 580000 });
                 }
             }
-            addToCart(items);
+            addToCart(items, 'Material Cor Dak');
         }
 
         // 7. PONDASI BATU KALI
@@ -1021,27 +1042,27 @@
 
             let items = [];
             if (volUtama > 0) {
-                let volBatu = (volUtama * 1.2).toFixed(2);
-                items.push({ name: '[Pondasi] Batu Kali / Batu Belah', qty: volBatu, unit: 'm³', price: 280000, total: volBatu * 280000 });
+                let volBatu = parseFloat((volUtama * 1.2).toFixed(2));
+                items.push({ name: '[Pondasi] Batu Kali / Batu Belah', qty: volBatu, unit: 'm³', price: 280000, total: Math.round(volBatu * 280000) });
 
                 let rateSem = (cmp === '1pc4ps') ? 4.08 : 3.4;
                 let sakSem = Math.ceil(volUtama * rateSem);
                 items.push({ name: '[Pondasi] Semen PC (40kg)', qty: sakSem, unit: 'sak', price: 68000, total: sakSem * 68000 });
 
-                let volPasir = (volUtama * 0.52).toFixed(2);
-                items.push({ name: '[Pondasi] Pasir Pasang', qty: volPasir, unit: 'm³', price: 290000, total: volPasir * 290000 });
+                let volPasir = parseFloat((volUtama * 0.52).toFixed(2));
+                items.push({ name: '[Pondasi] Pasir Pasang', qty: volPasir, unit: 'm³', price: 290000, total: Math.round(volPasir * 290000) });
 
                 if (document.getElementById('chkPondasiAan').checked) {
-                    let volAan = (0.15 * b * p * 1.05 * 1.1).toFixed(2);
-                    items.push({ name: '[Pondasi] Batu Kosong / Aanstamping', qty: volAan, unit: 'm³', price: 280000, total: volAan * 280000 });
+                    let volAan = parseFloat((0.15 * b * p * 1.05 * 1.1).toFixed(2));
+                    items.push({ name: '[Pondasi] Batu Kosong / Aanstamping', qty: volAan, unit: 'm³', price: 280000, total: Math.round(volAan * 280000) });
                 }
 
                 if (document.getElementById('chkPondasiPasir').checked) {
-                    let volPasUrug = (0.05 * b * p * 1.05 * 1.1).toFixed(2);
-                    items.push({ name: '[Pondasi] Pasir Urug Alas Bedding', qty: volPasUrug, unit: 'm³', price: 220000, total: volPasUrug * 220000 });
+                    let volPasUrug = parseFloat((0.05 * b * p * 1.05 * 1.1).toFixed(2));
+                    items.push({ name: '[Pondasi] Pasir Urug Alas Bedding', qty: volPasUrug, unit: 'm³', price: 220000, total: Math.round(volPasUrug * 220000) });
                 }
             }
-            addToCart(items);
+            addToCart(items, 'Material Pondasi');
         }
 
         // 8. PAVING BLOCK
@@ -1067,8 +1088,8 @@
                 items.push({ name: namePvg, qty: qtyPvg, unit: 'pcs', price: prcPvg, total: qtyPvg * prcPvg });
 
                 if (document.getElementById('chkPvgPasir').checked) {
-                    let volPasir = (luas * 0.05 * 1.1).toFixed(2);
-                    items.push({ name: '[Paving] Pasir Urug Alas Bedding (Tebal 5cm)', qty: volPasir, unit: 'm³', price: 220000, total: volPasir * 220000 });
+                    let volPasir = parseFloat((luas * 0.05 * 1.1).toFixed(2));
+                    items.push({ name: '[Paving] Pasir Urug Alas Bedding (Tebal 5cm)', qty: volPasir, unit: 'm³', price: 220000, total: Math.round(volPasir * 220000) });
                 }
 
                 if (document.getElementById('chkPvgKanstin').checked) {
@@ -1077,7 +1098,7 @@
                     items.push({ name: '[Paving] Kanstin / Pembatas Beton Pinggir', qty: pcsKanstin, unit: 'pcs', price: 25000, total: pcsKanstin * 25000 });
                 }
             }
-            addToCart(items);
+            addToCart(items, 'Material Paving');
         }
 
         // 9. PASIR & BATU
@@ -1092,36 +1113,56 @@
 
             if (vol > 0) {
                 if (jenis === 'pasirUrug') {
-                    let volUrug = vol.toFixed(2);
-                    items.push({ name: '[Pasir] Pasir Urug Peninggi Lantai / Bedding', qty: volUrug, unit: 'm³', price: 220000, total: volUrug * 220000 });
+                    let volUrug = parseFloat(vol.toFixed(2));
+                    items.push({ name: '[Pasir] Pasir Urug Peninggi Lantai / Bedding', qty: volUrug, unit: 'm³', price: 220000, total: Math.round(volUrug * 220000) });
                 } else if (jenis === 'pasirPasang') {
-                    let volPasang = vol.toFixed(2);
-                    items.push({ name: '[Pasir] Pasir Pasang Dinding / Keramik', qty: volPasang, unit: 'm³', price: 290000, total: volPasang * 290000 });
+                    let volPasang = parseFloat(vol.toFixed(2));
+                    items.push({ name: '[Pasir] Pasir Pasang Dinding / Keramik', qty: volPasang, unit: 'm³', price: 290000, total: Math.round(volPasang * 290000) });
                 } else if (jenis === 'pasirCorSplit') {
-                    let volPasCor = (vol * 0.5).toFixed(2);
-                    items.push({ name: '[Cor Paket] Pasir Cor Halus', qty: volPasCor, unit: 'm³', price: 320000, total: volPasCor * 320000 });
+                    let volPasCor = parseFloat((vol * 0.5).toFixed(2));
+                    items.push({ name: '[Cor Paket] Pasir Cor Halus', qty: volPasCor, unit: 'm³', price: 320000, total: Math.round(volPasCor * 320000) });
 
-                    let volSplit = (vol * 0.8).toFixed(2);
-                    items.push({ name: '[Cor Paket] Batu Koral / Split', qty: volSplit, unit: 'm³', price: 340000, total: volSplit * 340000 });
+                    let volSplit = parseFloat((vol * 0.8).toFixed(2));
+                    items.push({ name: '[Cor Paket] Batu Koral / Split', qty: volSplit, unit: 'm³', price: 340000, total: Math.round(volSplit * 340000) });
 
                     let sakSem = Math.ceil(vol * 8);
                     items.push({ name: '[Cor Paket] Semen PC (40kg)', qty: sakSem, unit: 'sak', price: 68000, total: sakSem * 68000 });
                 } else if (jenis === 'batuKali') {
-                    let volBatu = (vol * 1.1).toFixed(2);
-                    items.push({ name: '[Batu] Batu Kali / Batu Belah', qty: volBatu, unit: 'm³', price: 280000, total: volBatu * 280000 });
+                    let volBatu = parseFloat((vol * 1.1).toFixed(2));
+                    items.push({ name: '[Batu] Batu Kali / Batu Belah', qty: volBatu, unit: 'm³', price: 280000, total: Math.round(volBatu * 280000) });
                 }
             }
-            addToCart(items);
+            addToCart(items, 'Pasir & Batu');
         }
 
         // ==========================================
-        // MANAJEMEN PENAWARAN (CART)
+        // MANAJEMEN PENAWARAN (CART & AUTOMATED QR)
         // ==========================================
 
-        function addToCart(items) {
-            items.forEach(it => currentCart.push(it));
+        function addToCart(items, categoryLabel = 'Material') {
+            if (!items || items.length === 0) {
+                alert('Silakan masukkan ukuran/parameter yang valid.');
+                return;
+            }
+
+            items.forEach(it => {
+                // akumulasi jika barang dengan nama yang persis sudah ada di keranjang
+                let existingIndex = currentCart.findIndex(existing => existing.name === it.name && existing.unit === it.unit && existing.price === it.price);
+                if (existingIndex > -1) {
+                    currentCart[existingIndex].qty += it.qty;
+                    // Format desimal jika berupa float
+                    if (typeof currentCart[existingIndex].qty === 'number' && !Number.isInteger(currentCart[existingIndex].qty)) {
+                        currentCart[existingIndex].qty = parseFloat(currentCart[existingIndex].qty.toFixed(2));
+                    }
+                    currentCart[existingIndex].total = Math.round(currentCart[existingIndex].qty * currentCart[existingIndex].price);
+                } else {
+                    currentCart.push(it);
+                }
+            });
+
             renderCartModal();
-            openModal('modalCart');
+            autoUpdateQR(); // OTOMATIS GENERATE QR SAAT ADA PENAWARAN BARU / ITEM BERTAMBAH
+            showToast(`${categoryLabel} Ditambahkan!`, `${items.length} jenis item berhasil ditumpuk ke keranjang.`);
         }
 
         function renderCartModal() {
@@ -1129,22 +1170,27 @@
             const tbody = document.getElementById('cartTableBody');
             tbody.innerHTML = '';
 
-            let subtotal = 0;
-            currentCart.forEach((it, idx) => {
-                subtotal += it.total;
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="p-2 font-bold">${it.name}</td>
-                        <td class="p-2 text-center">${it.qty} ${it.unit}</td>
-                        <td class="p-2 text-right">Rp ${it.price.toLocaleString('id-ID')}</td>
-                        <td class="p-2 text-right font-bold text-teal-700">Rp ${it.total.toLocaleString('id-ID')}</td>
-                        <td class="p-2 text-center"><button onclick="removeItem(${idx})" class="text-red-500 font-bold">&times;</button></td>
-                    </tr>
-                `;
-            });
+            if (currentCart.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400 italic">Keranjang penawaran masih kosong. Silakan pilih & hitung material.</td></tr>`;
+            } else {
+                let subtotal = 0;
+                currentCart.forEach((it, idx) => {
+                    subtotal += it.total;
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="p-2 font-bold text-slate-800">${it.name}</td>
+                            <td class="p-2 text-center font-bold text-slate-700">${it.qty} ${it.unit}</td>
+                            <td class="p-2 text-right">Rp ${it.price.toLocaleString('id-ID')}</td>
+                            <td class="p-2 text-right font-bold text-teal-700">Rp ${it.total.toLocaleString('id-ID')}</td>
+                            <td class="p-2 text-center"><button onclick="removeItem(${idx})" class="text-red-500 hover:text-red-700 font-black p-1">&times;</button></td>
+                        </tr>
+                    `;
+                });
+            }
 
+            let subtotal = currentCart.reduce((a, b) => a + b.total, 0);
             document.getElementById('cartSubtotal').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
-            let incentive = subtotal * 0.01;
+            let incentive = Math.round(subtotal * 0.01);
             let grandTotal = selectedMode === 'DISKON_NOTA' ? Math.max(0, subtotal - incentive) : subtotal;
 
             const lbl = document.getElementById('cartIncentiveLabel');
@@ -1176,35 +1222,51 @@
         function removeItem(idx) {
             currentCart.splice(idx, 1);
             renderCartModal();
+            autoUpdateQR();
         }
 
         function clearCart() {
-            currentCart = [];
-            renderCartModal();
+            if (confirm('Apakah Anda yakin ingin mengosongkan keranjang penawaran?')) {
+                currentCart = [];
+                currentTrxId = '';
+                generateTrxId();
+                renderCartModal();
+                autoUpdateQR();
+            }
         }
 
-        async function generateQRInvoice() {
+        // OTOMATIS GENERATE & UPDATE QR CODE
+        async function autoUpdateQR() {
+            generateTrxId();
+            const qrBox = document.getElementById('qrCodeBox');
+            qrBox.innerHTML = '';
+
             if (currentCart.length === 0) {
-                alert('Penawaran masih kosong!');
+                qrBox.innerHTML = `<span class="text-xs text-slate-400 italic">QR Code akan muncul otomatis saat ada material di keranjang.</span>`;
+                document.getElementById('qrTrxIdText').innerText = 'MB-XXXXXX';
                 return;
             }
 
-            const storeId = document.getElementById('selectStore').value;
-            if (!storeId) {
-                alert('Silakan pilih Toko Bangunan Mitra tujuan terlebih dahulu!');
-                return;
-            }
-
+            const storeId = document.getElementById('selectStore').value || 'ALL';
             let subtotal = currentCart.reduce((a, b) => a + b.total, 0);
-            currentTrxId = 'MB-' + Date.now().toString().slice(-6);
 
-            // Save to GAS if URL present
-            if (GAS_WEB_APP_URL) {
+            // Payload ringkas QR Code
+            let qrPayload = JSON.stringify({
+                trx: currentTrxId,
+                str: storeId,
+                mode: selectedMode,
+                tot: subtotal,
+                items: currentCart.length
+            });
+
+            // Sync ke GAS jika terhubung
+            if (GAS_WEB_APP_URL && storeId !== 'ALL') {
                 try {
-                    await fetch(GAS_WEB_APP_URL, {
+                    fetch(GAS_WEB_APP_URL, {
                         method: 'POST',
                         body: JSON.stringify({
                             action: 'createTransaction',
+                            trxId: currentTrxId,
                             storeId: storeId,
                             custName: document.getElementById('custName').value || 'Umum',
                             custPhone: document.getElementById('custPhone').value || '-',
@@ -1212,20 +1274,18 @@
                             grandTotal: subtotal,
                             modeIncentive: selectedMode
                         })
-                    });
-                } catch(e) { console.log('Simpan ke local'); }
+                    }).catch(e => console.log('Offline / Local storage fallback'));
+                } catch(e) {}
             }
 
-            // Render QR Code
-            const qrBox = document.getElementById('qrCodeBox');
-            qrBox.innerHTML = '';
+            // Render QR Code Canvas secara instan
             new QRCode(qrBox, {
-                text: currentTrxId,
+                text: qrPayload,
                 width: 150,
                 height: 150,
                 colorDark : "#0f172a",
                 colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.H
+                correctLevel : QRCode.CorrectLevel.M
             });
 
             document.getElementById('qrTrxIdText').innerText = currentTrxId;
@@ -1234,14 +1294,79 @@
                 : "Tunjukkan QR ini ke Kasir Toko. Nota dicetak utuh untuk klien + Kasir menyerahkan Komisi Tunai 1% ke Anda.";
         }
 
+        // PENGIRIMAN DETAIL LENGKAP & QR REF KE WHATSAPP
         function shareWA() {
-            let text = `*PENAWARAN MITRA BANGUNAN*\nKode QR: ${currentTrxId || 'MB-XXXXXX'}\n`;
-            text += `Toko: ${document.getElementById('dispCartStoreName').innerText}\n`;
-            text += `Total: ${document.getElementById('cartGrandTotal').innerText}\n`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+            if (currentCart.length === 0) {
+                alert('Keranjang penawaran masih kosong! Silakan hitung material terlebih dahulu.');
+                return;
+            }
+
+            generateTrxId();
+
+            const storeSelect = document.getElementById('selectStore').value;
+            const storeObj = storesList.find(s => s.id === storeSelect);
+            const storeName = storeObj ? storeObj.name : 'Toko Bangunan Mitra';
+            const custName = document.getElementById('custName').value.trim() || 'Umum';
+            const custPhone = document.getElementById('custPhone').value.trim() || '-';
+
+            let subtotal = currentCart.reduce((a, b) => a + b.total, 0);
+            let incentive = Math.round(subtotal * 0.01);
+            let grandTotal = selectedMode === 'DISKON_NOTA' ? Math.max(0, subtotal - incentive) : subtotal;
+
+            let text = `*PENAWARAN MATERIAL - MITRA BANGUNAN*\n`;
+            text += `===============================\n`;
+            text += `*Kode QR / Trx ID:* ${currentTrxId}\n`;
+            text += `*Toko Tujuan:* ${storeName}\n`;
+            text += `*Pemesan:* ${custName} (${custPhone})\n`;
+            text += `*Mode Manfaat:* ${selectedMode === 'DISKON_NOTA' ? 'Diskon Nota Direct 1.0%' : 'Komisi Tunai Tukang 1.0%'}\n`;
+            text += `===============================\n\n`;
+            text += `*RINCIAN ITEM MATERIAL GABUNGAN:*\n`;
+
+            currentCart.forEach((it, i) => {
+                text += `${i + 1}. *${it.name}*\n   Qty: ${it.qty} ${it.unit} x Rp ${it.price.toLocaleString('id-ID')} = *Rp ${it.total.toLocaleString('id-ID')}*\n`;
+            });
+
+            text += `\n-------------------------------\n`;
+            text += `*Subtotal:* Rp ${subtotal.toLocaleString('id-ID')}\n`;
+            if (selectedMode === 'DISKON_NOTA') {
+                text += `*Diskon Nota (1%):* -Rp ${incentive.toLocaleString('id-ID')}\n`;
+                text += `*GRAND TOTAL NOTA:* *Rp ${grandTotal.toLocaleString('id-ID')}*\n`;
+            } else {
+                text += `*Komisi Tunai (1%):* Rp ${incentive.toLocaleString('id-ID')} _(Cair di Kasir)_\n`;
+                text += `*GRAND TOTAL BAYAR:* *Rp ${grandTotal.toLocaleString('id-ID')}*\n`;
+            }
+            text += `-------------------------------\n\n`;
+            text += `_Harap tunjukkan pesan WhatsApp & QR Code ini kepada Kasir ${storeName} untuk klaim diskon / komisi Anda._`;
+
+            // Kirim langsung ke nomor WA toko jika tersedia, atau buka WhatsApp dialog
+            let targetWa = (storeObj && storeObj.wa) ? storeObj.wa.replace(/[^0-9]/g, '') : '';
+            if (targetWa.startsWith('0')) targetWa = '62' + targetWa.slice(1);
+
+            let waUrl = targetWa 
+                ? `https://api.whatsapp.com/send?phone=${targetWa}&text=${encodeURIComponent(text)}`
+                : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+
+            window.open(waUrl, '_blank');
         }
 
-        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function showToast(title, msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastTitle').innerText = title;
+            document.getElementById('toastMsg').innerText = msg;
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        function openModal(id) { 
+            document.getElementById(id).classList.remove('hidden'); 
+            if (id === 'modalCart') autoUpdateQR();
+        }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
         function openConfigModal() {
             document.getElementById('cfgGasUrl').value = GAS_WEB_APP_URL;
@@ -1252,6 +1377,7 @@
             localStorage.setItem('mb_gas_url', GAS_WEB_APP_URL);
             closeModal('modalConfig');
             if (GAS_WEB_APP_URL) loadStoresFromGAS();
+            showToast('API Terkonfigurasi', 'URL Google Apps Script disimpan.');
         }
     </script>
 </body>
