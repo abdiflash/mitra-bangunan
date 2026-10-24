@@ -25,9 +25,14 @@
                     <p class="text-xs text-teal-300" id="headerStoreName">Mitra Bangunan Network</p>
                 </div>
             </div>
-            <button id="btnLogout" onclick="logout()" class="hidden text-xs bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30 px-3 py-1.5 rounded-xl font-bold">
-                <i class="fa-solid fa-right-from-bracket"></i> Keluar
-            </button>
+            <div class="flex items-center gap-2">
+                <button onclick="openConfigModal()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 font-semibold">
+                    <i class="fa-solid fa-gear"></i> Set API
+                </button>
+                <button id="btnLogout" onclick="logout()" class="hidden text-xs bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30 px-3 py-1.5 rounded-xl font-bold">
+                    <i class="fa-solid fa-right-from-bracket"></i> Keluar
+                </button>
+            </div>
         </div>
     </header>
 
@@ -143,10 +148,43 @@
 
     </main>
 
+    <!-- CONFIG MODAL -->
+    <div id="modalConfig" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl p-5 shadow-2xl space-y-4">
+            <h3 class="font-extrabold text-base text-slate-900">Set API Web App (GAS)</h3>
+            <input type="text" id="cfgGasUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-semibold focus:outline-none">
+            <div class="flex justify-end gap-2">
+                <button onclick="closeModal('modalConfig')" class="bg-slate-200 font-bold px-3 py-2 rounded-xl text-xs">Batal</button>
+                <button onclick="saveConfigUrl()" class="bg-teal-600 text-white font-bold px-4 py-2 rounded-xl text-xs">Simpan</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let GAS_WEB_APP_URL = localStorage.getItem('mb_gas_url') || '';
-        let currentStoreInfo = null;
-        let currentKpi = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // Auto login jika ada sesi tersimpan
+            const sessionData = localStorage.getItem('mb_toko_session');
+            if (sessionData) {
+                try {
+                    const session = JSON.parse(sessionData);
+                    document.getElementById('loginStoreId').value = session.storeId || '';
+                    document.getElementById('loginPin').value = session.pin || '';
+                    
+                    // 1. Tampilkan cache lokal secara instan (0 Detik)
+                    const cachedData = localStorage.getItem(`mb_toko_cache_${session.storeId}`);
+                    if (cachedData) {
+                        renderDashboard(JSON.parse(cachedData));
+                    }
+                    
+                    // 2. Fetch data terbaru di latar belakang
+                    fetchDashboardBackground(session.storeId, session.pin);
+                } catch(e) {
+                    console.error('Sesi invalid:', e);
+                }
+            }
+        });
 
         async function loginStore() {
             const storeId = document.getElementById('loginStoreId').value.trim().toUpperCase();
@@ -154,23 +192,43 @@
 
             if (!storeId || !pin) return alert('ID Toko dan PIN wajib diisi!');
 
-            if (!GAS_WEB_APP_URL) return alert('API Web App belum diatur! Buka kasir.html lalu klik Set API terlebih dahulu.');
+            // 1. Cek jika ada cache untuk Toko ini, tampilkan instan (0 Detik)
+            const cachedData = localStorage.getItem(`mb_toko_cache_${storeId}`);
+            if (cachedData) {
+                renderDashboard(JSON.parse(cachedData));
+            }
+
+            // 2. Fetch data dari server GAS
+            await fetchDashboardBackground(storeId, pin, true);
+        }
+
+        async function fetchDashboardBackground(storeId, pin, isManualLogin = false) {
+            if (!GAS_WEB_APP_URL) {
+                if (isManualLogin) alert('API Web App belum diatur! Klik tombol "Set API" di kanan atas.');
+                return;
+            }
 
             try {
                 const res = await fetch(`${GAS_WEB_APP_URL}?action=getStoreDashboard&storeId=${storeId}&pin=${pin}`);
                 const data = await res.json();
 
                 if (!data.success) {
-                    alert('Gagal Masuk: ' + data.message);
+                    if (isManualLogin) alert('Gagal Masuk: ' + data.message);
                     return;
                 }
 
-                currentStoreInfo = data.store;
-                currentKpi = data.kpi;
+                // Simpan Sesi & Cache LocalStorage
+                localStorage.setItem('mb_toko_session', JSON.stringify({ storeId, pin }));
+                localStorage.setItem(`mb_toko_cache_${storeId}`, JSON.stringify(data));
+
+                // Update UI secara halus di latar belakang
                 renderDashboard(data);
 
             } catch(e) {
-                alert('Terjadi kesalahan koneksi server: ' + e.toString());
+                console.error('Background fetch error:', e);
+                if (isManualLogin && !localStorage.getItem(`mb_toko_cache_${storeId}`)) {
+                    alert('Terjadi kesalahan koneksi server: ' + e.toString());
+                }
             }
         }
 
@@ -225,9 +283,8 @@
             transactions.forEach(trx => {
                 const isVerified = String(trx.status).toUpperCase() === 'LUNAS';
                 
-                // Label Status Kasir Toko: SELESAI / PENDING
                 const statusKasirBadge = isVerified
-                    ? `<span class="bg-teal-100 text-teal-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-teal-200"><i class="fa-solid fa-check"></i> SELESAI</span>`
+                    ? `<span class="bg-teal-100 text-teal-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-teal-200"><i class="fa-solid fa-check"></i> SELESAIKAN (LUNAS)</span>`
                     : `<span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-amber-200">PENDING</span>`;
 
                 const modeText = trx.modeIncentive === 'CASHBACK_TUKANG' ? 'Komisi Tukang' : 'Diskon Nota';
@@ -252,7 +309,25 @@
         }
 
         function logout() {
+            localStorage.removeItem('mb_toko_session');
             location.reload();
+        }
+
+        function openConfigModal() {
+            document.getElementById('cfgGasUrl').value = GAS_WEB_APP_URL;
+            document.getElementById('modalConfig').classList.remove('hidden');
+        }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        function saveConfigUrl() {
+            GAS_WEB_APP_URL = document.getElementById('cfgGasUrl').value.trim();
+            localStorage.setItem('mb_gas_url', GAS_WEB_APP_URL);
+            closeModal('modalConfig');
+            
+            const sessionData = localStorage.getItem('mb_toko_session');
+            if (sessionData) {
+                const session = JSON.parse(sessionData);
+                fetchDashboardBackground(session.storeId, session.pin);
+            }
         }
     </script>
 </body>
