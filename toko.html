@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Pemilik Toko - Mitra Bangunan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen pb-12">
+
+    <!-- HEADER DASHBOARD -->
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-30">
+        <div class="max-w-5xl mx-auto px-4 py-3.5 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-teal-500 flex items-center justify-center font-black text-xl text-slate-950">
+                    <i class="fa-solid fa-store"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-base leading-tight">Dashboard Pemilik Toko</h1>
+                    <p class="text-xs text-teal-300" id="headerStoreName">Mitra Bangunan Network</p>
+                </div>
+            </div>
+            <button id="btnLogout" onclick="logout()" class="hidden text-xs bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30 px-3 py-1.5 rounded-xl font-bold">
+                <i class="fa-solid fa-right-from-bracket"></i> Keluar
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 mt-6 space-y-6">
+
+        <!-- LOGIN FORM SECTION -->
+        <section id="loginSection" class="max-w-md mx-auto bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <div class="text-center space-y-1">
+                <h2 class="text-lg font-black text-slate-900">Masuk Dashboard Toko</h2>
+                <p class="text-xs text-slate-500 font-medium">Masukkan ID Toko dan PIN Kasir untuk melihat laporan</p>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">ID Toko Mitra</label>
+                    <input type="text" id="loginStoreId" placeholder="Contoh: TOKO-001" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs font-bold uppercase focus:bg-white focus:border-teal-600 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">PIN Kasir Toko</label>
+                    <input type="password" id="loginPin" placeholder="Masukkan 4-digit PIN" maxlength="6" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs font-bold focus:bg-white focus:border-teal-600 focus:outline-none">
+                </div>
+                <button onclick="loginStore()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-xs py-3 rounded-xl shadow transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-right-to-bracket"></i> MASUK KE DASHBOARD
+                </button>
+            </div>
+        </section>
+
+        <!-- DASHBOARD CONTENT SECTION -->
+        <div id="dashboardContent" class="hidden space-y-6">
+
+            <!-- KPI STATS CARDS -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wide block">Total Omzet Belanja QR</span>
+                    <strong id="kpiOmzet" class="text-2xl font-black text-slate-900">Rp 0</strong>
+                    <p id="kpiTrxCount" class="text-[11px] font-semibold text-teal-600 pt-1">0 Transaksi Lunas</p>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wide block">Komisi Tunai Diserahkan</span>
+                    <strong id="kpiKomisiTukang" class="text-2xl font-black text-emerald-600">Rp 0</strong>
+                    <p class="text-[11px] font-semibold text-slate-400 pt-1">Diterima Tukang / Diskon Nota</p>
+                </div>
+
+                <div class="bg-slate-900 text-white p-5 rounded-2xl border border-slate-800 shadow-md space-y-1 relative overflow-hidden">
+                    <div class="flex justify-between items-start">
+                        <span class="text-xs font-bold text-amber-400 uppercase tracking-wide block">Komisi Platform Terutang</span>
+                        <span id="kpiStatusBadge" class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold px-2 py-0.5 rounded-full">Lancar</span>
+                    </div>
+                    <strong id="kpiKomisiCreator" class="text-2xl font-black text-amber-400 block pt-1">Rp 0</strong>
+                    <p class="text-[11px] font-semibold text-slate-400 pt-1">Batas Limit: Rp 500.000</p>
+                </div>
+            </div>
+
+            <!-- KARTU EDUKASI & PETUNJUK PEMBAYARAN KOMISI PLATFORM -->
+            <section class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-5 border border-slate-700 shadow-sm space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-700/80 pb-4">
+                    <div class="space-y-1">
+                        <h3 class="text-sm font-black text-teal-400 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-credit-card"></i> Pembayaran Setoran Komisi Platform
+                        </h3>
+                        <p class="text-xs text-slate-300 font-medium">Setor komisi platform secara periodik (mingguan/saat mendekati limit) agar layanan QR Kasir Toko tetap aktif.</p>
+                    </div>
+                    <a id="btnConfirmPayment" href="#" target="_blank" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-xs px-4 py-2.5 rounded-xl shadow transition inline-flex items-center gap-2">
+                        <i class="fa-brands fa-whatsapp text-sm"></i> Konfirmasi Setoran via WA Admin
+                    </a>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs pt-1">
+                    <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700 space-y-1">
+                        <span class="text-slate-400 font-semibold block">Transfer Bank Tujuan:</span>
+                        <p class="font-extrabold text-white text-sm">BCA: <span class="text-teal-300 select-all">1234-5678-90</span></p>
+                        <p class="text-slate-400">a.n. <strong>Creator Platform Mitra Bangunan</strong></p>
+                    </div>
+                    <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700 space-y-1">
+                        <span class="text-slate-400 font-semibold block">Aturan Batas Limit Setoran:</span>
+                        <p class="text-slate-300 font-medium">Setoran wajib dilakukan sebelum akumulasi komisi mencapai <strong>Rp 500.000</strong>. Jika melebihi limit, verifikasi transaksi baru di kasir akan ditangguhkan sementara.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RIWAYAT TRANSAKSI TOKO -->
+            <section class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-receipt text-teal-600"></i> Riwayat Transaksi Toko
+                    </h3>
+                    <span class="text-xs text-slate-500 font-semibold" id="trxSummaryCount">0 Transaksi</span>
+                </div>
+
+                <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                    <table class="w-full text-left text-xs whitespace-nowrap">
+                        <thead class="bg-slate-100 font-bold text-slate-700">
+                            <tr>
+                                <th class="p-3">ID Transaksi</th>
+                                <th class="p-3">Tanggal</th>
+                                <th class="p-3">Pelanggan</th>
+                                <th class="p-3 text-right">Total Belanja</th>
+                                <th class="p-3 text-center">Mode Insentif</th>
+                                <th class="p-3 text-right">Komisi Tukang</th>
+                                <th class="p-3 text-right">Komisi Platform</th>
+                                <th class="p-3 text-center">Status</th>
+                                <th class="p-3">Kasir</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableTrxBody" class="divide-y divide-slate-100">
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </div>
+
+    </main>
+
+    <script>
+        let GAS_WEB_APP_URL = localStorage.getItem('mb_gas_url') || '';
+        let currentStoreInfo = null;
+        let currentKpi = null;
+
+        async function loginStore() {
+            const storeId = document.getElementById('loginStoreId').value.trim().toUpperCase();
+            const pin = document.getElementById('loginPin').value.trim();
+
+            if (!storeId || !pin) return alert('ID Toko dan PIN wajib diisi!');
+
+            if (!GAS_WEB_APP_URL) return alert('API Web App belum diatur! Buka kasir.html lalu klik Set API terlebih dahulu.');
+
+            try {
+                const res = await fetch(`${GAS_WEB_APP_URL}?action=getStoreDashboard&storeId=${storeId}&pin=${pin}`);
+                const data = await res.json();
+
+                if (!data.success) {
+                    alert('Gagal Masuk: ' + data.message);
+                    return;
+                }
+
+                currentStoreInfo = data.store;
+                currentKpi = data.kpi;
+                renderDashboard(data);
+
+            } catch(e) {
+                alert('Terjadi kesalahan koneksi server: ' + e.toString());
+            }
+        }
+
+        function renderDashboard(data) {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('dashboardContent').classList.remove('hidden');
+            document.getElementById('btnLogout').classList.remove('hidden');
+
+            document.getElementById('headerStoreName').innerText = `${data.store.nama} (${data.store.id})`;
+            document.getElementById('kpiOmzet').innerText = `Rp ${Number(data.kpi.totalOmzet || 0).toLocaleString('id-ID')}`;
+            document.getElementById('kpiTrxCount').innerText = `${data.kpi.totalLunasCount || 0} Transaksi Lunas`;
+            document.getElementById('kpiKomisiTukang').innerText = `Rp ${Number(data.kpi.totalKomisiTukang || 0).toLocaleString('id-ID')}`;
+            document.getElementById('kpiKomisiCreator').innerText = `Rp ${Number(data.kpi.totalKomisiCreator || 0).toLocaleString('id-ID')}`;
+
+            // Indikator Status Limit Tagihan
+            const totalCreator = Number(data.kpi.totalKomisiCreator || 0);
+            const statusBadge = document.getElementById('kpiStatusBadge');
+
+            if (totalCreator >= 500000) {
+                statusBadge.className = "text-[10px] bg-red-500/20 text-red-300 border border-red-500/30 font-bold px-2 py-0.5 rounded-full";
+                statusBadge.innerText = "Wajib Setor";
+            } else if (totalCreator >= 300000) {
+                statusBadge.className = "text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold px-2 py-0.5 rounded-full";
+                statusBadge.innerText = "Mendekati Limit";
+            } else {
+                statusBadge.className = "text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold px-2 py-0.5 rounded-full";
+                statusBadge.innerText = "Lancar";
+            }
+
+            // Atur Link WhatsApp Konfirmasi Pembayaran
+            const adminPhone = "6281398907638"; // Ganti dengan nomor WhatsApp Admin Platform
+            const textWa = `*KONFIRMASI SETORAN KOMISI PLATFORM MITRA BANGUNAN*\n\n` +
+                           `Halo Admin,\n` +
+                           `Saya pemilik toko: *${data.store.nama}* (${data.store.id})\n` +
+                           `Ingin mengonfirmasi setoran komisi platform terutang sebesar: *Rp ${totalCreator.toLocaleString('id-ID')}*.\n\n` +
+                           `Berikut kami lampirkan bukti transfer bank. Mohon diverifikasi. Terima kasih!`;
+            
+            document.getElementById('btnConfirmPayment').href = `https://api.whatsapp.com/send?phone=${adminPhone}&text=${encodeURIComponent(textWa)}`;
+
+            // Tabel Riwayat Transaksi
+            const tbody = document.getElementById('tableTrxBody');
+            tbody.innerHTML = '';
+
+            const transactions = data.transactions || [];
+            document.getElementById('trxSummaryCount').innerText = `${transactions.length} Total Transaksi`;
+
+            if (transactions.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-400 font-semibold">Belum ada riwayat transaksi recorded.</td></tr>`;
+                return;
+            }
+
+            transactions.forEach(trx => {
+                const isLunas = String(trx.status).toUpperCase() === 'LUNAS';
+                const statusBadgeHtml = isLunas
+                    ? `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-200">LUNAS</span>`
+                    : `<span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-amber-200">PENDING</span>`;
+
+                const modeText = trx.modeIncentive === 'CASHBACK_TUKANG' ? 'Komisi Tukang' : 'Diskon Nota';
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 font-bold text-teal-700">${trx.id}</td>
+                        <td class="p-3 text-slate-500 font-medium">${trx.date || '-'}</td>
+                        <td class="p-3 font-semibold text-slate-800">${trx.custName || 'Umum'}</td>
+                        <td class="p-3 text-right font-bold text-slate-900">Rp ${Number(trx.grandTotal || 0).toLocaleString('id-ID')}</td>
+                        <td class="p-3 text-center font-bold text-[10px] text-slate-600">${modeText}</td>
+                        <td class="p-3 text-right font-bold text-emerald-600">Rp ${Number(trx.nominalInsentif || 0).toLocaleString('id-ID')}</td>
+                        <td class="p-3 text-right font-bold text-amber-600">Rp ${Number(trx.komisiCreator || 0).toLocaleString('id-ID')}</td>
+                        <td class="p-3 text-center">${statusBadgeHtml}</td>
+                        <td class="p-3 font-medium text-slate-500">${trx.cashierName || '-'}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function logout() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>
