@@ -208,12 +208,14 @@
                 renderTrxDetails({
                     id: trxId,
                     storeId: 'TOKO-001',
-                    custName: 'Albert Teo',
-                    custPhone: '082113866890',
-                    grandTotal: 12675000,
-                    modeIncentive: 'CASHBACK_TUKANG',
+                    custName: 'Pelanggan Umum',
+                    custPhone: '-',
+                    grandTotal: 137226969,
+                    modeIncentive: 'DISKON_NOTA',
                     items: [
-                        { name: '[Dinding] Bata Ringan Hebel 7.5cm', qty: 19.5, unit: 'm³', price: 650000, total: 12675000 }
+                        { name: '[Paving] Paving Segienam Hexagon', qty: 25515, unit: 'pcs', price: 3500, total: 89302500 },
+                        { name: '[Paving] Pasir Urug Alas Bedding (Tebal 5cm)', qty: 51.98, unit: 'm³', price: 220000, total: 11435600 },
+                        { name: '[Paving] Kanstin / Pembatas Beton Pinggir', qty: 1515, unit: 'pcs', price: 25000, total: 37875000 }
                     ],
                     status: 'PENDING'
                 });
@@ -264,7 +266,6 @@
             document.getElementById('resTrxId').innerText = trx.id;
             document.getElementById('resCustName').innerText = `Pelanggan: ${trx.custName || 'Umum'}`;
 
-            // Ambil ringkasan tagihan komisi platform toko secara real-time
             if (trx.storeId) {
                 fetchStoreSummaryWidget(trx.storeId);
             }
@@ -308,7 +309,6 @@
                 `;
             });
 
-            // Pengunci jika transaksi sudah LUNAS
             const btnVerify = document.getElementById('btnVerify');
             const nameInput = document.getElementById('inputCashierName');
             const pinInput = document.getElementById('inputCashierPin');
@@ -372,23 +372,17 @@
                         return;
                     }
 
-                    // Update status & antarmuka
                     currentLoadedTrx.status = 'LUNAS';
                     currentLoadedTrx.cashierName = cashierName;
                     renderTrxDetails(currentLoadedTrx);
 
-                    // Kirim Notifikasi WhatsApp
                     const targetPhone = String(res.custPhone || currentLoadedTrx.custPhone || '');
                     const custName = res.custName || currentLoadedTrx.custName || 'Pelanggan';
                     const modeIncentive = res.modeIncentive || currentLoadedTrx.modeIncentive;
                     const incentiveVal = res.incentiveVal || currentLoadedTrx.incentiveVal || Math.round((currentLoadedTrx.grandTotal || 0) * 0.01);
                     const grandTotal = res.grandTotal || currentLoadedTrx.grandTotal || 0;
 
-                    if (targetPhone && targetPhone !== '-') {
-                        sendWAConfirmation(targetPhone, custName, modeIncentive, incentiveVal, grandTotal, cashierName);
-                    } else {
-                        alert('Transaksi Berhasil LUNAS!');
-                    }
+                    handlePostVerification(targetPhone, custName, modeIncentive, incentiveVal, grandTotal, cashierName);
 
                 } catch(e) {
                     alert('Terjadi kesalahan koneksi server: ' + e.toString());
@@ -397,63 +391,74 @@
                 currentLoadedTrx.status = 'LUNAS';
                 currentLoadedTrx.cashierName = cashierName;
                 renderTrxDetails(currentLoadedTrx);
-                sendWAConfirmation(String(currentLoadedTrx.custPhone || ''), currentLoadedTrx.custName, currentLoadedTrx.modeIncentive, 126750, 12675000, cashierName);
+                handlePostVerification(String(currentLoadedTrx.custPhone || ''), currentLoadedTrx.custName, currentLoadedTrx.modeIncentive, 1372269, 137226969, cashierName);
             }
         }
 
-        function sendWAConfirmation(phone, name, mode, val, total, cashier) {
+        function handlePostVerification(phone, name, mode, val, total, cashier) {
             let targetPhone = String(phone || '').replace(/[^0-9]/g, '');
             if (targetPhone.startsWith('0')) targetPhone = '62' + targetPhone.slice(1);
             else if (targetPhone.startsWith('8')) targetPhone = '62' + targetPhone;
 
-            const valFormatted = new Intl.NumberFormat('id-ID').format(val || 0);
-            const totalFormatted = new Intl.NumberFormat('id-ID').format(total || 0);
-            const isCashback = (mode === 'CASHBACK_TUKANG');
-            const modeText = isCashback ? 'Komisi Tunai Tukang' : 'Diskon Nota Pemilik Rumah';
-
-            const text = `*BUKTI VERIFIKASI TRANSAKSI MITRA BANGUNAN*\n\n` +
-                         `Halo Kak ${name},\n` +
-                         `Transaksi ID: *${currentLoadedTrx ? currentLoadedTrx.id : '-'}* telah berhasil diverifikasi LUNAS.\n\n` +
-                         `*Total Belanja:* Rp ${totalFormatted}\n` +
-                         `*Jenis Manfaat:* ${modeText}\n` +
-                         `*Nominal:* Rp ${valFormatted}\n` +
-                         `*Kasir Verifikator:* ${cashier}\n\n` +
-                         `Terima kasih telah berbelanja melalui jaringan Toko Mitra Bangunan!`;
-
-            const waUrl = `https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodeURIComponent(text)}`;
-
-            // Tampilkan tombol WhatsApp & Tombol Transaksi Baru
             const authBox = document.getElementById('cashierAuthBox');
-            if (authBox) {
-                authBox.innerHTML = `
-                    <div class="p-4 bg-emerald-100 border border-emerald-300 rounded-2xl text-center space-y-3">
-                        <p class="text-xs font-extrabold text-emerald-900"><i class="fa-solid fa-circle-check"></i> TRANSAKSI BERHASIL DIVERIFIKASI SELESAI!</p>
-                        <div class="flex flex-wrap justify-center gap-2">
-                            <a href="${waUrl}" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow inline-flex items-center gap-2">
-                                <i class="fa-brands fa-whatsapp text-sm"></i> Kirim Resi ke WhatsApp Pelanggan
-                            </a>
-                            <button onclick="resetKasirUI()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow inline-flex items-center gap-2">
-                                <i class="fa-solid fa-qrcode"></i> Transaksi Baru / Scan Lagi
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }
+            const hasPhone = targetPhone && targetPhone !== '-' && targetPhone.length >= 8;
 
-            // Alihkan langsung ke aplikasi WhatsApp
-            window.location.href = waUrl;
+            if (hasPhone) {
+                const valFormatted = new Intl.NumberFormat('id-ID').format(val || 0);
+                const totalFormatted = new Intl.NumberFormat('id-ID').format(total || 0);
+                const isCashback = (mode === 'CASHBACK_TUKANG');
+                const modeText = isCashback ? 'Komisi Tunai Tukang' : 'Diskon Nota Pemilik Rumah';
+
+                const text = `*BUKTI VERIFIKASI TRANSAKSI MITRA BANGUNAN*\n\n` +
+                             `Halo Kak ${name},\n` +
+                             `Transaksi ID: *${currentLoadedTrx ? currentLoadedTrx.id : '-'}* telah berhasil diverifikasi LUNAS.\n\n` +
+                             `*Total Belanja:* Rp ${totalFormatted}\n` +
+                             `*Jenis Manfaat:* ${modeText}\n` +
+                             `*Nominal:* Rp ${valFormatted}\n` +
+                             `*Kasir Verifikator:* ${cashier}\n\n` +
+                             `Terima kasih telah berbelanja melalui jaringan Toko Mitra Bangunan!`;
+
+                const waUrl = `https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodeURIComponent(text)}`;
+
+                if (authBox) {
+                    authBox.innerHTML = `
+                        <div class="p-4 bg-emerald-100 border border-emerald-300 rounded-2xl text-center space-y-3">
+                            <p class="text-xs font-extrabold text-emerald-900"><i class="fa-solid fa-circle-check"></i> TRANSAKSI BERHASIL DIVERIFIKASI SELESAI!</p>
+                            <div class="flex flex-wrap justify-center gap-2">
+                                <a href="${waUrl}" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow inline-flex items-center gap-2">
+                                    <i class="fa-brands fa-whatsapp text-sm"></i> Kirim Resi ke WhatsApp Pelanggan
+                                </a>
+                                <button onclick="resetKasirUI()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow inline-flex items-center gap-2">
+                                    <i class="fa-solid fa-qrcode"></i> Transaksi Baru / Scan Lagi
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+                window.open(waUrl, '_blank');
+            } else {
+                if (authBox) {
+                    authBox.innerHTML = `
+                        <div class="p-4 bg-emerald-100 border border-emerald-300 rounded-2xl text-center space-y-3">
+                            <p class="text-xs font-extrabold text-emerald-900"><i class="fa-solid fa-circle-check"></i> TRANSAKSI BERHASIL DIVERIFIKASI SELESAI!</p>
+                            <p class="text-[11px] text-slate-600 font-semibold">(Tanpa Nomor WhatsApp Pelanggan)</p>
+                            <div class="flex justify-center">
+                                <button onclick="resetKasirUI()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow inline-flex items-center gap-2">
+                                    <i class="fa-solid fa-qrcode"></i> Transaksi Baru / Scan Lagi
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
         }
 
         function resetKasirUI() {
-            // Sembunyikan area hasil transaksi & widget
             document.getElementById('resultSection').classList.add('hidden');
             document.getElementById('storeSummaryWidget').classList.add('hidden');
-
-            // Kosongkan input manual
             document.getElementById('manualTrxId').value = '';
             currentLoadedTrx = null;
 
-            // Kembalikan form otentikasi kasir ke kondisi awal
             const authBox = document.getElementById('cashierAuthBox');
             if (authBox) {
                 authBox.innerHTML = `
@@ -473,7 +478,6 @@
                 `;
             }
 
-            // Scroll ke atas dengan mulus menuju area scanner
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
