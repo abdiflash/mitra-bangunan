@@ -101,7 +101,7 @@
                         <strong id="widgetKomisiCreator" class="text-base font-black text-amber-400">Rp 0</strong>
                     </div>
                     <div>
-                        <span class="text-[11px] text-slate-400 block font-semibold">Total Transaksi Lunas:</span>
+                        <span class="text-[11px] text-slate-400 block font-semibold">Total Transaksi Selesai:</span>
                         <strong id="widgetTotalLunas" class="text-base font-black text-teal-300">0 Transaksi</strong>
                     </div>
                 </div>
@@ -149,7 +149,7 @@
 
                 <div class="flex flex-wrap items-center gap-2">
                     <button id="btnVerify" onclick="verifyTrx()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs sm:text-sm px-5 py-3 rounded-xl shadow transition flex items-center gap-2">
-                        <i class="fa-solid fa-circle-check text-base"></i> SELESAIKAN TRANSAKSI (LUNAS)
+                        <i class="fa-solid fa-circle-check text-base"></i> VERIFIKASI TRANSAKSI (SELESAI)
                     </button>
                     <button id="btnResetTrx" onclick="resetKasirUI()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs px-4 py-3 rounded-xl border border-slate-700 shadow transition inline-flex items-center gap-1.5">
                         <i class="fa-solid fa-qrcode"></i> Transaksi Baru
@@ -237,7 +237,6 @@
             const cachedTrxStr = localStorage.getItem(cacheKey);
             let isRenderedFromCache = false;
 
-            // 1. TAMPILKAN INSTAN DARI LOCALSTORAGE CACHE
             if (cachedTrxStr) {
                 try {
                     const cachedTrx = JSON.parse(cachedTrxStr);
@@ -252,7 +251,6 @@
                 }
             }
 
-            // 2. FETCH REAL-TIME TERBARU DARI GAS API
             if (GAS_WEB_APP_URL) {
                 try {
                     const res = await fetch(`${GAS_WEB_APP_URL}?action=getTransaction&id=${trxId}`);
@@ -343,10 +341,10 @@
                 fetchStoreSummaryWidget(trx.storeId);
             }
 
-            const isLunas = String(trx.status).toUpperCase() === 'LUNAS' || String(trx.status).toUpperCase() === 'SELESAI';
+            const isDone = String(trx.status).toUpperCase() === 'SELESAI' || String(trx.status).toUpperCase() === 'LUNAS';
             const badge = document.getElementById('resStatusBadge');
-            badge.innerText = isLunas ? 'LUNAS' : 'PENDING';
-            badge.className = isLunas
+            badge.innerText = isDone ? 'SELESAI' : 'PENDING';
+            badge.className = isDone
                 ? 'bg-emerald-100 text-emerald-800 text-xs font-extrabold px-3 py-1 rounded-full border border-emerald-200'
                 : 'bg-amber-100 text-amber-800 text-xs font-extrabold px-3 py-1 rounded-full border border-amber-200';
 
@@ -385,15 +383,15 @@
             const btnVerify = document.getElementById('btnVerify');
             const authBox = document.getElementById('cashierAuthBox');
 
-            if (isLunas) {
+            if (isDone) {
                 btnVerify.disabled = true;
                 btnVerify.className = 'bg-slate-400 text-slate-700 font-bold text-xs px-5 py-3 rounded-xl cursor-not-allowed';
-                btnVerify.innerHTML = '<i class="fa-solid fa-lock"></i> TRANSAKSI SUDAH LUNAS';
+                btnVerify.innerHTML = '<i class="fa-solid fa-lock"></i> TRANSAKSI SUDAH SELESAI';
 
                 if (authBox) {
                     authBox.innerHTML = `
                         <div class="p-4 bg-emerald-100 border border-emerald-300 rounded-2xl text-center space-y-3">
-                            <p class="text-xs font-extrabold text-emerald-900"><i class="fa-solid fa-circle-check"></i> TRANSAKSI INI SUDAH LUNAS DIVERIFIKASI ${trx.cashierName ? '(Kasir: ' + trx.cashierName + ')' : ''}</p>
+                            <p class="text-xs font-extrabold text-emerald-900"><i class="fa-solid fa-circle-check"></i> TRANSAKSI INI SUDAH SELESAI DIVERIFIKASI ${trx.cashierName ? '(Kasir: ' + trx.cashierName + ')' : ''}</p>
                             <div class="flex justify-center gap-2">
                                 <button onclick="resetKasirUI()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow inline-flex items-center gap-2 transition">
                                     <i class="fa-solid fa-qrcode"></i> Transaksi Baru / Scan Lagi
@@ -405,7 +403,7 @@
             } else {
                 btnVerify.disabled = false;
                 btnVerify.className = 'bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs sm:text-sm px-5 py-3 rounded-xl shadow transition flex items-center gap-2';
-                btnVerify.innerHTML = '<i class="fa-solid fa-circle-check text-base"></i> SELESAIKAN TRANSAKSI (LUNAS)';
+                btnVerify.innerHTML = '<i class="fa-solid fa-circle-check text-base"></i> VERIFIKASI TRANSAKSI (SELESAI)';
 
                 if (authBox && !document.getElementById('inputCashierName')) {
                     authBox.innerHTML = `
@@ -473,7 +471,7 @@
                         return;
                     }
 
-                    currentLoadedTrx.status = 'LUNAS';
+                    currentLoadedTrx.status = 'SELESAI';
                     currentLoadedTrx.cashierName = cashierName;
                     saveTrxToCache(currentLoadedTrx);
                     renderTrxDetails(currentLoadedTrx);
@@ -490,7 +488,7 @@
                     alert('Terjadi kesalahan koneksi server: ' + e.toString());
                 }
             } else {
-                currentLoadedTrx.status = 'LUNAS';
+                currentLoadedTrx.status = 'SELESAI';
                 currentLoadedTrx.cashierName = cashierName;
                 saveTrxToCache(currentLoadedTrx);
                 renderTrxDetails(currentLoadedTrx);
@@ -514,7 +512,7 @@
 
                 const text = `*BUKTI VERIFIKASI TRANSAKSI MITRA BANGUNAN*\n\n` +
                              `Halo Kak ${name},\n` +
-                             `Transaksi ID: *${currentLoadedTrx ? currentLoadedTrx.id : '-'}* telah berhasil diverifikasi LUNAS.\n\n` +
+                             `Transaksi ID: *${currentLoadedTrx ? currentLoadedTrx.id : '-'}* telah berhasil diverifikasi SELESAI.\n\n` +
                              `*Total Belanja:* Rp ${totalFormatted}\n` +
                              `*Jenis Manfaat:* ${modeText}\n` +
                              `*Nominal:* Rp ${valFormatted}\n` +
