@@ -63,7 +63,7 @@
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
                     <span class="text-xs font-bold text-slate-500 uppercase tracking-wide block">Total Omzet Belanja QR</span>
                     <strong id="kpiOmzet" class="text-2xl font-black text-slate-900">Rp 0</strong>
-                    <p id="kpiTrxCount" class="text-[11px] font-semibold text-teal-600 pt-1">0 Transaksi Lunas</p>
+                    <p id="kpiTrxCount" class="text-[11px] font-semibold text-teal-600 pt-1">0 Transaksi Selesai</p>
                 </div>
 
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
@@ -129,7 +129,7 @@
                                 <th class="p-3 text-center">Mode Insentif</th>
                                 <th class="p-3 text-right">Komisi Tukang</th>
                                 <th class="p-3 text-right">Komisi Platform</th>
-                                <th class="p-3 text-center">Status</th>
+                                <th class="p-3 text-center">Status Kasir</th>
                                 <th class="p-3">Kasir</th>
                             </tr>
                         </thead>
@@ -181,7 +181,7 @@
 
             document.getElementById('headerStoreName').innerText = `${data.store.nama} (${data.store.id})`;
             document.getElementById('kpiOmzet').innerText = `Rp ${Number(data.kpi.totalOmzet || 0).toLocaleString('id-ID')}`;
-            document.getElementById('kpiTrxCount').innerText = `${data.kpi.totalLunasCount || 0} Transaksi Lunas`;
+            document.getElementById('kpiTrxCount').innerText = `${data.kpi.totalLunasCount || 0} Transaksi Selesai`;
             document.getElementById('kpiKomisiTukang').innerText = `Rp ${Number(data.kpi.totalKomisiTukang || 0).toLocaleString('id-ID')}`;
             document.getElementById('kpiKomisiCreator').innerText = `Rp ${Number(data.kpi.totalKomisiCreator || 0).toLocaleString('id-ID')}`;
 
@@ -223,9 +223,11 @@
             }
 
             transactions.forEach(trx => {
-                const isLunas = String(trx.status).toUpperCase() === 'LUNAS';
-                const statusBadgeHtml = isLunas
-                    ? `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-200">LUNAS</span>`
+                const isVerified = String(trx.status).toUpperCase() === 'LUNAS';
+                
+                // Label Status Kasir Toko: SELESAI / PENDING
+                const statusKasirBadge = isVerified
+                    ? `<span class="bg-teal-100 text-teal-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-teal-200"><i class="fa-solid fa-check"></i> SELESAI</span>`
                     : `<span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-amber-200">PENDING</span>`;
 
                 const modeText = trx.modeIncentive === 'CASHBACK_TUKANG' ? 'Komisi Tukang' : 'Diskon Nota';
@@ -238,8 +240,11 @@
                         <td class="p-3 text-right font-bold text-slate-900">Rp ${Number(trx.grandTotal || 0).toLocaleString('id-ID')}</td>
                         <td class="p-3 text-center font-bold text-[10px] text-slate-600">${modeText}</td>
                         <td class="p-3 text-right font-bold text-emerald-600">Rp ${Number(trx.nominalInsentif || 0).toLocaleString('id-ID')}</td>
-                        <td class="p-3 text-right font-bold text-amber-600">Rp ${Number(trx.komisiCreator || 0).toLocaleString('id-ID')}</td>
-                        <td class="p-3 text-center">${statusBadgeHtml}</td>
+                        <td class="p-3 text-right font-bold text-amber-600">
+                            Rp ${Number(trx.komisiCreator || 0).toLocaleString('id-ID')}
+                            <span class="block text-[9px] font-normal text-amber-700">(Terutang)</span>
+                        </td>
+                        <td class="p-3 text-center">${statusKasirBadge}</td>
                         <td class="p-3 font-medium text-slate-500">${trx.cashierName || '-'}</td>
                     </tr>
                 `;
