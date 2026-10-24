@@ -59,7 +59,7 @@
             <div class="pt-3 border-t border-slate-100 max-w-sm mx-auto">
                 <label class="block text-xs font-semibold text-slate-500 mb-1">Atau Masukkan Kode Invoice Manual:</label>
                 <div class="flex gap-2">
-                    <input type="text" id="manualTrxId" onkeypress="handleEnterKey(event)" placeholder="Contoh: MB-123456" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold uppercase focus:bg-white focus:border-teal-600 focus:outline-none">
+                    <input type="text" id="manualTrxId" onkeypress="handleEnterKey(event)" placeholder="Contoh: MB-079797" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold uppercase focus:bg-white focus:border-teal-600 focus:outline-none">
                     <button id="btnCariManual" onclick="lookupManualTrx()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow transition flex items-center justify-center gap-1.5 whitespace-nowrap">
                         <i class="fa-solid fa-magnifying-glass"></i> Cari
                     </button>
@@ -71,7 +71,7 @@
         <section id="resultSection" class="hidden bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 space-y-4">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                 <div>
-                    <span id="resTrxId" class="text-xs font-extrabold text-teal-700 uppercase tracking-wider block">MB-123456</span>
+                    <span id="resTrxId" class="text-xs font-extrabold text-teal-700 uppercase tracking-wider block">MB-079797</span>
                     <h3 id="resCustName" class="text-base font-black text-slate-900">Pelanggan: Pak Budi</h3>
                 </div>
                 <span id="resStatusBadge" class="bg-amber-100 text-amber-800 text-xs font-extrabold px-3 py-1 rounded-full border border-amber-200">PENDING</span>
@@ -140,16 +140,21 @@
                 </div>
             </div>
 
-            <!-- VERIFICATION & FINISH ACTION -->
+            <!-- VERIFICATION & FINISH ACTION BAR -->
             <div class="bg-slate-900 text-white p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-md">
                 <div class="space-y-0.5">
                     <span class="text-xs text-slate-400 font-bold block">Tagihan Kasir / Pembayaran:</span>
                     <strong id="resFinalTotal" class="text-xl font-black text-teal-400">Rp 0</strong>
                 </div>
 
-                <button id="btnVerify" onclick="verifyTrx()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs sm:text-sm px-5 py-3 rounded-xl shadow transition flex items-center gap-2">
-                    <i class="fa-solid fa-circle-check text-base"></i> SELESAIKAN TRANSAKSI (LUNAS)
-                </button>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button id="btnVerify" onclick="verifyTrx()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs sm:text-sm px-5 py-3 rounded-xl shadow transition flex items-center gap-2">
+                        <i class="fa-solid fa-circle-check text-base"></i> SELESAIKAN TRANSAKSI (LUNAS)
+                    </button>
+                    <button id="btnResetTrx" onclick="resetKasirUI()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs px-4 py-3 rounded-xl border border-slate-700 shadow transition inline-flex items-center gap-1.5">
+                        <i class="fa-solid fa-qrcode"></i> Transaksi Baru
+                    </button>
+                </div>
             </div>
         </section>
 
@@ -217,16 +222,12 @@
             fetchTrxDetails(val);
         }
 
-        // ========================================================
-        // INSTAN 0-DETIK LOOKUP TRANSAKSI DENGAN LOCALSTORAGE CACHE
-        // ========================================================
         async function fetchTrxDetails(trxId) {
             if (!trxId) return;
 
             const btnCari = document.getElementById('btnCariManual');
             const originalBtnHtml = '<i class="fa-solid fa-magnifying-glass"></i> Cari';
 
-            // Indikator loading responsif seketika
             if (btnCari) {
                 btnCari.disabled = true;
                 btnCari.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mencari...';
@@ -234,10 +235,9 @@
 
             const cacheKey = `mb_trx_cache_${trxId}`;
             const cachedTrxStr = localStorage.getItem(cacheKey);
-
             let isRenderedFromCache = false;
 
-            // 1. TAMPILKAN INSTAN (0-DETIK) JIKA ADA DI CACHE
+            // 1. TAMPILKAN INSTAN DARI LOCALSTORAGE CACHE
             if (cachedTrxStr) {
                 try {
                     const cachedTrx = JSON.parse(cachedTrxStr);
@@ -252,7 +252,7 @@
                 }
             }
 
-            // 2. PEMBARUAN LATAR BELAKANG (BACKGROUND FETCH) DARI SERVER
+            // 2. FETCH REAL-TIME TERBARU DARI GAS API
             if (GAS_WEB_APP_URL) {
                 try {
                     const res = await fetch(`${GAS_WEB_APP_URL}?action=getTransaction&id=${trxId}`);
@@ -281,7 +281,6 @@
                 }
 
                 if (!isRenderedFromCache) {
-                    // Fallback Simulasi Lokal tanpa GAS Web App
                     const dummyNew = {
                         id: trxId,
                         storeId: 'TOKO-001',
@@ -384,24 +383,47 @@
             });
 
             const btnVerify = document.getElementById('btnVerify');
-            const nameInput = document.getElementById('inputCashierName');
-            const pinInput = document.getElementById('inputCashierPin');
+            const authBox = document.getElementById('cashierAuthBox');
 
             if (isLunas) {
                 btnVerify.disabled = true;
                 btnVerify.className = 'bg-slate-400 text-slate-700 font-bold text-xs px-5 py-3 rounded-xl cursor-not-allowed';
                 btnVerify.innerHTML = '<i class="fa-solid fa-lock"></i> TRANSAKSI SUDAH LUNAS';
-                
-                if (trx.cashierName) nameInput.value = trx.cashierName;
-                nameInput.disabled = true;
-                pinInput.disabled = true;
+
+                if (authBox) {
+                    authBox.innerHTML = `
+                        <div class="p-4 bg-emerald-100 border border-emerald-300 rounded-2xl text-center space-y-3">
+                            <p class="text-xs font-extrabold text-emerald-900"><i class="fa-solid fa-circle-check"></i> TRANSAKSI INI SUDAH LUNAS DIVERIFIKASI ${trx.cashierName ? '(Kasir: ' + trx.cashierName + ')' : ''}</p>
+                            <div class="flex justify-center gap-2">
+                                <button onclick="resetKasirUI()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow inline-flex items-center gap-2 transition">
+                                    <i class="fa-solid fa-qrcode"></i> Transaksi Baru / Scan Lagi
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
             } else {
                 btnVerify.disabled = false;
                 btnVerify.className = 'bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs sm:text-sm px-5 py-3 rounded-xl shadow transition flex items-center gap-2';
                 btnVerify.innerHTML = '<i class="fa-solid fa-circle-check text-base"></i> SELESAIKAN TRANSAKSI (LUNAS)';
-                
-                nameInput.disabled = false;
-                pinInput.disabled = false;
+
+                if (authBox && !document.getElementById('inputCashierName')) {
+                    authBox.innerHTML = `
+                        <h4 class="text-xs font-extrabold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
+                            <i class="fa-solid fa-user-shield text-teal-600"></i> Akuntabilitas Kasir Verifikator
+                        </h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Nama Kasir Bertugas <span class="text-red-500">*</span></label>
+                                <input type="text" id="inputCashierName" placeholder="Contoh: Budi (Shift Pagi)" class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-semibold focus:border-teal-600 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">PIN Kasir Toko <span class="text-red-500">*</span></label>
+                                <input type="password" id="inputCashierPin" placeholder="Masukkan PIN 4-digit" maxlength="6" class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-semibold focus:border-teal-600 focus:outline-none">
+                            </div>
+                        </div>
+                    `;
+                }
             }
 
             resSec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -410,18 +432,21 @@
         async function verifyTrx() {
             if (!currentLoadedTrx) return;
 
-            const cashierName = document.getElementById('inputCashierName').value.trim();
-            const pin = document.getElementById('inputCashierPin').value.trim();
+            const nameEl = document.getElementById('inputCashierName');
+            const pinEl = document.getElementById('inputCashierPin');
+
+            const cashierName = nameEl ? nameEl.value.trim() : '';
+            const pin = pinEl ? pinEl.value.trim() : '';
 
             if (!cashierName) {
                 alert('Nama Kasir wajib diisi untuk akuntabilitas transaksi!');
-                document.getElementById('inputCashierName').focus();
+                if (nameEl) nameEl.focus();
                 return;
             }
 
             if (!pin) {
                 alert('PIN Kasir Toko wajib diisi!');
-                document.getElementById('inputCashierPin').focus();
+                if (pinEl) pinEl.focus();
                 return;
             }
 
