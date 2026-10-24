@@ -183,7 +183,6 @@
 
         async function fetchTrxDetails(trxId) {
             if (!GAS_WEB_APP_URL) {
-                // Demo Mode jika API URL belum diisi
                 renderTrxDetails({
                     id: trxId,
                     storeId: 'TOKO-001',
@@ -281,125 +280,88 @@
         }
 
         async function verifyTrx() {
-    if (!currentLoadedTrx) return;
+            if (!currentLoadedTrx) return;
 
-    const cashierName = document.getElementById('inputCashierName').value.trim();
-    const pin = document.getElementById('inputCashierPin').value.trim();
+            const cashierName = document.getElementById('inputCashierName').value.trim();
+            const pin = document.getElementById('inputCashierPin').value.trim();
 
-    if (!cashierName) {
-        alert('Nama Kasir wajib diisi untuk akuntabilitas transaksi!');
-        document.getElementById('inputCashierName').focus();
-        return;
-    }
-
-    if (!pin) {
-        alert('PIN Kasir Toko wajib diisi!');
-        document.getElementById('inputCashierPin').focus();
-        return;
-    }
-
-    if (!confirm(`Konfirmasi pelunasan oleh Kasir "${cashierName}"?`)) return;
-
-    const payload = {
-        action: 'verifyTransaction',
-        trxId: currentLoadedTrx.id,
-        storeId: currentLoadedTrx.storeId,
-        pin: pin,
-        cashierName: cashierName
-    };
-
-    if (GAS_WEB_APP_URL) {
-        try {
-            const response = await fetch(GAS_WEB_APP_URL, {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            });
-            const res = await response.json();
-
-            if (!res.success) {
-                alert('Gagal Verifikasi: ' + res.message);
+            if (!cashierName) {
+                alert('Nama Kasir wajib diisi untuk akuntabilitas transaksi!');
+                document.getElementById('inputCashierName').focus();
                 return;
             }
 
-            // Update status & tampilan antarmuka
-            currentLoadedTrx.status = 'LUNAS';
-            currentLoadedTrx.cashierName = cashierName;
-            renderTrxDetails(currentLoadedTrx);
-
-            // Buka WhatsApp tanpa terhalang pop-up blocker
-            const targetPhone = res.custPhone || currentLoadedTrx.custPhone;
-            const custName = res.custName || currentLoadedTrx.custName || 'Pelanggan';
-            const modeIncentive = res.modeIncentive || currentLoadedTrx.modeIncentive;
-            const incentiveVal = res.incentiveVal || currentLoadedTrx.incentiveVal || Math.round((currentLoadedTrx.grandTotal || 0) * 0.01);
-            const grandTotal = res.grandTotal || currentLoadedTrx.grandTotal || 0;
-
-            if (targetPhone && targetPhone !== '-') {
-                sendWAConfirmation(targetPhone, custName, modeIncentive, incentiveVal, grandTotal, cashierName);
-            } else {
-                alert('Transaksi Berhasil LUNAS!');
+            if (!pin) {
+                alert('PIN Kasir Toko wajib diisi!');
+                document.getElementById('inputCashierPin').focus();
+                return;
             }
 
-        } catch(e) {
-            alert('Terjadi kesalahan koneksi server: ' + e.toString());
+            if (!confirm(`Konfirmasi pelunasan oleh Kasir "${cashierName}"?`)) return;
+
+            const payload = {
+                action: 'verifyTransaction',
+                trxId: currentLoadedTrx.id,
+                storeId: currentLoadedTrx.storeId,
+                pin: pin,
+                cashierName: cashierName
+            };
+
+            if (GAS_WEB_APP_URL) {
+                try {
+                    const response = await fetch(GAS_WEB_APP_URL, {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+                    const res = await response.json();
+
+                    if (!res.success) {
+                        alert('Gagal Verifikasi: ' + res.message);
+                        return;
+                    }
+
+                    // Update status & antarmuka
+                    currentLoadedTrx.status = 'LUNAS';
+                    currentLoadedTrx.cashierName = cashierName;
+                    renderTrxDetails(currentLoadedTrx);
+
+                    // Kirim Notifikasi WhatsApp
+                    const targetPhone = String(res.custPhone || currentLoadedTrx.custPhone || '');
+                    const custName = res.custName || currentLoadedTrx.custName || 'Pelanggan';
+                    const modeIncentive = res.modeIncentive || currentLoadedTrx.modeIncentive;
+                    const incentiveVal = res.incentiveVal || currentLoadedTrx.incentiveVal || Math.round((currentLoadedTrx.grandTotal || 0) * 0.01);
+                    const grandTotal = res.grandTotal || currentLoadedTrx.grandTotal || 0;
+
+                    if (targetPhone && targetPhone !== '-') {
+                        sendWAConfirmation(targetPhone, custName, modeIncentive, incentiveVal, grandTotal, cashierName);
+                    } else {
+                        alert('Transaksi Berhasil LUNAS!');
+                    }
+
+                } catch(e) {
+                    alert('Terjadi kesalahan koneksi server: ' + e.toString());
+                }
+            } else {
+                currentLoadedTrx.status = 'LUNAS';
+                currentLoadedTrx.cashierName = cashierName;
+                renderTrxDetails(currentLoadedTrx);
+                sendWAConfirmation(String(currentLoadedTrx.custPhone || ''), currentLoadedTrx.custName, currentLoadedTrx.modeIncentive, 126750, 12675000, cashierName);
+            }
         }
-    } else {
-        currentLoadedTrx.status = 'LUNAS';
-        currentLoadedTrx.cashierName = cashierName;
-        renderTrxDetails(currentLoadedTrx);
-        sendWAConfirmation(currentLoadedTrx.custPhone, currentLoadedTrx.custName, currentLoadedTrx.modeIncentive, 126750, 12675000, cashierName);
-    }
-}
 
-function sendWAConfirmation(phone, name, mode, val, total, cashier) {
-    let targetPhone = String(phone).replace(/[^0-9]/g, '');
-    if (targetPhone.startsWith('0')) targetPhone = '62' + targetPhone.slice(1);
-    else if (targetPhone.startsWith('8')) targetPhone = '62' + targetPhone;
-
-    const valFormatted = new Intl.NumberFormat('id-ID').format(val);
-    const totalFormatted = new Intl.NumberFormat('id-ID').format(total);
-    const isCashback = (mode === 'CASHBACK_TUKANG');
-    const modeText = isCashback ? 'Komisi Tunai Tukang' : 'Diskon Nota Pemilik Rumah';
-
-    const text = `*BUKTI VERIFIKASI TRANSAKSI MITRA BANGUNAN*\n\n` +
-                 `Halo Kak ${name},\n` +
-                 `Transaksi ID: *${currentLoadedTrx.id}* telah berhasil diverifikasi LUNAS.\n\n` +
-                 `*Total Belanja:* Rp ${totalFormatted}\n` +
-                 `*Jenis Manfaat:* ${modeText}\n` +
-                 `*Nominal:* Rp ${valFormatted}\n` +
-                 `*Kasir Verifikator:* ${cashier}\n\n` +
-                 `Terima kasih telah berbelanja melalui jaringan Toko Mitra Bangunan!`;
-
-    const waUrl = `https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodeURIComponent(text)}`;
-
-    // Tampilkan tombol manual WhatsApp sebagai cadangan di halaman
-    const authBox = document.getElementById('cashierAuthBox');
-    if (authBox) {
-        authBox.innerHTML = `
-            <div class="p-3 bg-emerald-100 border border-emerald-300 rounded-xl text-center space-y-2">
-                <p class="text-xs font-extrabold text-emerald-900"><i class="fa-solid fa-circle-check"></i> TRANSAKSI BERHASIL DIVERIFIKASI LUNAS!</p>
-                <a href="${waUrl}" target="_blank" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow">
-                    <i class="fa-brands fa-whatsapp text-sm"></i> Kirim Resi ke WhatsApp Pelanggan
-                </a>
-            </div>
-        `;
-    }
-
-    // Alihkan langsung ke WhatsApp
-    window.location.href = waUrl;
-}
         function sendWAConfirmation(phone, name, mode, val, total, cashier) {
-            let targetPhone = phone.replace(/[^0-9]/g, '');
+            let targetPhone = String(phone || '').replace(/[^0-9]/g, '');
             if (targetPhone.startsWith('0')) targetPhone = '62' + targetPhone.slice(1);
             else if (targetPhone.startsWith('8')) targetPhone = '62' + targetPhone;
 
-            const valFormatted = new Intl.NumberFormat('id-ID').format(val);
-            const totalFormatted = new Intl.NumberFormat('id-ID').format(total);
+            const valFormatted = new Intl.NumberFormat('id-ID').format(val || 0);
+            const totalFormatted = new Intl.NumberFormat('id-ID').format(total || 0);
             const isCashback = (mode === 'CASHBACK_TUKANG');
             const modeText = isCashback ? 'Komisi Tunai Tukang' : 'Diskon Nota Pemilik Rumah';
 
             const text = `*BUKTI VERIFIKASI TRANSAKSI MITRA BANGUNAN*\n\n` +
                          `Halo Kak ${name},\n` +
-                         `Transaksi ID: *${currentLoadedTrx.id}* telah berhasil diverifikasi LUNAS.\n\n` +
+                         `Transaksi ID: *${currentLoadedTrx ? currentLoadedTrx.id : '-'}* telah berhasil diverifikasi LUNAS.\n\n` +
                          `*Total Belanja:* Rp ${totalFormatted}\n` +
                          `*Jenis Manfaat:* ${modeText}\n` +
                          `*Nominal:* Rp ${valFormatted}\n` +
@@ -407,7 +369,22 @@ function sendWAConfirmation(phone, name, mode, val, total, cashier) {
                          `Terima kasih telah berbelanja melalui jaringan Toko Mitra Bangunan!`;
 
             const waUrl = `https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodeURIComponent(text)}`;
-            window.open(waUrl, '_blank');
+
+            // Tampilkan tombol WhatsApp cadangan di halaman
+            const authBox = document.getElementById('cashierAuthBox');
+            if (authBox) {
+                authBox.innerHTML = `
+                    <div class="p-3 bg-emerald-100 border border-emerald-300 rounded-xl text-center space-y-2">
+                        <p class="text-xs font-extrabold text-emerald-900"><i class="fa-solid fa-circle-check"></i> TRANSAKSI BERHASIL DIVERIFIKASI LUNAS!</p>
+                        <a href="${waUrl}" target="_blank" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow">
+                            <i class="fa-brands fa-whatsapp text-sm"></i> Kirim Resi ke WhatsApp Pelanggan
+                        </a>
+                    </div>
+                `;
+            }
+
+            // Alihkan langsung ke aplikasi WhatsApp
+            window.location.href = waUrl;
         }
 
         function openConfigModal() {
