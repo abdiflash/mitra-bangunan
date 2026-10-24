@@ -84,6 +84,28 @@
                 <p id="instructionText" class="text-xs font-bold leading-relaxed"></p>
             </div>
 
+            <!-- WIDGET RINGKASAN REKAPITULASI TOKO -->
+            <div id="storeSummaryWidget" class="hidden bg-slate-900 text-white p-4 rounded-2xl border border-slate-700 space-y-2">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                    <span class="text-xs font-extrabold text-teal-400 uppercase tracking-wide flex items-center gap-1.5">
+                        <i class="fa-solid fa-chart-line"></i> Ringkasan Komisi Platform Toko (<span id="widgetStoreId">TOKO-001</span>)
+                    </span>
+                    <span id="widgetLimitStatus" class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold px-2.5 py-0.5 rounded-full">
+                        Status: Normal
+                    </span>
+                </div>
+                <div class="grid grid-cols-2 gap-3 pt-1">
+                    <div>
+                        <span class="text-[11px] text-slate-400 block font-semibold">Total Komisi Creator Terutang:</span>
+                        <strong id="widgetKomisiCreator" class="text-base font-black text-amber-400">Rp 0</strong>
+                    </div>
+                    <div>
+                        <span class="text-[11px] text-slate-400 block font-semibold">Total Transaksi Lunas:</span>
+                        <strong id="widgetTotalLunas" class="text-base font-black text-teal-300">0 Transaksi</strong>
+                    </div>
+                </div>
+            </div>
+
             <!-- TABEL DETAIL MATERIAL -->
             <div class="border border-slate-200 rounded-xl overflow-hidden">
                 <table class="w-full text-left text-xs">
@@ -211,11 +233,41 @@
             }
         }
 
+        async function fetchStoreSummaryWidget(storeId) {
+            if (!GAS_WEB_APP_URL || !storeId) return;
+            try {
+                const res = await fetch(`${GAS_WEB_APP_URL}?action=getStoreSummary&storeId=${storeId}`);
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('storeSummaryWidget').classList.remove('hidden');
+                    document.getElementById('widgetStoreId').innerText = data.storeId;
+                    document.getElementById('widgetKomisiCreator').innerText = `Rp ${Number(data.totalKomisiCreator || 0).toLocaleString('id-ID')}`;
+                    document.getElementById('widgetTotalLunas').innerText = `${data.totalTrxLunas || 0} Transaksi`;
+
+                    const statusBadge = document.getElementById('widgetLimitStatus');
+                    if (data.limitWarning) {
+                        statusBadge.className = "text-[10px] bg-red-500/20 text-red-300 border border-red-500/30 font-bold px-2.5 py-0.5 rounded-full";
+                        statusBadge.innerText = "Batas Limit Terpenuhi (Wajib Setor)";
+                    } else {
+                        statusBadge.className = "text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold px-2.5 py-0.5 rounded-full";
+                        statusBadge.innerText = "Status: Normal";
+                    }
+                }
+            } catch(e) {
+                console.error("Gagal memuat ringkasan toko:", e);
+            }
+        }
+
         function renderTrxDetails(trx) {
             currentLoadedTrx = trx;
             document.getElementById('resultSection').classList.remove('hidden');
             document.getElementById('resTrxId').innerText = trx.id;
             document.getElementById('resCustName').innerText = `Pelanggan: ${trx.custName || 'Umum'}`;
+
+            // Ambil ringkasan tagihan komisi platform toko secara real-time
+            if (trx.storeId) {
+                fetchStoreSummaryWidget(trx.storeId);
+            }
 
             const isLunas = String(trx.status).toUpperCase() === 'LUNAS';
             const badge = document.getElementById('resStatusBadge');
