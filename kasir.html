@@ -126,7 +126,7 @@
                 </div>
 
                 <div id="actionBarButtons" class="flex flex-wrap items-center gap-2">
-                    <button id="btnVerify" onclick="verifyTrx()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs sm:text-sm px-5 py-3 rounded-xl shadow transition flex items-center gap-2">
+                    <button id="btnVerify" onclick="verifyTrxAndSendWa()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs sm:text-sm px-5 py-3 rounded-xl shadow transition flex items-center gap-2">
                         <i class="fa-solid fa-circle-check text-base"></i> SELESAIKAN TRANSAKSI
                     </button>
                 </div>
@@ -255,8 +255,8 @@
                     const dummyNew = {
                         id: trxId,
                         storeId: 'TOKO-001',
-                        custName: 'Umum',
-                        custPhone: '-',
+                        custName: 'Albert Teo',
+                        custPhone: '081234567890',
                         grandTotal: 10140000,
                         modeIncentive: 'CASHBACK_TUKANG',
                         items: [
@@ -273,6 +273,25 @@
         function saveTrxToCache(trx) {
             if (!trx || !trx.id) return;
             localStorage.setItem(`mb_trx_cache_${trx.id}`, JSON.stringify(trx));
+        }
+
+        function buildSingleWaMessage(trx, cashierName) {
+            const isCashback = (trx.modeIncentive === 'CASHBACK_TUKANG' || trx.modeIncentive === 'KOMISI_TUKANG');
+            const modeText = isCashback ? 'Komisi Tunai Tukang' : 'Diskon Nota Pemilik Rumah';
+            const subtotal = trx.grandTotal || 0;
+            const inc = trx.incentiveVal || Math.round(subtotal * 0.01);
+            
+            const totalFormatted = Number(subtotal).toLocaleString('id-ID');
+            const incFormatted = Number(inc).toLocaleString('id-ID');
+            const custName = trx.custName || 'Pelanggan';
+
+            return `BUKTI VERIFIKASI TRANSAKSI MITRA BANGUNAN\n\n` +
+                   `Halo Kak ${custName},\n` +
+                   `Transaksi ID: ${trx.id} telah SELESAI.\n\n` +
+                   `Total Belanja: Rp ${totalFormatted}\n` +
+                   `Jenis Manfaat: ${modeText}\n` +
+                   `Nominal Manfaat: Rp ${incFormatted}\n\n` +
+                   `Terima kasih telah berbelanja di Toko Mitra Bangunan!`;
         }
 
         function renderTrxDetails(trx) {
@@ -296,11 +315,9 @@
 
             let subtotal = trx.grandTotal || 0;
             let inc = trx.incentiveVal || Math.round(subtotal * 0.01);
-
             const isCashback = (trx.modeIncentive === 'CASHBACK_TUKANG' || trx.modeIncentive === 'KOMISI_TUKANG');
 
             if (isDone) {
-                // Tampilan Instruksi ketika transaksi SUDAH SELESAI
                 if (isCashback) {
                     card.className = "p-4 rounded-2xl border-2 bg-emerald-50 border-emerald-400 text-emerald-900";
                     title.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i> STATUS: SELESAI (KOMISI TUNAI TELAH DISERAHKAN)`;
@@ -313,7 +330,6 @@
                     document.getElementById('resFinalTotal').innerText = `Rp ${(subtotal - inc).toLocaleString('id-ID')}`;
                 }
             } else {
-                // Tampilan Instruksi ketika PENDING
                 if (isCashback) {
                     card.className = "p-4 rounded-2xl border-2 bg-amber-50 border-amber-400 text-amber-900";
                     title.innerHTML = `<i class="fa-solid fa-hand-holding-dollar text-amber-600"></i> MODE: KOMISI TUNAI TUKANG / BROKER`;
@@ -327,7 +343,6 @@
                 }
             }
 
-            // Render Tabel Items
             const tbody = document.getElementById('resTableBody');
             tbody.innerHTML = '';
             (trx.items || []).forEach(it => {
@@ -341,7 +356,6 @@
                 `;
             });
 
-            // Action Bar Bawah
             const authBox = document.getElementById('cashierAuthBox');
             const actionBarButtons = document.getElementById('actionBarButtons');
 
@@ -351,22 +365,14 @@
                 let targetPhone = String(trx.custPhone || '').replace(/[^0-9]/g, '');
                 if (targetPhone.startsWith('0')) targetPhone = '62' + targetPhone.slice(1);
                 else if (targetPhone.startsWith('8')) targetPhone = '62' + targetPhone;
-                
+
                 const hasPhone = targetPhone && targetPhone !== '-' && targetPhone.length >= 8;
                 let btnWaHtml = '';
 
                 if (hasPhone) {
-                    const modeText = isCashback ? 'Komisi Tunai Tukang' : 'Diskon Nota Pemilik Rumah';
-                    const textWa = `*BUKTI VERIFIKASI TRANSAKSI MITRA BANGUNAN*\n\n` +
-                                   `Halo Kak ${trx.custName || 'Pelanggan'},\n` +
-                                   `Transaksi ID: *${trx.id}* telah SELESAI.\n\n` +
-                                   `*Total Belanja:* Rp ${subtotal.toLocaleString('id-ID')}\n` +
-                                   `*Jenis Manfaat:* ${modeText}\n` +
-                                   `*Nominal Manfaat:* Rp ${inc.toLocaleString('id-ID')}\n\n` +
-                                   `Terima kasih telah berbelanja di Toko Mitra Bangunan!`;
-
-                    const waUrl = `https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodeURIComponent(textWa)}`;
-                    btnWaHtml = `<a href="${waUrl}" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-3 rounded-xl shadow inline-flex items-center gap-1.5 transition"><i class="fa-brands fa-whatsapp text-sm"></i> Kirim Resi WA</a>`;
+                    const singleMsg = buildSingleWaMessage(trx, trx.cashierName || '');
+                    const waUrl = `https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodeURIComponent(singleMsg)}`;
+                    btnWaHtml = `<a href="${waUrl}" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-3 rounded-xl shadow inline-flex items-center gap-1.5 transition"><i class="fa-brands fa-whatsapp text-sm"></i> Kirim Ulang Resi WA</a>`;
                 }
 
                 actionBarButtons.innerHTML = `
@@ -378,8 +384,8 @@
             } else {
                 authBox.classList.remove('hidden');
                 actionBarButtons.innerHTML = `
-                    <button id="btnVerify" onclick="verifyTrx()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs sm:text-sm px-5 py-3 rounded-xl shadow transition flex items-center gap-2">
-                        <i class="fa-solid fa-circle-check text-base"></i> SELESAIKAN TRANSAKSI
+                    <button id="btnVerify" onclick="verifyTrxAndSendWa()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs sm:text-sm px-5 py-3 rounded-xl shadow transition flex items-center gap-2">
+                        <i class="fa-solid fa-circle-check text-base"></i> SELESAIKAN TRANSAKSI & KIRIM WA
                     </button>
                 `;
             }
@@ -387,7 +393,7 @@
             resSec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
-        async function verifyTrx() {
+        async function verifyTrxAndSendWa() {
             if (!currentLoadedTrx) return;
 
             const nameEl = document.getElementById('inputCashierName');
@@ -397,7 +403,7 @@
             const pin = pinEl ? pinEl.value.trim() : '';
 
             if (!cashierName) {
-                alert('Nama Kasir wajib diisi untuk akuntabilitas!');
+                alert('Nama Kasir wajib diisi!');
                 if (nameEl) nameEl.focus();
                 return;
             }
@@ -410,10 +416,10 @@
 
             const isCashback = (currentLoadedTrx.modeIncentive === 'CASHBACK_TUKANG' || currentLoadedTrx.modeIncentive === 'KOMISI_TUKANG');
             const inc = currentLoadedTrx.incentiveVal || Math.round((currentLoadedTrx.grandTotal || 0) * 0.01);
-            
+
             const msgConfirm = isCashback 
-                ? `Konfirmasi transaksi SELESAI oleh Kasir "${cashierName}"?\nPastikan Komisi Tunai Rp ${inc.toLocaleString('id-ID')} SUDAH DISERAHKAN ke Tukang.`
-                : `Konfirmasi transaksi SELESAI oleh Kasir "${cashierName}"?\nNota telah dipotong diskon Rp ${inc.toLocaleString('id-ID')}.`;
+                ? `Konfirmasi transaksi SELESAI?\nKasir: "${cashierName}"\nPastikan Komisi Tunai Rp ${inc.toLocaleString('id-ID')} SUDAH DISERAHKAN ke Tukang.`
+                : `Konfirmasi transaksi SELESAI?\nKasir: "${cashierName}"\nNota telah dipotong diskon Rp ${inc.toLocaleString('id-ID')}.`;
 
             if (!confirm(msgConfirm)) return;
 
@@ -425,6 +431,7 @@
                 cashierName: cashierName
             };
 
+            // 1. UPDATE STATUS DI BACKEND & CACHE
             if (GAS_WEB_APP_URL) {
                 try {
                     const response = await fetch(GAS_WEB_APP_URL, {
@@ -437,21 +444,29 @@
                         alert('Gagal Verifikasi: ' + res.message);
                         return;
                     }
-
-                    currentLoadedTrx.status = 'SELESAI';
-                    currentLoadedTrx.cashierName = cashierName;
-                    saveTrxToCache(currentLoadedTrx);
-                    renderTrxDetails(currentLoadedTrx);
-
                 } catch(e) {
-                    alert('Terjadi kesalahan koneksi server: ' + e.toString());
+                    alert('Kesalahan koneksi server: ' + e.toString());
+                    return;
                 }
-            } else {
-                currentLoadedTrx.status = 'SELESAI';
-                currentLoadedTrx.cashierName = cashierName;
-                saveTrxToCache(currentLoadedTrx);
-                renderTrxDetails(currentLoadedTrx);
             }
+
+            currentLoadedTrx.status = 'SELESAI';
+            currentLoadedTrx.cashierName = cashierName;
+            saveTrxToCache(currentLoadedTrx);
+
+            // 2. BUKA WHATSAPP DENGAN 1 PESAN TUNGGAL BERSIH
+            let targetPhone = String(currentLoadedTrx.custPhone || '').replace(/[^0-9]/g, '');
+            if (targetPhone.startsWith('0')) targetPhone = '62' + targetPhone.slice(1);
+            else if (targetPhone.startsWith('8')) targetPhone = '62' + targetPhone;
+
+            if (targetPhone && targetPhone !== '-' && targetPhone.length >= 8) {
+                const singleMsg = buildSingleWaMessage(currentLoadedTrx, cashierName);
+                const waUrl = `https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodeURIComponent(singleMsg)}`;
+                window.open(waUrl, '_blank');
+            }
+
+            // 3. UPDATE TAMPILAN KASIR KE STATUS SELESAI
+            renderTrxDetails(currentLoadedTrx);
         }
 
         function resetKasirUI() {
