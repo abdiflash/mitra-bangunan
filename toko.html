@@ -164,7 +164,6 @@
         let GAS_WEB_APP_URL = localStorage.getItem('mb_gas_url') || '';
 
         window.addEventListener('DOMContentLoaded', () => {
-            // Auto login jika ada sesi tersimpan
             const sessionData = localStorage.getItem('mb_toko_session');
             if (sessionData) {
                 try {
@@ -172,17 +171,13 @@
                     document.getElementById('loginStoreId').value = session.storeId || '';
                     document.getElementById('loginPin').value = session.pin || '';
                     
-                    // 1. Tampilkan cache lokal secara instan (0 Detik)
                     const cachedData = localStorage.getItem(`mb_toko_cache_${session.storeId}`);
                     if (cachedData) {
                         renderDashboard(JSON.parse(cachedData));
                     }
                     
-                    // 2. Fetch data terbaru di latar belakang
                     fetchDashboardBackground(session.storeId, session.pin);
-                } catch(e) {
-                    console.error('Sesi invalid:', e);
-                }
+                } catch(e) {}
             }
         });
 
@@ -192,13 +187,11 @@
 
             if (!storeId || !pin) return alert('ID Toko dan PIN wajib diisi!');
 
-            // 1. Cek jika ada cache untuk Toko ini, tampilkan instan (0 Detik)
             const cachedData = localStorage.getItem(`mb_toko_cache_${storeId}`);
             if (cachedData) {
                 renderDashboard(JSON.parse(cachedData));
             }
 
-            // 2. Fetch data dari server GAS
             await fetchDashboardBackground(storeId, pin, true);
         }
 
@@ -217,15 +210,12 @@
                     return;
                 }
 
-                // Simpan Sesi & Cache LocalStorage
                 localStorage.setItem('mb_toko_session', JSON.stringify({ storeId, pin }));
                 localStorage.setItem(`mb_toko_cache_${storeId}`, JSON.stringify(data));
 
-                // Update UI secara halus di latar belakang
                 renderDashboard(data);
 
             } catch(e) {
-                console.error('Background fetch error:', e);
                 if (isManualLogin && !localStorage.getItem(`mb_toko_cache_${storeId}`)) {
                     alert('Terjadi kesalahan koneksi server: ' + e.toString());
                 }
@@ -243,7 +233,6 @@
             document.getElementById('kpiKomisiTukang').innerText = `Rp ${Number(data.kpi.totalKomisiTukang || 0).toLocaleString('id-ID')}`;
             document.getElementById('kpiKomisiCreator').innerText = `Rp ${Number(data.kpi.totalKomisiCreator || 0).toLocaleString('id-ID')}`;
 
-            // Indikator Status Limit Tagihan
             const totalCreator = Number(data.kpi.totalKomisiCreator || 0);
             const statusBadge = document.getElementById('kpiStatusBadge');
 
@@ -258,7 +247,6 @@
                 statusBadge.innerText = "Lancar";
             }
 
-            // WhatsApp Konfirmasi Pembayaran Admin
             const adminPhone = "6282113866890";
             const textWa = `*KONFIRMASI SETORAN KOMISI PLATFORM MITRA BANGUNAN*\n\n` +
                            `Halo Admin,\n` +
@@ -268,7 +256,6 @@
             
             document.getElementById('btnConfirmPayment').href = `https://api.whatsapp.com/send?phone=${adminPhone}&text=${encodeURIComponent(textWa)}`;
 
-            // Tabel Riwayat Transaksi
             const tbody = document.getElementById('tableTrxBody');
             tbody.innerHTML = '';
 
@@ -276,18 +263,18 @@
             document.getElementById('trxSummaryCount').innerText = `${transactions.length} Total Transaksi`;
 
             if (transactions.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-400 font-semibold">Belum ada riwayat transaksi recorded.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-400 font-semibold">Belum ada riwayat transaksi.</td></tr>`;
                 return;
             }
 
             transactions.forEach(trx => {
-                const isVerified = String(trx.status).toUpperCase() === 'LUNAS';
+                const isVerified = (String(trx.status).toUpperCase() === 'SELESAI' || String(trx.status).toUpperCase() === 'LUNAS');
                 
                 const statusKasirBadge = isVerified
-                    ? `<span class="bg-teal-100 text-teal-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-teal-200"><i class="fa-solid fa-check"></i> SELESAIKAN (LUNAS)</span>`
+                    ? `<span class="bg-teal-100 text-teal-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-teal-200"><i class="fa-solid fa-check"></i> SELESAI (LUNAS)</span>`
                     : `<span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-amber-200">PENDING</span>`;
 
-                const modeText = trx.modeIncentive === 'CASHBACK_TUKANG' ? 'Komisi Tukang' : 'Diskon Nota';
+                const modeText = (trx.modeIncentive === 'CASHBACK_TUKANG' || trx.modeIncentive === 'KOMISI_TUKANG') ? 'Komisi Tukang' : 'Diskon Nota';
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition">
