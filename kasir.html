@@ -220,7 +220,7 @@
             if (cachedTrxStr) {
                 try {
                     const cachedTrx = JSON.parse(cachedTrxStr);
-                    renderTrxDetails(cachedTrx);
+                    renderTrxDetails(cachedTrx, false);
                     isRenderedFromCache = true;
                     if (btnCari) {
                         btnCari.disabled = false;
@@ -236,7 +236,7 @@
 
                     if (data.success && data.trx) {
                         saveTrxToCache(data.trx);
-                        renderTrxDetails(data.trx);
+                        renderTrxDetails(data.trx, !!data.limitWarning);
                     } else if (!isRenderedFromCache) {
                         alert('Transaksi tidak ditemukan di database server!');
                     }
@@ -270,7 +270,7 @@
                         status: 'PENDING'
                     };
                     saveTrxToCache(dummyNew);
-                    renderTrxDetails(dummyNew);
+                    renderTrxDetails(dummyNew, false);
                 }
             }
         }
@@ -301,7 +301,7 @@
                    `Terima kasih telah berbelanja di Toko Mitra Bangunan!`;
         }
 
-        function renderTrxDetails(trx) {
+        function renderTrxDetails(trx, isLimitExceeded = false) {
             currentLoadedTrx = trx;
             const resSec = document.getElementById('resultSection');
             resSec.classList.remove('hidden');
@@ -324,7 +324,12 @@
             let inc = trx.incentiveVal || Math.round(subtotal * 0.01);
             const isCashback = (trx.modeIncentive === 'CASHBACK_TUKANG' || trx.modeIncentive === 'KOMISI_TUKANG');
 
-            if (isDone) {
+            if (!isDone && isLimitExceeded) {
+                card.className = "p-4 rounded-2xl border-2 bg-red-50 border-red-500 text-red-900";
+                title.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-red-600"></i> LAYANAN DITANGGUHKAN (WAJIB SETOR KOMISI)`;
+                text.innerHTML = `Akumulasi komisi platform terutang toko telah melampaui batas limit (≥ Rp 500.000).<br><strong class="text-red-700">Minta Pemilik Toko untuk melunasi setoran via QRIS / Transfer Bank di toko.html agar verifikasi kasir dapat dibuka kembali.</strong>`;
+                document.getElementById('resFinalTotal').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
+            } else if (isDone) {
                 if (isCashback) {
                     card.className = "p-4 rounded-2xl border-2 bg-emerald-50 border-emerald-400 text-emerald-900";
                     title.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i> STATUS: SELESAI (KOMISI TUNAI TELAH DISERAHKAN)`;
@@ -379,6 +384,13 @@
                     </button>
                     <button id="btnNextTrx" ${!waSentState ? 'disabled' : ''} onclick="resetKasirUI()" class="${btnNextClass} text-xs sm:text-sm px-5 py-3 rounded-xl transition flex items-center gap-2">
                         <i class="fa-solid fa-qrcode"></i> Transaksi Baru / Scan Lagi
+                    </button>
+                `;
+            } else if (isLimitExceeded) {
+                authBox.classList.add('hidden');
+                actionBarButtons.innerHTML = `
+                    <button disabled class="bg-slate-700 text-slate-400 font-extrabold text-xs sm:text-sm px-5 py-3 rounded-xl cursor-not-allowed flex items-center gap-2">
+                        <i class="fa-solid fa-lock"></i> VERIFIKASI DITANGGUHKAN (CEK DASHBOARD TOKO)
                     </button>
                 `;
             } else {
@@ -463,7 +475,7 @@
             currentLoadedTrx.strukNo = strukNo;
             saveTrxToCache(currentLoadedTrx);
             
-            renderTrxDetails(currentLoadedTrx);
+            renderTrxDetails(currentLoadedTrx, false);
         }
 
         function sendWaResi() {
