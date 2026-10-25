@@ -104,9 +104,9 @@
             <!-- FORM OTENTIKASI & AKUNTABILITAS KASIR -->
             <div id="cashierAuthBox" class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
                 <h4 class="text-xs font-extrabold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
-                    <i class="fa-solid fa-user-shield text-teal-600"></i> Akuntabilitas Kasir Verifikator
+                    <i class="fa-solid fa-user-shield text-teal-600"></i> Akuntabilitas Pembayaran & Kasir Verifikator
                 </h4>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Nama Kasir Bertugas <span class="text-red-500">*</span></label>
                         <input type="text" id="inputCashierName" placeholder="Contoh: Budi (Shift Pagi)" class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-semibold focus:border-teal-600 focus:outline-none">
@@ -114,6 +114,10 @@
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">PIN Kasir Toko <span class="text-red-500">*</span></label>
                         <input type="password" id="inputCashierPin" placeholder="Masukkan PIN 4-digit" maxlength="6" class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-semibold focus:border-teal-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">No. Struk / Ref Pembayaran <span class="text-red-500">*</span></label>
+                        <input type="text" id="inputStrukNo" placeholder="Contoh: STR-98123 / EDC-0912" class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-semibold focus:border-teal-600 focus:outline-none">
                     </div>
                 </div>
             </div>
@@ -276,7 +280,7 @@
             localStorage.setItem(`mb_trx_cache_${trx.id}`, JSON.stringify(trx));
         }
 
-        function buildSingleWaMessage(trx, cashierName) {
+        function buildSingleWaMessage(trx, cashierName, strukNo) {
             const isCashback = (trx.modeIncentive === 'CASHBACK_TUKANG' || trx.modeIncentive === 'KOMISI_TUKANG');
             const modeText = isCashback ? 'Komisi Tunai Tukang' : 'Diskon Nota Pemilik Rumah';
             const subtotal = trx.grandTotal || 0;
@@ -292,6 +296,7 @@
                    `Total Belanja: Rp ${totalFormatted}\n` +
                    `Jenis Manfaat: ${modeText}\n` +
                    `Nominal Manfaat: Rp ${incFormatted}\n` +
+                   `No. Struk Toko: ${strukNo || '-'}\n` +
                    `Kasir: ${cashierName || 'Kasir Toko'}\n\n` +
                    `Terima kasih telah berbelanja di Toko Mitra Bangunan!`;
         }
@@ -323,12 +328,12 @@
                 if (isCashback) {
                     card.className = "p-4 rounded-2xl border-2 bg-emerald-50 border-emerald-400 text-emerald-900";
                     title.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i> STATUS: SELESAI (KOMISI TUNAI TELAH DISERAHKAN)`;
-                    text.innerHTML = `Komisi tunai sebesar <strong>Rp ${inc.toLocaleString('id-ID')}</strong> telah diserahkan kepada Tukang/Broker ${trx.cashierName ? '(Kasir: ' + trx.cashierName + ')' : ''}.`;
+                    text.innerHTML = `Komisi tunai sebesar <strong>Rp ${inc.toLocaleString('id-ID')}</strong> telah diserahkan ke Tukang/Broker ${trx.cashierName ? '(Kasir: ' + trx.cashierName + ')' : ''}.<br>Ref Struk: <strong>${trx.strukNo || '-'}</strong>`;
                     document.getElementById('resFinalTotal').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
                 } else {
                     card.className = "p-4 rounded-2xl border-2 bg-emerald-50 border-emerald-400 text-emerald-900";
                     title.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i> STATUS: SELESAI (NOTA DIPOTONG DISKON 1%)`;
-                    text.innerHTML = `Nota telah dipotong diskon 1% sebesar <strong>Rp ${inc.toLocaleString('id-ID')}</strong> ${trx.cashierName ? '(Kasir: ' + trx.cashierName + ')' : ''}.`;
+                    text.innerHTML = `Nota telah dipotong diskon 1% sebesar <strong>Rp ${inc.toLocaleString('id-ID')}</strong> ${trx.cashierName ? '(Kasir: ' + trx.cashierName + ')' : ''}.<br>Ref Struk: <strong>${trx.strukNo || '-'}</strong>`;
                     document.getElementById('resFinalTotal').innerText = `Rp ${(subtotal - inc).toLocaleString('id-ID')}`;
                 }
             } else {
@@ -364,7 +369,6 @@
             if (isDone) {
                 authBox.classList.add('hidden');
                 
-                // Jika sudah pernah klik Kirim WA atau transaksi sudah rampung
                 const btnNextClass = waSentState 
                     ? "bg-teal-500 hover:bg-teal-600 text-slate-950 font-black cursor-pointer shadow" 
                     : "bg-slate-800 text-slate-500 font-bold opacity-50 cursor-not-allowed";
@@ -394,9 +398,11 @@
 
             const nameEl = document.getElementById('inputCashierName');
             const pinEl = document.getElementById('inputCashierPin');
+            const strukEl = document.getElementById('inputStrukNo');
 
             const cashierName = nameEl ? nameEl.value.trim() : '';
             const pin = pinEl ? pinEl.value.trim() : '';
+            const strukNo = strukEl ? strukEl.value.trim() : '';
 
             if (!cashierName) {
                 alert('Nama Kasir wajib diisi!');
@@ -410,12 +416,18 @@
                 return;
             }
 
+            if (!strukNo) {
+                alert('Nomor Struk / Ref Pembayaran Toko wajib diisi!');
+                if (strukEl) strukEl.focus();
+                return;
+            }
+
             const isCashback = (currentLoadedTrx.modeIncentive === 'CASHBACK_TUKANG' || currentLoadedTrx.modeIncentive === 'KOMISI_TUKANG');
             const inc = currentLoadedTrx.incentiveVal || Math.round((currentLoadedTrx.grandTotal || 0) * 0.01);
 
             const msgConfirm = isCashback 
-                ? `Konfirmasi transaksi SELESAI?\nKasir: "${cashierName}"\nPastikan Komisi Tunai Rp ${inc.toLocaleString('id-ID')} SUDAH DISERAHKAN ke Tukang.`
-                : `Konfirmasi transaksi SELESAI?\nKasir: "${cashierName}"\nNota telah dipotong diskon Rp ${inc.toLocaleString('id-ID')}.`;
+                ? `Konfirmasi transaksi SELESAI?\nKasir: "${cashierName}"\nNo. Struk: "${strukNo}"\nPastikan Komisi Tunai Rp ${inc.toLocaleString('id-ID')} SUDAH DISERAHKAN ke Tukang.`
+                : `Konfirmasi transaksi SELESAI?\nKasir: "${cashierName}"\nNo. Struk: "${strukNo}"\nNota telah dipotong diskon Rp ${inc.toLocaleString('id-ID')}.`;
 
             if (!confirm(msgConfirm)) return;
 
@@ -424,7 +436,8 @@
                 trxId: currentLoadedTrx.id,
                 storeId: currentLoadedTrx.storeId,
                 pin: pin,
-                cashierName: cashierName
+                cashierName: cashierName,
+                strukNo: strukNo
             };
 
             if (GAS_WEB_APP_URL) {
@@ -447,9 +460,9 @@
 
             currentLoadedTrx.status = 'SELESAI';
             currentLoadedTrx.cashierName = cashierName;
+            currentLoadedTrx.strukNo = strukNo;
             saveTrxToCache(currentLoadedTrx);
             
-            // Render ulang tampilan kasir
             renderTrxDetails(currentLoadedTrx);
         }
 
@@ -463,12 +476,11 @@
             if (!targetPhone || targetPhone === '-' || targetPhone.length < 8) {
                 alert('Nomor WA pelanggan tidak valid/tidak tersedia.');
             } else {
-                const singleMsg = buildSingleWaMessage(currentLoadedTrx, currentLoadedTrx.cashierName || '');
+                const singleMsg = buildSingleWaMessage(currentLoadedTrx, currentLoadedTrx.cashierName || '', currentLoadedTrx.strukNo || '');
                 const waUrl = `https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodeURIComponent(singleMsg)}`;
                 window.open(waUrl, '_blank');
             }
 
-            // Aktifkan Tombol Transaksi Baru / Scan Lagi
             waSentState = true;
             const btnNext = document.getElementById('btnNextTrx');
             if (btnNext) {
@@ -485,8 +497,10 @@
 
             const nameInput = document.getElementById('inputCashierName');
             const pinInput = document.getElementById('inputCashierPin');
+            const strukInput = document.getElementById('inputStrukNo');
             if (nameInput) nameInput.value = '';
             if (pinInput) pinInput.value = '';
+            if (strukInput) strukInput.value = '';
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
