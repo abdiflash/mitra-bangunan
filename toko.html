@@ -120,7 +120,7 @@
                     <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
                         <i class="fa-solid fa-receipt text-teal-600"></i> Riwayat Transaksi Toko
                     </h3>
-                    <span class="text-xs text-slate-500 font-semibold" id="trxSummaryCount">0 Transaksi</span>
+                    <span class="text-xs text-slate-500 font-semibold" id="trxSummaryCount">0 Total Transaksi</span>
                 </div>
 
                 <div class="overflow-x-auto border border-slate-200 rounded-xl">
@@ -129,6 +129,7 @@
                             <tr>
                                 <th class="p-3">ID Transaksi</th>
                                 <th class="p-3">Tanggal</th>
+                                <th class="p-3">No. Struk / Ref</th>
                                 <th class="p-3">Pelanggan</th>
                                 <th class="p-3 text-right">Total Belanja</th>
                                 <th class="p-3 text-center">Mode Insentif</th>
@@ -263,7 +264,7 @@
             document.getElementById('trxSummaryCount').innerText = `${transactions.length} Total Transaksi`;
 
             if (transactions.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-400 font-semibold">Belum ada riwayat transaksi.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" class="p-6 text-center text-slate-400 font-semibold">Belum ada riwayat transaksi.</td></tr>`;
                 return;
             }
 
@@ -280,6 +281,7 @@
                     <tr class="hover:bg-slate-50 transition">
                         <td class="p-3 font-bold text-teal-700">${trx.id}</td>
                         <td class="p-3 text-slate-500 font-medium">${trx.date || '-'}</td>
+                        <td class="p-3 font-bold text-slate-700">${trx.strukNo || '-'}</td>
                         <td class="p-3 font-semibold text-slate-800">${trx.custName || 'Umum'}</td>
                         <td class="p-3 text-right font-bold text-slate-900">Rp ${Number(trx.grandTotal || 0).toLocaleString('id-ID')}</td>
                         <td class="p-3 text-center font-bold text-[10px] text-slate-600">${modeText}</td>
