@@ -7,6 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Pustaka SheetJS untuk membaca file Excel (XLSX/XLS) & CSV di browser -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; }
     </style>
@@ -42,7 +46,7 @@
         <section id="loginSection" class="max-w-md mx-auto bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
             <div class="text-center space-y-1">
                 <h2 class="text-lg font-black text-slate-900">Masuk Dashboard Toko</h2>
-                <p class="text-xs text-slate-500 font-medium">Masukkan ID Toko dan PIN Kasir untuk melihat laporan</p>
+                <p class="text-xs text-slate-500 font-medium">Masukkan ID Toko dan PIN Kasir untuk mengelola katalog & melihat laporan</p>
             </div>
 
             <div class="space-y-3">
@@ -86,6 +90,66 @@
                     <p class="text-[11px] font-semibold text-slate-400 pt-1">BCA 0125032619 a.n. Leonardus Yesiabdi Luhur P.</p>
                 </div>
             </div>
+
+            <!-- MODUL KELOLA KATALOG HARGA MATERIAL TOKO (EXCEL / CSV IMPORT) -->
+            <section class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                    <div>
+                        <h3 class="font-extrabold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                            <i class="fa-solid fa-boxes-packing text-teal-600"></i> Kelola Katalog & Harga Material Toko
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Unggah berkas Excel (.xlsx/.xls) atau CSV untuk memperbarui harga satuan harian toko.</p>
+                    </div>
+                    <a href="Template_Katalog_53_Standard_Dan_Custom_Mitra_Bangunan.xlsx" download class="text-xs bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold px-3 py-2 rounded-xl border border-teal-200 transition inline-flex items-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-file-excel text-emerald-600"></i> Unduh Template Excel Lengkap
+                    </a>
+                </div>
+
+                <!-- Banner Edukasi Kode Material -->
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-900 flex items-start gap-3">
+                    <i class="fa-solid fa-circle-info text-amber-600 text-lg mt-0.5 shrink-0"></i>
+                    <div class="space-y-1">
+                        <p class="font-bold text-amber-950">Catatan Penting Pengisian Katalog:</p>
+                        <p class="text-amber-800 leading-relaxed">
+                            Item dengan Kode Standard (53 Item Template) digunakan untuk Kalkulator Otomatis. Item baru tanpa kode standar akan muncul sebagai Katalog Pilihan Manual saat pembuatan penawaran.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Input File Upload Area -->
+                <div class="border-2 border-dashed border-slate-300 hover:border-teal-500 rounded-2xl p-6 text-center bg-slate-50 hover:bg-teal-50/30 transition cursor-pointer" onclick="document.getElementById('fileCatalogInput').click()">
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-teal-600 mb-2"></i>
+                    <p class="text-xs font-bold text-slate-700">Klik untuk memilih file Excel (.xlsx / .xls) atau CSV</p>
+                    <p class="text-[11px] text-slate-400 mt-1">Pastikan format kolom sesuai dengan template standar</p>
+                    <input type="file" id="fileCatalogInput" accept=".csv, .xlsx, .xls" class="hidden" onchange="handleCatalogFileUpload(event)">
+                </div>
+
+                <!-- Preview Table Data Hasil Upload -->
+                <div id="catalogPreviewBox" class="hidden space-y-3 pt-3 border-t border-slate-100">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <span class="text-xs font-bold text-slate-700" id="previewCountText">Preview Data Material (0 Item)</span>
+                        <button onclick="saveCatalogToServer()" id="btnSaveCatalog" class="bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold px-4 py-2 rounded-xl shadow transition inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-floppy-disk"></i> Simpan Katalog ke Server
+                        </button>
+                    </div>
+                    <div class="max-h-72 overflow-y-auto border border-slate-200 rounded-xl">
+                        <table class="w-full text-left text-xs whitespace-nowrap">
+                            <thead class="bg-slate-100 font-bold text-slate-700 sticky top-0 shadow-sm">
+                                <tr>
+                                    <th class="p-2.5">Kode Material</th>
+                                    <th class="p-2.5">Kategori</th>
+                                    <th class="p-2.5 text-center">Tipe Item</th>
+                                    <th class="p-2.5">Nama Material</th>
+                                    <th class="p-2.5">Spesifikasi / Merk</th>
+                                    <th class="p-2.5 text-center">Satuan</th>
+                                    <th class="p-2.5 text-right">Harga Toko (Rp)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="catalogPreviewBody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
 
             <!-- KARTU EDUKASI & PETUNJUK PEMBAYARAN KOMISI PLATFORM -->
             <section class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-5 border border-slate-700 shadow-sm space-y-4">
@@ -163,6 +227,7 @@
 
     <script>
         let GAS_WEB_APP_URL = localStorage.getItem('mb_gas_url') || '';
+        let parsedCatalogData = [];
 
         window.addEventListener('DOMContentLoaded', () => {
             const sessionData = localStorage.getItem('mb_toko_session');
@@ -295,6 +360,128 @@
                     </tr>
                 `;
             });
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* LOGIKA SKRIP PARSER SHEETJS & UPLOAD KATALOG HARGA MATERIAL TOKO           */
+        /* -------------------------------------------------------------------------- */
+        
+        function handleCatalogFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const jsonRows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+                    if (!jsonRows || jsonRows.length === 0) {
+                        alert("Berkas kosong atau format header tidak valid!");
+                        return;
+                    }
+
+                    parsedCatalogData = jsonRows.map(row => {
+                        const rawPrice = row.Harga_Satuan_Toko || row.harga || row.Harga || 0;
+                        const cleanPrice = Number(String(rawPrice).replace(/[^0-9]/g, '')) || 0;
+                        const kode = String(row.Kode_Material || row.kode || '').trim();
+                        
+                        return {
+                            kode: kode,
+                            kategori: String(row.Kategori || row.kategori || '').trim(),
+                            tipe: String(row.Tipe_Item || row.tipe || (kode.startsWith('STD-') ? 'STANDARD_53' : 'CUSTOM_TOKO')).trim(),
+                            nama: String(row.Nama_Material || row.nama || '').trim(),
+                            spek: String(row.Spesifikasi_Merk || row.spek || '').trim(),
+                            satuan: String(row.Satuan || row.satuan || '').trim(),
+                            harga: cleanPrice
+                        };
+                    }).filter(item => item.nama !== '' && item.harga > 0);
+
+                    renderCatalogPreview(parsedCatalogData);
+                } catch (err) {
+                    alert("Gagal membaca berkas Excel/CSV: " + err.toString());
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        function renderCatalogPreview(items) {
+            const previewBox = document.getElementById('catalogPreviewBox');
+            const tbody = document.getElementById('catalogPreviewBody');
+            const countText = document.getElementById('previewCountText');
+
+            tbody.innerHTML = '';
+            countText.innerText = `Preview Data Material (${items.length} Item Siap Diimpor)`;
+
+            items.forEach(item => {
+                const isStd = item.tipe === 'STANDARD_53' || item.kode.startsWith('STD-');
+                const badgeTipe = isStd
+                    ? `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-200">STANDARD_53</span>`
+                    : `<span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-amber-200">CUSTOM_TOKO</span>`;
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-2.5 font-mono font-bold text-slate-700">${item.kode || '-'}</td>
+                        <td class="p-2.5 text-slate-600 font-medium">${item.kategori || '-'}</td>
+                        <td class="p-2.5 text-center">${badgeTipe}</td>
+                        <td class="p-2.5 font-bold text-slate-800">${item.nama}</td>
+                        <td class="p-2.5 text-slate-500">${item.spek || '-'}</td>
+                        <td class="p-2.5 text-center text-slate-600 font-medium">${item.satuan}</td>
+                        <td class="p-2.5 text-right font-extrabold text-teal-700">Rp ${item.harga.toLocaleString('id-ID')}</td>
+                    </tr>
+                `;
+            });
+
+            previewBox.classList.remove('hidden');
+        }
+
+        async function saveCatalogToServer() {
+            if (parsedCatalogData.length === 0) return alert("Tidak ada data material untuk disimpan!");
+            if (!GAS_WEB_APP_URL) return alert("API Web App URL belum diatur! Klik 'Set API' di kanan atas.");
+
+            const sessionData = localStorage.getItem('mb_toko_session');
+            if (!sessionData) return alert("Sesi login toko kadaluarsa. Silakan login kembali!");
+            
+            const session = JSON.parse(sessionData);
+            const storeId = session.storeId;
+
+            const btn = document.getElementById('btnSaveCatalog');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan ke Server...';
+
+            const payload = {
+                action: 'updateStoreCatalog',
+                storeId: storeId,
+                items: parsedCatalogData
+            };
+
+            try {
+                const response = await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                const res = await response.json();
+
+                if (res.success) {
+                    alert(`BERHASIL! ${parsedCatalogData.length} harga material toko berhasil diperbarui di database.`);
+                    document.getElementById('catalogPreviewBox').classList.add('hidden');
+                    document.getElementById('fileCatalogInput').value = '';
+                    parsedCatalogData = [];
+                } else {
+                    alert("Gagal menyimpan: " + res.message);
+                }
+            } catch(e) {
+                alert("Kesalahan koneksi ke server: " + e.toString());
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan Katalog ke Server';
+            }
         }
 
         function logout() {
