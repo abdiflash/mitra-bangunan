@@ -56,7 +56,8 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">PIN Kasir Toko</label>
-                    <input type="password" id="loginPin" placeholder="Masukkan 4-digit PIN" maxlength="6" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs font-bold focus:bg-white focus:border-teal-600 focus:outline-none">
+                    
+                    <input type="text" id="loginPin" inputmode="numeric" autocomplete="off" placeholder="Masukkan 4-digit PIN" maxlength="6" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs font-bold focus:bg-white focus:border-teal-600 focus:outline-none" style="-webkit-text-security: disc;">
                 </div>
                 <button onclick="loginStore()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-xs py-3 rounded-xl shadow transition flex items-center justify-center gap-2">
                     <i class="fa-solid fa-right-to-bracket"></i> MASUK KE DASHBOARD
