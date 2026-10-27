@@ -109,7 +109,12 @@
                         </select>
                         <i class="fa-solid fa-chevron-down absolute right-3.5 top-3.5 text-slate-400 pointer-events-none text-xs"></i>
                     </div>
-                    <p id="storeAddressHint" class="text-[11px] text-slate-500 mt-1 italic"><i class="fa-solid fa-location-dot text-teal-600"></i> Memuat daftar toko...</p>
+                    <div class="flex items-center justify-between mt-1">
+                        <p id="storeAddressHint" class="text-[11px] text-slate-500 italic"><i class="fa-solid fa-location-dot text-teal-600"></i> Memuat daftar toko...</p>
+                        <span id="storeCatalogStatus" class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 hidden">
+                            <i class="fa-solid fa-check-circle"></i> Katalog Toko Aktif
+                        </span>
+                    </div>
                 </div>
 
                 <!-- Mode Insentif Cards -->
@@ -152,19 +157,23 @@
             </div>
         </section>
 
-        <!-- STEP 2: KALKULATOR MATERIAL (9 TAB) -->
+        <!-- STEP 2: KALKULATOR MATERIAL (9 TAB + TOMBOL MATERIAL BEBAS) -->
         <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 space-y-4">
             <div class="flex items-center justify-between border-b border-slate-100 pb-2.5 flex-wrap gap-2">
                 <div class="flex items-center gap-2">
                     <span class="w-6 h-6 rounded-full bg-teal-100 text-teal-700 text-xs font-extrabold flex items-center justify-center">2</span>
                     <h2 class="font-extrabold text-sm sm:text-base text-slate-900">Hitung Material Bangunan</h2>
                 </div>
-                <!-- Preset Cepat -->
-                <div class="flex items-center gap-1.5 flex-wrap text-xs">
-                    <span class="text-slate-400 font-bold text-[11px]"><i class="fa-solid fa-bolt text-amber-500"></i> Preset:</span>
-                    <button onclick="applyPreset(3, 3, 3)" class="bg-slate-100 hover:bg-teal-50 text-slate-700 font-semibold px-2 py-1 rounded-lg border border-slate-200">Kamar 3×3m</button>
-                    <button onclick="applyPreset(4, 6, 3.5)" class="bg-slate-100 hover:bg-teal-50 text-slate-700 font-semibold px-2 py-1 rounded-lg border border-slate-200">Rumah 4×6m</button>
-                    <button onclick="applyPresetPagar(10, 2)" class="bg-slate-100 hover:bg-teal-50 text-slate-700 font-semibold px-2 py-1 rounded-lg border border-slate-200">Pagar 10×2m</button>
+                <!-- Tombol Tambah Material Manual & Preset -->
+                <div class="flex items-center gap-2 flex-wrap text-xs">
+                    <button onclick="openCustomMaterialModal()" class="bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs px-3 py-1.5 rounded-xl shadow transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus-circle text-amber-400"></i> Tambah Material Manual / Custom
+                    </button>
+                    <div class="hidden md:flex items-center gap-1.5 text-xs border-l border-slate-200 pl-2">
+                        <span class="text-slate-400 font-bold text-[11px]"><i class="fa-solid fa-bolt text-amber-500"></i> Preset:</span>
+                        <button onclick="applyPreset(3, 3, 3)" class="bg-slate-100 hover:bg-teal-50 text-slate-700 font-semibold px-2 py-1 rounded-lg border border-slate-200">Kamar 3×3m</button>
+                        <button onclick="applyPreset(4, 6, 3.5)" class="bg-slate-100 hover:bg-teal-50 text-slate-700 font-semibold px-2 py-1 rounded-lg border border-slate-200">Rumah 4×6m</button>
+                    </div>
                 </div>
             </div>
 
@@ -589,6 +598,14 @@
                     </div>
                 </div>
 
+                <!-- Header Tabel & Tombol Tambah Barang Manual -->
+                <div class="flex items-center justify-between">
+                    <span class="font-bold text-xs text-slate-700">Rincian Barang Penawaran:</span>
+                    <button onclick="openCustomMaterialModal()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold text-[11px] px-3 py-1.5 rounded-xl shadow transition inline-flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus text-amber-400"></i> Tambah Barang Manual
+                    </button>
+                </div>
+
                 <!-- Tabel Item -->
                 <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                     <table class="w-full text-left text-xs">
@@ -648,6 +665,71 @@
         </div>
     </div>
 
+    <!-- MODAL PENCARIAN & INPUT MATERIAL CUSTOM KATALOG TOKO -->
+    <div id="customMaterialModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-slate-900 text-white p-4 flex justify-between items-center">
+                <h3 class="font-extrabold text-sm sm:text-base flex items-center gap-2">
+                    <i class="fa-solid fa-magnifying-glass text-amber-400"></i> Cari & Tambah Barang Toko
+                </h3>
+                <button onclick="closeModal('customMaterialModal')" class="text-slate-400 hover:text-white text-2xl font-bold">&times;</button>
+            </div>
+
+            <div class="p-5 space-y-4 overflow-y-auto custom-scroll">
+                <!-- Search Box -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Cari Nama / Kode / Kategori Material</label>
+                    <div class="relative">
+                        <input type="text" id="customSearchInput" oninput="filterCustomCatalog()" placeholder="Ketik nama barang... (misal: Pipa, Kran, Paku, Saklar)" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2.5 pl-9 pr-3 text-xs font-semibold text-slate-900 focus:bg-white focus:border-teal-600 focus:outline-none">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
+                    </div>
+                </div>
+
+                <!-- Daftar Katalog Hasil Filter -->
+                <div class="space-y-1">
+                    <div class="flex items-center justify-between text-xs font-bold text-slate-500 mb-1">
+                        <span>Pilih Barang dari Katalog:</span>
+                        <span id="customCatalogCount" class="text-[11px] text-teal-600">0 Item</span>
+                    </div>
+                    <div id="customCatalogList" class="max-h-48 overflow-y-auto border border-slate-200 rounded-xl divide-y divide-slate-100 bg-slate-50">
+                        <p class="p-4 text-center text-xs text-slate-400 italic">Pilih Toko Bangunan terlebih dahulu untuk memuat katalog.</p>
+                    </div>
+                </div>
+
+                <!-- Form Input Qty & Harga Pilihan -->
+                <div class="bg-amber-50/60 border border-amber-200 rounded-2xl p-4 space-y-3">
+                    <div>
+                        <span class="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">Barang Terpilih:</span>
+                        <strong id="selectedItemTitle" class="text-xs font-extrabold text-slate-900 block mt-0.5">-- Belum Ada Barang Dipilih --</strong>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Jumlah (Qty)</label>
+                            <input type="number" id="customItemQty" value="1" min="1" step="any" oninput="updateCustomSubtotal()" class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Harga Satuan (Rp)</label>
+                            <input type="number" id="customItemPrice" value="0" min="0" oninput="updateCustomSubtotal()" class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-teal-700 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center pt-2 border-t border-amber-200/80 text-xs">
+                        <span class="font-bold text-slate-600">Total Harga:</span>
+                        <strong id="customItemSubtotal" class="font-extrabold text-teal-700 text-sm">Rp 0</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-100 p-4 border-t border-slate-200 flex justify-end gap-2">
+                <button onclick="closeModal('customMaterialModal')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-xs transition">Batal</button>
+                <button onclick="addSelectedCustomItem()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs shadow transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-plus-circle"></i> Tambahkan ke Penawaran
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- CONFIG API MODAL -->
     <div id="modalConfig" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-2xl p-5 shadow-2xl space-y-4">
@@ -669,24 +751,21 @@
     <script>
         let GAS_WEB_APP_URL = localStorage.getItem('mb_gas_url') || '';
         
-        // Cache toko di LocalStorage untuk loading instan tanpa tunda
         let storesList = JSON.parse(localStorage.getItem('mb_stores_cache')) || [
             { id: 'TOKO-001', name: 'TB. Maju Jaya Makmur 1', address: 'Jl. Raya Bangunan No. 88', wa: '082113866890' },
             { id: 'TOKO-002', name: 'TB. Maju Jaya Makmur 2', address: 'Jl. Industri No. 12', wa: '082113866890' }
         ];
 
+        let activeStoreCatalog = [];
+        let selectedCustomItem = null;
         let currentCart = [];
         let selectedMode = 'DISKON_NOTA';
         let currentTrxId = '';
         let modeDinding = 'ruangan';
 
         window.addEventListener('DOMContentLoaded', () => {
-            // Render dropdown toko secara instan dari cache/default
             renderStoresDropdown();
-            
-            // Lakukan penarikan update toko terbaru dari GAS di latar belakang
             if (GAS_WEB_APP_URL) loadStoresFromGASBackground();
-            
             generateTrxId();
         });
 
@@ -762,14 +841,186 @@
             onStoreChange();
         }
 
-        function onStoreChange() {
+        /* -------------------------------------------------------------------------- */
+        /* INTEGRASI KATALOG HARGA MATERIAL TOKO (STEP 3 IMPLEMENTATION)             */
+        /* -------------------------------------------------------------------------- */
+
+        async function onStoreChange() {
             const val = document.getElementById('selectStore').value;
             const store = storesList.find(s => s.id === val);
             const hint = document.getElementById('storeAddressHint');
-            if (store) hint.innerHTML = `<i class="fa-solid fa-location-dot text-teal-600"></i> ${store.address} (WA: ${store.wa || '-'})`;
-            else hint.innerHTML = 'Silakan pilih toko bangunan.';
+            const catalogStatus = document.getElementById('storeCatalogStatus');
+
+            if (store) {
+                hint.innerHTML = `<i class="fa-solid fa-location-dot text-teal-600"></i> ${store.address} (WA: ${store.wa || '-'})`;
+            } else {
+                hint.innerHTML = 'Silakan pilih toko bangunan.';
+            }
+
+            if (val) {
+                await loadStoreCatalog(val);
+            } else {
+                activeStoreCatalog = [];
+                catalogStatus.classList.add('hidden');
+            }
+
             renderCartModal();
             autoUpdateQR();
+        }
+
+        async function loadStoreCatalog(storeId) {
+            const catalogStatus = document.getElementById('storeCatalogStatus');
+            if (!storeId || !GAS_WEB_APP_URL) {
+                catalogStatus.classList.add('hidden');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${GAS_WEB_APP_URL}?action=getStoreCatalog&storeId=${storeId}`);
+                const data = await res.json();
+
+                if (data.success && Array.isArray(data.catalog)) {
+                    activeStoreCatalog = data.catalog;
+                    catalogStatus.classList.remove('hidden');
+                    catalogStatus.innerHTML = `<i class="fa-solid fa-check-circle text-emerald-600"></i> ${activeStoreCatalog.length} Katalog Dimuat`;
+                } else {
+                    activeStoreCatalog = [];
+                    catalogStatus.classList.add('hidden');
+                }
+            } catch (e) {
+                console.error("Gagal memuat katalog toko dari server:", e);
+                catalogStatus.classList.add('hidden');
+            }
+        }
+
+        function openCustomMaterialModal() {
+            const storeSelect = document.getElementById('selectStore').value;
+            if (!storeSelect) {
+                alert("Silakan pilih Toko Bangunan Tujuan pada Langkah 1 terlebih dahulu!");
+                return;
+            }
+
+            document.getElementById('customSearchInput').value = '';
+            selectedCustomItem = null;
+            document.getElementById('selectedItemTitle').innerText = '-- Belum Ada Barang Dipilih --';
+            document.getElementById('customItemQty').value = 1;
+            document.getElementById('customItemPrice').value = 0;
+            document.getElementById('customItemSubtotal').innerText = 'Rp 0';
+
+            filterCustomCatalog();
+            openModal('customMaterialModal');
+        }
+
+        function filterCustomCatalog() {
+            const query = document.getElementById('customSearchInput').value.trim().toLowerCase();
+            const container = document.getElementById('customCatalogList');
+            const countText = document.getElementById('customCatalogCount');
+
+            container.innerHTML = '';
+
+            if (activeStoreCatalog.length === 0) {
+                container.innerHTML = `<p class="p-4 text-center text-xs text-slate-400 italic">Toko ini belum mengunggah daftar katalog harga. Anda dapat mengetikkan nama barang secara manual di bawah.</p>`;
+                countText.innerText = '0 Item';
+                return;
+            }
+
+            const filtered = activeStoreCatalog.filter(item => {
+                const nama = (item.nama || '').toLowerCase();
+                const kode = (item.kode || '').toLowerCase();
+                const kategori = (item.kategori || '').toLowerCase();
+                const spek = (item.spek || '').toLowerCase();
+                return nama.includes(query) || kode.includes(query) || kategori.includes(query) || spek.includes(query);
+            });
+
+            countText.innerText = `${filtered.length} Item Ditemukan`;
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<p class="p-4 text-center text-xs text-slate-400 italic">Material tidak ditemukan dalam katalog toko.</p>`;
+                return;
+            }
+
+            filtered.forEach((item, idx) => {
+                const isStd = item.tipe === 'STANDARD_53' || String(item.kode).startsWith('STD-');
+                const tagColor = isStd ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800';
+
+                container.innerHTML += `
+                    <div onclick="selectCustomItemFromList(${idx})" class="p-2.5 hover:bg-teal-50/70 cursor-pointer transition flex justify-between items-center gap-2">
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-[9px] font-extrabold ${tagColor} px-1.5 py-0.2 rounded">${item.kode || 'CUSTOM'}</span>
+                                <strong class="text-xs text-slate-900 font-bold">${item.nama}</strong>
+                            </div>
+                            <p class="text-[10px] text-slate-500 mt-0.5">${item.spek || item.kategori || '-'} (${item.satuan})</p>
+                        </div>
+                        <div class="text-right">
+                            <strong class="text-xs font-black text-teal-700 block">Rp ${Number(item.harga).toLocaleString('id-ID')}</strong>
+                            <span class="text-[9px] text-slate-400">/ ${item.satuan}</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function selectCustomItemFromList(index) {
+            const query = document.getElementById('customSearchInput').value.trim().toLowerCase();
+            const filtered = activeStoreCatalog.filter(item => {
+                const nama = (item.nama || '').toLowerCase();
+                const kode = (item.kode || '').toLowerCase();
+                const kategori = (item.kategori || '').toLowerCase();
+                const spek = (item.spek || '').toLowerCase();
+                return nama.includes(query) || kode.includes(query) || kategori.includes(query) || spek.includes(query);
+            });
+
+            const item = filtered[index];
+            if (!item) return;
+
+            selectedCustomItem = item;
+            document.getElementById('selectedItemTitle').innerText = `${item.nama} (${item.satuan})`;
+            document.getElementById('customItemPrice').value = item.harga;
+            updateCustomSubtotal();
+        }
+
+        function updateCustomSubtotal() {
+            const qty = parseFloat(document.getElementById('customItemQty').value) || 0;
+            const price = parseFloat(document.getElementById('customItemPrice').value) || 0;
+            const subtotal = Math.round(qty * price);
+
+            document.getElementById('customItemSubtotal').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
+        }
+
+        function addSelectedCustomItem() {
+            let name = '';
+            let unit = 'pcs';
+            let price = parseFloat(document.getElementById('customItemPrice').value) || 0;
+            let qty = parseFloat(document.getElementById('customItemQty').value) || 0;
+
+            if (selectedCustomItem) {
+                name = selectedCustomItem.nama + (selectedCustomItem.spek ? ` (${selectedCustomItem.spek})` : '');
+                unit = selectedCustomItem.satuan || 'pcs';
+            } else {
+                const manualSearch = document.getElementById('customSearchInput').value.trim();
+                if (!manualSearch) {
+                    alert('Pilih barang dari daftar katalog atau ketik nama material!');
+                    return;
+                }
+                name = manualSearch;
+            }
+
+            if (qty <= 0 || price <= 0) {
+                alert('Jumlah (Qty) dan Harga Satuan harus lebih besar dari 0!');
+                return;
+            }
+
+            const customProduct = [{
+                name: name,
+                qty: qty,
+                unit: unit,
+                price: price,
+                total: Math.round(qty * price)
+            }];
+
+            addToCart(customProduct, 'Material Custom');
+            closeModal('customMaterialModal');
         }
 
         function switchTab(tabId) {
@@ -846,14 +1097,14 @@
             if (luasBersih > 0) {
                 if (tebal === 'bataMerah') {
                     let qtyBata = Math.ceil(luasBersih * 70);
-                    items.push({ name: '[Dinding] Bata Merah Press / Biasa', qty: qtyBata, unit: 'pcs', price: 900, total: qtyBata * 900 });
+                    items.push({ name: '[Dinding] Bata Merah Press / Biasa', qty: qtyBata, unit: 'pcs', price: 950, total: qtyBata * 950 });
 
                     if (document.getElementById('chkThinbed').checked) {
                         let sakSemenPC = Math.ceil(luasBersih / 12);
-                        items.push({ name: '[Dinding] Semen PC Pasang Bata (40kg)', qty: sakSemenPC, unit: 'sak', price: 68000, total: sakSemenPC * 68000 });
+                        items.push({ name: '[Dinding] Semen PC Pasang Bata (40kg)', qty: sakSemenPC, unit: 'sak', price: 56000, total: sakSemenPC * 56000 });
 
                         let volPasirPasang = parseFloat((luasBersih * 0.043).toFixed(2));
-                        items.push({ name: '[Dinding] Pasir Pasang Dinding', qty: volPasirPasang, unit: 'm³', price: 290000, total: Math.round(volPasirPasang * 290000) });
+                        items.push({ name: '[Dinding] Pasir Pasang Dinding', qty: volPasirPasang, unit: 'm³', price: 280000, total: Math.round(volPasirPasang * 280000) });
                     }
                 } else {
                     let m2PerM3 = (tebal === '7.5') ? 13.3 : 10;
@@ -871,18 +1122,15 @@
 
                 if (document.getElementById('chkPlester').checked) {
                     let sakPlester = Math.ceil((luasBersih * 2) / 6);
-                    items.push({ name: '[Dinding] Semen Plesteran (Dua Sisi)', qty: sakPlester, unit: 'sak', price: 55000, total: sakPlester * 55000 });
+                    items.push({ name: '[Dinding] Semen Plesteran (Dua Sisi)', qty: sakPlester, unit: 'sak', price: 56000, total: sakPlester * 56000 });
                 }
                 if (document.getElementById('chkAcian').checked) {
                     let sakAcian = Math.ceil((luasBersih * 2) / 12);
-                    items.push({ name: '[Dinding] Semen Acian (Dua Sisi)', qty: sakAcian, unit: 'sak', price: 65000, total: sakAcian * 65000 });
+                    items.push({ name: '[Dinding] Semen Acian (Dua Sisi)', qty: sakAcian, unit: 'sak', price: 92000, total: sakAcian * 92000 });
                 }
                 if (document.getElementById('chkCat').checked) {
                     let galonCat = Math.ceil((luasBersih * 2) / 25);
-                    items.push({ name: '[Dinding] Cat Dinding Interior (5kg)', qty: galonCat, unit: 'galon', price: 135000, total: galonCat * 135000 });
-
-                    let galonCatDasar = Math.ceil(luasBersih / 30);
-                    items.push({ name: '[Dinding] Cat Dasar / Alkali Sealer (4kg)', qty: galonCatDasar, unit: 'galon', price: 110000, total: galonCatDasar * 110000 });
+                    items.push({ name: '[Dinding] Cat Dinding Interior (20kg)', qty: galonCat, unit: 'pail', price: 620000, total: galonCat * 620000 });
                 }
             }
             addToCart(items, 'Material Dinding');
@@ -895,15 +1143,15 @@
             let luas = (p * l) * 1.05;
 
             let m2PerDus = 1.00;
-            let price = 68000;
+            let price = 60000;
 
-            if (uk === '20x20') { m2PerDus = 1.00; price = 55000; }
-            else if (uk === '25x25') { m2PerDus = 1.00; price = 60000; }
-            else if (uk === '30x30') { m2PerDus = 0.99; price = 62000; }
-            else if (uk === '40x40') { m2PerDus = 0.96; price = 68000; }
-            else if (uk === '50x50') { m2PerDus = 1.00; price = 75000; }
-            else if (uk === '60x60') { m2PerDus = 1.44; price = 125000; }
-            else if (uk === '80x80') { m2PerDus = 1.92; price = 195000; }
+            if (uk === '20x20') { m2PerDus = 1.00; price = 52000; }
+            else if (uk === '25x25') { m2PerDus = 1.00; price = 55000; }
+            else if (uk === '30x30') { m2PerDus = 0.99; price = 52000; }
+            else if (uk === '40x40') { m2PerDus = 0.96; price = 60000; }
+            else if (uk === '50x50') { m2PerDus = 1.00; price = 72000; }
+            else if (uk === '60x60') { m2PerDus = 1.44; price = 185000; }
+            else if (uk === '80x80') { m2PerDus = 1.92; price = 220000; }
             else if (uk === '15x60') { m2PerDus = 1.08; price = 110000; }
 
             let items = [];
@@ -913,12 +1161,12 @@
 
                 if (document.getElementById('chkKerSemenNat').checked) {
                     let kgNat = Math.ceil(luas / 8);
-                    items.push({ name: '[Keramik] Semen Pengisi Nat (1kg)', qty: kgNat, unit: 'kg', price: 18000, total: kgNat * 18000 });
+                    items.push({ name: '[Keramik] Semen Pengisi Nat (1kg)', qty: kgNat, unit: 'bungkus', price: 18000, total: kgNat * 18000 });
                 }
 
                 if (document.getElementById('chkKerMortar').checked) {
                     let sakMortar = Math.ceil(luas / 5);
-                    items.push({ name: '[Keramik] Semen Mortar Perekat (40kg)', qty: sakMortar, unit: 'sak', price: 95000, total: sakMortar * 95000 });
+                    items.push({ name: '[Keramik] Semen Mortar Perekat (25kg)', qty: sakMortar, unit: 'sak', price: 95000, total: sakMortar * 95000 });
                 }
             }
             addToCart(items, 'Material Keramik');
@@ -933,7 +1181,7 @@
             let items = [];
             if (luas > 0) {
                 let lembarBoard = Math.ceil(luas / 2.88);
-                let prcBoard = jenis === 'gypsum9mm' ? 65000 : 60000;
+                let prcBoard = jenis === 'gypsum9mm' ? 78000 : 60000;
                 let nameBoard = jenis === 'gypsum9mm' ? '[Plafon] Gypsum Board 9mm' : '[Plafon] GRC Board 4mm';
                 items.push({ name: nameBoard, qty: lembarBoard, unit: 'lembar', price: prcBoard, total: lembarBoard * prcBoard });
 
@@ -947,7 +1195,7 @@
 
                 if (document.getElementById('chkPlfSekrup').checked) {
                     let dusSekrup = Math.ceil(luas / 3);
-                    items.push({ name: '[Plafon] Sekrup Gypsum (Dus/100pcs)', qty: dusSekrup, unit: 'dus', price: 15000, total: dusSekrup * 15000 });
+                    items.push({ name: '[Plafon] Sekrup Gypsum 6x1 inch (Dus)', qty: dusSekrup, unit: 'dus', price: 45000, total: dusSekrup * 45000 });
                 }
 
                 if (document.getElementById('chkPlfCompound').checked) {
@@ -969,14 +1217,14 @@
             if (L > 0) {
                 let totalMUtama = L * 4 * 1.05;
                 let btgUtama = Math.ceil(totalMUtama / 12);
-                let prcUtama = ut === 'besi12mm' ? 105000 : (ut === 'besi10mm' ? 72000 : 48000);
+                let prcUtama = ut === 'besi12mm' ? 108000 : (ut === 'besi10mm' ? 76000 : 49000);
                 let lblUtama = ut === 'besi12mm' ? '12mm' : (ut === 'besi10mm' ? '10mm' : '8mm');
-                items.push({ name: `[Pembesian] Besi Utama Ø ${lblUtama} SNI`, qty: btgUtama, unit: 'batang', price: prcUtama, total: btgUtama * prcUtama });
+                items.push({ name: `[Pembesian] Besi Utama Ø ${lblUtama} Full SNI`, qty: btgUtama, unit: 'batang', price: prcUtama, total: btgUtama * prcUtama });
 
                 let jmlBegel = Math.ceil(L / (jarakCm / 100));
                 let totalMBegel = jmlBegel * 0.6 * 1.05;
                 let btgBegel = Math.ceil(totalMBegel / 12);
-                let prcBegel = bg === 'besi8mm' ? 48000 : 28000;
+                let prcBegel = bg === 'besi8mm' ? 49000 : 32000;
                 let lblBegel = bg === 'besi8mm' ? '8mm' : '6mm';
                 items.push({ name: `[Pembesian] Besi Begel / Sengkang Ø ${lblBegel}`, qty: btgBegel, unit: 'batang', price: prcBegel, total: btgBegel * prcBegel });
 
@@ -1005,13 +1253,13 @@
             let items = [];
             if (p > 0 && l > 0) {
                 let rateGen = 14;
-                let prcGen = 11500;
+                let prcGen = 16500;
                 let nameGen = '[Atap] Genteng Keramik';
                 let unitGen = 'pcs';
 
-                if (jG === 'gtgKeramik') { rateGen = 14; prcGen = 11500; nameGen = '[Atap] Genteng Keramik'; }
-                else if (jG === 'gtgBeton') { rateGen = 10; prcGen = 9500; nameGen = '[Atap] Genteng Beton'; }
-                else if (jG === 'gtgMetal') { rateGen = 1.6; prcGen = 45000; nameGen = '[Atap] Genteng Metal Pasir'; unitGen = 'lembar'; }
+                if (jG === 'gtgKeramik') { rateGen = 14; prcGen = 16500; nameGen = '[Atap] Genteng Keramik'; }
+                else if (jG === 'gtgBeton') { rateGen = 10; prcGen = 11500; nameGen = '[Atap] Genteng Beton Flat'; }
+                else if (jG === 'gtgMetal') { rateGen = 1.6; prcGen = 42000; nameGen = '[Atap] Genteng Metal Berpasir 2x4'; unitGen = 'lembar'; }
                 else if (jG === 'gtgMorando') { rateGen = 18; prcGen = 4800; nameGen = '[Atap] Genteng Morando'; }
                 else if (jG === 'gtgTanah') { rateGen = 25; prcGen = 3200; nameGen = '[Atap] Genteng Tanah Liat'; }
 
@@ -1020,18 +1268,18 @@
 
                 if (nok > 0) {
                     let pcsNok = Math.ceil(nok * 3.5);
-                    items.push({ name: '[Atap] Genteng Nok / Bubungan', qty: pcsNok, unit: 'pcs', price: 16000, total: pcsNok * 16000 });
+                    items.push({ name: '[Atap] Nok / Wuwung Genteng Metal', qty: pcsNok, unit: 'lembar', price: 28000, total: pcsNok * 28000 });
                 }
 
                 if (document.getElementById('chkAtpBajaRingan').checked) {
                     let btgC75 = Math.ceil(luasMiring * 0.8);
-                    items.push({ name: '[Atap] Baja Ringan Kanal C75 (6m)', qty: btgC75, unit: 'batang', price: 95000, total: btgC75 * 95000 });
+                    items.push({ name: '[Atap] Kanal C Baja Ringan C75.75 (6m)', qty: btgC75, unit: 'batang', price: 95000, total: btgC75 * 95000 });
 
                     let btgReng = Math.ceil(luasMiring * 1.2);
-                    items.push({ name: '[Atap] Reng Baja Ringan (6m)', qty: btgReng, unit: 'batang', price: 48000, total: btgReng * 48000 });
+                    items.push({ name: '[Atap] Reng Baja Ringan R30.045 (6m)', qty: btgReng, unit: 'batang', price: 45000, total: btgReng * 45000 });
 
-                    let pcsBaut = Math.ceil(luasMiring * 20);
-                    items.push({ name: '[Atap] Baut Roofing', qty: pcsBaut, unit: 'pcs', price: 350, total: pcsBaut * 350 });
+                    let dusBaut = Math.ceil(luasMiring / 5);
+                    items.push({ name: '[Atap] Sekrup Roofing Baja Ringan (Dus)', qty: dusBaut, unit: 'dus', price: 38000, total: dusBaut * 38000 });
                 }
             }
             addToCart(items, 'Material Atap');
@@ -1046,17 +1294,17 @@
             let items = [];
             if (vol > 0) {
                 let sakSemen = Math.ceil(vol * 9.275);
-                items.push({ name: '[Cor Dak] Semen PC (40kg)', qty: sakSemen, unit: 'sak', price: 68000, total: sakSemen * 68000 });
+                items.push({ name: '[Cor Dak] Semen PCC (50kg)', qty: sakSemen, unit: 'sak', price: 68000, total: sakSemen * 68000 });
 
                 let volPasir = parseFloat((vol * 0.49).toFixed(2));
-                items.push({ name: '[Cor Dak] Pasir Cor', qty: volPasir, unit: 'm³', price: 320000, total: Math.round(volPasir * 320000) });
+                items.push({ name: '[Cor Dak] Pasir Cor Super', qty: volPasir, unit: 'm³', price: 320000, total: Math.round(volPasir * 320000) });
 
                 let volSplit = parseFloat((vol * 0.77).toFixed(2));
-                items.push({ name: '[Cor Dak] Koral / Split', qty: volSplit, unit: 'm³', price: 340000, total: Math.round(volSplit * 340000) });
+                items.push({ name: '[Cor Dak] Batu Split 1/2 cm', qty: volSplit, unit: 'm³', price: 290000, total: Math.round(volSplit * 290000) });
 
                 if (document.getElementById('chkBtnWiremesh').checked) {
                     let lbrWm = Math.ceil((p * l * 1.05) / 11.34);
-                    items.push({ name: '[Cor Dak] Besi Wiremesh M8', qty: lbrWm, unit: 'lembar', price: 580000, total: lbrWm * 580000 });
+                    items.push({ name: '[Cor Dak] Wiremesh M8 Lembaran', qty: lbrWm, unit: 'lembar', price: 640000, total: lbrWm * 640000 });
                 }
             }
             addToCart(items, 'Material Cor Dak');
@@ -1074,23 +1322,23 @@
             let items = [];
             if (volUtama > 0) {
                 let volBatu = parseFloat((volUtama * 1.2).toFixed(2));
-                items.push({ name: '[Pondasi] Batu Kali / Batu Belah', qty: volBatu, unit: 'm³', price: 280000, total: Math.round(volBatu * 280000) });
+                items.push({ name: '[Pondasi] Batu Kali Belah Pondasi', qty: volBatu, unit: 'm³', price: 280000, total: Math.round(volBatu * 280000) });
 
                 let rateSem = (cmp === '1pc4ps') ? 4.08 : 3.4;
                 let sakSem = Math.ceil(volUtama * rateSem);
-                items.push({ name: '[Pondasi] Semen PC (40kg)', qty: sakSem, unit: 'sak', price: 68000, total: sakSem * 68000 });
+                items.push({ name: '[Pondasi] Semen PPC Pasang & Plester (50kg)', qty: sakSem, unit: 'sak', price: 68000, total: sakSem * 68000 });
 
                 let volPasir = parseFloat((volUtama * 0.52).toFixed(2));
-                items.push({ name: '[Pondasi] Pasir Pasang', qty: volPasir, unit: 'm³', price: 290000, total: Math.round(volPasir * 290000) });
+                items.push({ name: '[Pondasi] Pasir Pasang Pondasi & Dinding', qty: volPasir, unit: 'm³', price: 280000, total: Math.round(volPasir * 280000) });
 
                 if (document.getElementById('chkPondasiAan').checked) {
                     let volAan = parseFloat((0.15 * b * p * 1.05 * 1.1).toFixed(2));
-                    items.push({ name: '[Pondasi] Batu Kosong / Aanstamping', qty: volAan, unit: 'm³', price: 280000, total: Math.round(volAan * 280000) });
+                    items.push({ name: '[Pondasi] Batu Kali Belah (Aanstamping)', qty: volAan, unit: 'm³', price: 280000, total: Math.round(volAan * 280000) });
                 }
 
                 if (document.getElementById('chkPondasiPasir').checked) {
                     let volPasUrug = parseFloat((0.05 * b * p * 1.05 * 1.1).toFixed(2));
-                    items.push({ name: '[Pondasi] Pasir Urug Alas Bedding', qty: volPasUrug, unit: 'm³', price: 220000, total: Math.round(volPasUrug * 220000) });
+                    items.push({ name: '[Pondasi] Pasir Urug Alas Bedding', qty: volPasUrug, unit: 'm³', price: 190000, total: Math.round(volPasUrug * 190000) });
                 }
             }
             addToCart(items, 'Material Pondasi');
@@ -1105,27 +1353,26 @@
             let items = [];
 
             if (luas > 0) {
-                let ratePvg = 44;
-                let prcPvg = 2500;
-                let namePvg = '[Paving] Paving Block Bata 10x20 cm';
+                let m2Qty = Math.ceil(luas);
+                let prcPvg = 70000;
+                let namePvg = '[Paving] Paving Block Bata 6 cm Natural';
 
-                if (model === 'bata') { ratePvg = 44; prcPvg = 2500; namePvg = '[Paving] Paving Block Bata 10x20 cm'; }
-                else if (model === 'hexagon') { ratePvg = 27; prcPvg = 3500; namePvg = '[Paving] Paving Segienam Hexagon'; }
-                else if (model === 'cacing') { ratePvg = 39; prcPvg = 3000; namePvg = '[Paving] Paving Cacing / Wave'; }
-                else if (model === 'rumput') { ratePvg = 8; prcPvg = 18000; namePvg = '[Paving] Grass Block / Paving Rumput'; }
+                if (model === 'bata') { prcPvg = 70000; namePvg = '[Paving] Paving Block Bata 6 cm Natural'; }
+                else if (model === 'hexagon') { prcPvg = 75000; namePvg = '[Paving] Paving Segienam Hexagon'; }
+                else if (model === 'cacing') { prcPvg = 72000; namePvg = '[Paving] Paving Cacing Wave'; }
+                else if (model === 'rumput') { prcPvg = 85000; namePvg = '[Paving] Grass Block Lubang Rumput'; }
 
-                let qtyPvg = Math.ceil(luas * ratePvg);
-                items.push({ name: namePvg, qty: qtyPvg, unit: 'pcs', price: prcPvg, total: qtyPvg * prcPvg });
+                items.push({ name: namePvg, qty: m2Qty, unit: 'm²', price: prcPvg, total: m2Qty * prcPvg });
 
                 if (document.getElementById('chkPvgPasir').checked) {
                     let volPasir = parseFloat((luas * 0.05 * 1.1).toFixed(2));
-                    items.push({ name: '[Paving] Pasir Urug Alas Bedding (Tebal 5cm)', qty: volPasir, unit: 'm³', price: 220000, total: Math.round(volPasir * 220000) });
+                    items.push({ name: '[Paving] Pasir Alas Bedding Paving', qty: volPasir, unit: 'm³', price: 240000, total: Math.round(volPasir * 240000) });
                 }
 
                 if (document.getElementById('chkPvgKanstin').checked) {
                     let keliling = 2 * (p + l);
                     let pcsKanstin = Math.ceil(keliling / 0.4);
-                    items.push({ name: '[Paving] Kanstin / Pembatas Beton Pinggir', qty: pcsKanstin, unit: 'pcs', price: 25000, total: pcsKanstin * 25000 });
+                    items.push({ name: '[Paving] Kanstin / Kerb Taman 40x20x10 cm', qty: pcsKanstin, unit: 'pcs', price: 28000, total: pcsKanstin * 28000 });
                 }
             }
             addToCart(items, 'Material Paving');
@@ -1143,22 +1390,22 @@
             if (vol > 0) {
                 if (jenis === 'pasirUrug') {
                     let volUrug = parseFloat(vol.toFixed(2));
-                    items.push({ name: '[Pasir] Pasir Urug Peninggi Lantai / Bedding', qty: volUrug, unit: 'm³', price: 220000, total: Math.round(volUrug * 220000) });
+                    items.push({ name: '[Pasir] Pasir Urug / Pasir Cuci', qty: volUrug, unit: 'm³', price: 190000, total: Math.round(volUrug * 190000) });
                 } else if (jenis === 'pasirPasang') {
                     let volPasang = parseFloat(vol.toFixed(2));
-                    items.push({ name: '[Pasir] Pasir Pasang Dinding / Keramik', qty: volPasang, unit: 'm³', price: 290000, total: Math.round(volPasang * 290000) });
+                    items.push({ name: '[Pasir] Pasir Pasang Pondasi & Dinding', qty: volPasang, unit: 'm³', price: 280000, total: Math.round(volPasang * 280000) });
                 } else if (jenis === 'pasirCorSplit') {
                     let volPasCor = parseFloat((vol * 0.5).toFixed(2));
-                    items.push({ name: '[Cor Paket] Pasir Cor Halus', qty: volPasCor, unit: 'm³', price: 320000, total: Math.round(volPasCor * 320000) });
+                    items.push({ name: '[Cor Paket] Pasir Cor Super', qty: volPasCor, unit: 'm³', price: 320000, total: Math.round(volPasCor * 320000) });
 
                     let volSplit = parseFloat((vol * 0.8).toFixed(2));
-                    items.push({ name: '[Cor Paket] Batu Koral / Split', qty: volSplit, unit: 'm³', price: 340000, total: Math.round(volSplit * 340000) });
+                    items.push({ name: '[Cor Paket] Batu Split 1/2 cm', qty: volSplit, unit: 'm³', price: 290000, total: Math.round(volSplit * 290000) });
 
                     let sakSem = Math.ceil(vol * 8);
-                    items.push({ name: '[Cor Paket] Semen PC (40kg)', qty: sakSem, unit: 'sak', price: 68000, total: sakSem * 68000 });
+                    items.push({ name: '[Cor Paket] Semen PPC (50kg)', qty: sakSem, unit: 'sak', price: 68000, total: sakSem * 68000 });
                 } else if (jenis === 'batuKali') {
                     let volBatu = parseFloat((vol * 1.1).toFixed(2));
-                    items.push({ name: '[Batu] Batu Kali / Batu Belah', qty: volBatu, unit: 'm³', price: 280000, total: Math.round(volBatu * 280000) });
+                    items.push({ name: '[Batu] Batu Kali Belah Pondasi', qty: volBatu, unit: 'm³', price: 280000, total: Math.round(volBatu * 280000) });
                 }
             }
             addToCart(items, 'Pasir & Batu');
