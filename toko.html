@@ -180,7 +180,7 @@
                         <p class="text-slate-400">a.n. <strong>Leonardus Yesiabdi Luhur P.</strong></p>
                     </div>
                     <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700 space-y-1">
-                        <span class="text-slate-400 font-semibold block">Sistem Pembayaran QRIS Dinamis:</span>
+                        <span class="text-slate-400 font-semibold block">Sistem Pembayaran QRIS Dinamis Midtrans:</span>
                         <p class="text-slate-300 font-medium">Pembayaran via QRIS terverifikasi otomatis oleh Webhook server dalam hitungan detik untuk langsung membuka gembok kasir toko.</p>
                     </div>
                 </div>
@@ -525,12 +525,11 @@
         }
 
         /* -------------------------------------------------------------------------- */
-        /* LOGIKA PEMBAYARAN SETORAN QRIS DINAMIS                                    */
+        /* LOGIKA PEMBAYARAN SETORAN QRIS DINAMIS MIDTRANS                            */
         /* -------------------------------------------------------------------------- */
 
         async function payQrisSettlement() {
             if (!currentActiveStoreId) return alert("Sesi toko tidak aktif. Silakan login ulang!");
-            if (!GAS_WEB_APP_URL) return alert("API Web App belum diatur!");
 
             const amountStr = prompt("Masukkan Nominal Setoran Komisi Platform (Rp):", "500000");
             if (!amountStr) return;
@@ -539,10 +538,11 @@
             if (!amount || amount <= 0) return alert("Nominal setoran tidak valid!");
 
             try {
-                const res = await fetch(GAS_WEB_APP_URL, {
+                // Memanggil Endpoint PHP Midtrans di edueasy.id
+                const res = await fetch('https://edueasy.id/api-mitra-bangunan/create-qris.php', {
                     method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        action: 'generateSettlementQris',
                         storeId: currentActiveStoreId,
                         amount: amount
                     })
@@ -553,20 +553,26 @@
                     const qrisBox = document.getElementById('qrisBox');
                     qrisBox.innerHTML = '';
 
-                    new QRCode(qrisBox, {
-                        text: data.qrisString,
-                        width: 180,
-                        height: 180,
-                        colorDark: "#0f172a",
-                        colorLight: "#ffffff",
-                        correctLevel: QRCode.CorrectLevel.M
-                    });
+                    // Jika Midtrans mengembalikan URL gambar QRIS
+                    if (data.qrUrl) {
+                        qrisBox.innerHTML = `<img src="${data.qrUrl}" alt="QRIS Midtrans" class="w-48 h-48 object-contain mx-auto">`;
+                    } else if (data.qrString) {
+                        // Render ulang dengan QRCode JS jika berbentuk String
+                        new QRCode(qrisBox, {
+                            text: data.qrString,
+                            width: 180,
+                            height: 180,
+                            colorDark: "#0f172a",
+                            colorLight: "#ffffff",
+                            correctLevel: QRCode.CorrectLevel.M
+                        });
+                    }
 
                     document.getElementById('qrisAmountText').innerText = `Rp ${amount.toLocaleString('id-ID')}`;
                     document.getElementById('qrisRefText').innerText = data.settlementId;
                     openModal('modalQris');
                 } else {
-                    alert("Gagal membuat QRIS: " + data.message);
+                    alert("Gagal membuat QRIS Midtrans: " + data.message);
                 }
             } catch(e) {
                 alert("Terjadi kesalahan koneksi server: " + e.toString());
