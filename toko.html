@@ -260,7 +260,10 @@
     </div>
 
     <script>
-        let GAS_WEB_APP_URL = localStorage.getItem('mb_gas_url') || '';
+        // HARDCODED WEB APP URL UTAMA CREATOR DENGAN FALLBACK LOCALSTORAGE
+        const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbxsQQMYsvWk6R3AkPhkEURDsxFaEyUnqwFyCv500uPYvK0Y0RhPvaHXgw5OcvYeH_tC/exec";
+        let GAS_WEB_APP_URL = localStorage.getItem('mb_gas_url') || DEFAULT_GAS_URL;
+
         let parsedCatalogData = [];
         let currentActiveStoreId = '';
 
@@ -480,7 +483,7 @@
 
         async function saveCatalogToServer() {
             if (parsedCatalogData.length === 0) return alert("Tidak ada data material untuk disimpan!");
-            if (!GAS_WEB_APP_URL) return alert("API Web App URL belum diatur! Klik 'Set API' di kanan atas.");
+            if (!GAS_WEB_APP_URL) return alert("API Web App URL belum diatur!");
 
             const sessionData = localStorage.getItem('mb_toko_session');
             if (!sessionData) return alert("Sesi login toko kadaluarsa. Silakan login kembali!");
