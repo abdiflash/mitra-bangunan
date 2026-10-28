@@ -8,8 +8,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
-    <!-- Pustaka SheetJS untuk membaca file Excel (XLSX/XLS) & CSV di browser -->
+    <!-- Pustaka SheetJS untuk membaca file Excel (XLSX/XLS) & CSV -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- QRCode JS Library untuk Render QRIS Dinamis -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; }
@@ -46,17 +48,17 @@
         <section id="loginSection" class="max-w-md mx-auto bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
             <div class="text-center space-y-1">
                 <h2 class="text-lg font-black text-slate-900">Masuk Dashboard Toko</h2>
-                <p class="text-xs text-slate-500 font-medium">Masukkan ID Toko dan PIN Kasir untuk mengelola katalog & melihat laporan</p>
+                <p class="text-xs text-slate-500 font-medium">Masukkan ID Toko / Cabang dan PIN Kasir untuk mengelola katalog & laporan</p>
             </div>
 
             <div class="space-y-3">
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">ID Toko Mitra</label>
-                    <input type="text" id="loginStoreId" placeholder="Contoh: TOKO-001" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs font-bold uppercase focus:bg-white focus:border-teal-600 focus:outline-none">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">ID Toko Mitra / Cabang</label>
+                    <input type="text" id="loginStoreId" placeholder="Contoh: TOKO-001-JKT" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs font-bold uppercase focus:bg-white focus:border-teal-600 focus:outline-none">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">PIN Kasir Toko</label>
-                    
+                    <!-- SANITASI PIN DENGAN WEBKIT-TEXT-SECURITY -->
                     <input type="text" id="loginPin" inputmode="numeric" autocomplete="off" placeholder="Masukkan 4-digit PIN" maxlength="6" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs font-bold focus:bg-white focus:border-teal-600 focus:outline-none" style="-webkit-text-security: disc;">
                 </div>
                 <button onclick="loginStore()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-xs py-3 rounded-xl shadow transition flex items-center justify-center gap-2">
@@ -88,18 +90,22 @@
                         <span id="kpiStatusBadge" class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold px-2 py-0.5 rounded-full">Lancar</span>
                     </div>
                     <strong id="kpiKomisiCreator" class="text-2xl font-black text-amber-400 block pt-1">Rp 0</strong>
-                    <p class="text-[11px] font-semibold text-slate-400 pt-1">BCA 0125032619 a.n. Leonardus Yesiabdi Luhur P.</p>
+                    <div class="pt-2">
+                        <button onclick="payQrisSettlement()" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs px-3 py-1.5 rounded-xl transition inline-flex items-center gap-1.5 shadow">
+                            <i class="fa-solid fa-qrcode"></i> Bayar via QRIS Dinamis
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <!-- MODUL KELOLA KATALOG HARGA MATERIAL TOKO (EXCEL / CSV IMPORT) -->
+            <!-- MODUL KELOLA KATALOG HARGA MATERIAL TOKO (EXCEL 8-KOLOM IMPORT) -->
             <section class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
                     <div>
                         <h3 class="font-extrabold text-slate-900 text-sm sm:text-base flex items-center gap-2">
-                            <i class="fa-solid fa-boxes-packing text-teal-600"></i> Kelola Katalog & Harga Material Toko
+                            <i class="fa-solid fa-boxes-packing text-teal-600"></i> Kelola Katalog & Harga Material Cabang
                         </h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Unggah berkas Excel (.xlsx/.xls) atau CSV untuk memperbarui harga satuan harian toko.</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Unggah berkas Excel (.xlsx/.xls) atau CSV 8-kolom untuk memperbarui harga satuan harian toko.</p>
                     </div>
                     <a href="Template_Katalog_53_Standard_Dan_Custom_Mitra_Bangunan.xlsx" download class="text-xs bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold px-3 py-2 rounded-xl border border-teal-200 transition inline-flex items-center gap-1.5 shadow-sm">
                         <i class="fa-solid fa-file-excel text-emerald-600"></i> Unduh Template Excel Lengkap
@@ -110,9 +116,9 @@
                 <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-900 flex items-start gap-3">
                     <i class="fa-solid fa-circle-info text-amber-600 text-lg mt-0.5 shrink-0"></i>
                     <div class="space-y-1">
-                        <p class="font-bold text-amber-950">Catatan Penting Pengisian Katalog:</p>
+                        <p class="font-bold text-amber-950">Catatan Pengisian Katalog 8-Kolom:</p>
                         <p class="text-amber-800 leading-relaxed">
-                            Item dengan Kode Standard (53 Item Template) digunakan untuk Kalkulator Otomatis. Item baru tanpa kode standar akan muncul sebagai Katalog Pilihan Manual saat pembuatan penawaran.
+                            Pastikan file mencakup header: <strong>StoreID, Kode_Material, Kategori, Tipe_Item, Nama_Material, Spesifikasi_Merk, Satuan, Harga_Satuan_Toko</strong>. Kode Standard digunakan untuk kalkulator otomatis.
                         </p>
                     </div>
                 </div>
@@ -121,7 +127,7 @@
                 <div class="border-2 border-dashed border-slate-300 hover:border-teal-500 rounded-2xl p-6 text-center bg-slate-50 hover:bg-teal-50/30 transition cursor-pointer" onclick="document.getElementById('fileCatalogInput').click()">
                     <i class="fa-solid fa-cloud-arrow-up text-3xl text-teal-600 mb-2"></i>
                     <p class="text-xs font-bold text-slate-700">Klik untuk memilih file Excel (.xlsx / .xls) atau CSV</p>
-                    <p class="text-[11px] text-slate-400 mt-1">Pastikan format kolom sesuai dengan template standar</p>
+                    <p class="text-[11px] text-slate-400 mt-1">Sistem otomatis menyelaraskan data dengan StoreID cabang yang aktif</p>
                     <input type="file" id="fileCatalogInput" accept=".csv, .xlsx, .xls" class="hidden" onchange="handleCatalogFileUpload(event)">
                 </div>
 
@@ -137,6 +143,7 @@
                         <table class="w-full text-left text-xs whitespace-nowrap">
                             <thead class="bg-slate-100 font-bold text-slate-700 sticky top-0 shadow-sm">
                                 <tr>
+                                    <th class="p-2.5">StoreID</th>
                                     <th class="p-2.5">Kode Material</th>
                                     <th class="p-2.5">Kategori</th>
                                     <th class="p-2.5 text-center">Tipe Item</th>
@@ -152,29 +159,29 @@
                 </div>
             </section>
 
-            <!-- KARTU EDUKASI & PETUNJUK PEMBAYARAN KOMISI PLATFORM -->
+            <!-- KARTU EDUKASI PEMBAYARAN KOMISI PLATFORM -->
             <section class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-5 border border-slate-700 shadow-sm space-y-4">
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-700/80 pb-4">
                     <div class="space-y-1">
                         <h3 class="text-sm font-black text-teal-400 uppercase tracking-wider flex items-center gap-2">
                             <i class="fa-solid fa-credit-card"></i> Pembayaran Setoran Komisi Platform
                         </h3>
-                        <p class="text-xs text-slate-300 font-medium">Setor komisi platform secara periodik (mingguan/saat mendekati limit) agar layanan QR Kasir Toko tetap aktif.</p>
+                        <p class="text-xs text-slate-300 font-medium">Lakukan pelunasan komisi terutang via QRIS Dinamis atau Transfer Bank sebelum mencapai limit Rp 500.000.</p>
                     </div>
                     <a id="btnConfirmPayment" href="#" target="_blank" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-xs px-4 py-2.5 rounded-xl shadow transition inline-flex items-center gap-2">
-                        <i class="fa-brands fa-whatsapp text-sm"></i> Konfirmasi Setoran via WA Admin
+                        <i class="fa-brands fa-whatsapp text-sm"></i> Bantuan WA Admin
                     </a>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs pt-1">
                     <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700 space-y-1">
-                        <span class="text-slate-400 font-semibold block">Transfer Bank Tujuan:</span>
+                        <span class="text-slate-400 font-semibold block">Transfer Manual Bank BCA:</span>
                         <p class="font-extrabold text-white text-sm">BCA: <span class="text-teal-300 select-all">0125032619</span></p>
                         <p class="text-slate-400">a.n. <strong>Leonardus Yesiabdi Luhur P.</strong></p>
                     </div>
                     <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700 space-y-1">
-                        <span class="text-slate-400 font-semibold block">Aturan Batas Limit Setoran:</span>
-                        <p class="text-slate-300 font-medium">Setoran wajib dilakukan sebelum akumulasi komisi mencapai <strong>Rp 500.000</strong>. Jika melebihi limit, verifikasi transaksi baru di kasir akan ditangguhkan sementara.</p>
+                        <span class="text-slate-400 font-semibold block">Sistem Pembayaran QRIS Dinamis:</span>
+                        <p class="text-slate-300 font-medium">Pembayaran via QRIS terverifikasi otomatis oleh Webhook server dalam hitungan detik untuk langsung membuka gembok kasir toko.</p>
                     </div>
                 </div>
             </section>
@@ -214,6 +221,32 @@
 
     </main>
 
+    <!-- MODAL SETTLEMENT QRIS DINAMIS -->
+    <div id="modalQris" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-qrcode text-teal-600"></i> Setoran QRIS Dinamis
+                </h3>
+                <button onclick="closeModal('modalQris')" class="text-slate-400 hover:text-slate-600 font-bold text-lg">&times;</button>
+            </div>
+            
+            <div id="qrisBox" class="flex justify-center p-3 border-2 border-dashed border-teal-400 rounded-2xl bg-slate-50 min-h-[190px] items-center"></div>
+            
+            <div class="space-y-1">
+                <span class="text-[11px] font-bold text-slate-400 uppercase block">Total Nominal Setoran</span>
+                <strong id="qrisAmountText" class="text-lg font-black text-teal-700 block">Rp 0</strong>
+                <span id="qrisRefText" class="text-[10px] font-mono text-slate-500 block">SETOR-XXXXXX</span>
+            </div>
+
+            <p class="text-[11px] text-slate-500 leading-relaxed">
+                Pindai dengan m-Banking (BCA/Mandiri/BRI) atau E-Wallet (Gopay/OVO/Dana). Verifikasi pembayaran otomatis diproses oleh server.
+            </p>
+            
+            <button onclick="closeModal('modalQris')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-xs w-full transition">Tutup Modal</button>
+        </div>
+    </div>
+
     <!-- CONFIG MODAL -->
     <div id="modalConfig" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-2xl p-5 shadow-2xl space-y-4">
@@ -229,6 +262,7 @@
     <script>
         let GAS_WEB_APP_URL = localStorage.getItem('mb_gas_url') || '';
         let parsedCatalogData = [];
+        let currentActiveStoreId = '';
 
         window.addEventListener('DOMContentLoaded', () => {
             const sessionData = localStorage.getItem('mb_toko_session');
@@ -277,6 +311,7 @@
                     return;
                 }
 
+                currentActiveStoreId = storeId;
                 localStorage.setItem('mb_toko_session', JSON.stringify({ storeId, pin }));
                 localStorage.setItem(`mb_toko_cache_${storeId}`, JSON.stringify(data));
 
@@ -290,6 +325,7 @@
         }
 
         function renderDashboard(data) {
+            currentActiveStoreId = data.store.id;
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('dashboardContent').classList.remove('hidden');
             document.getElementById('btnLogout').classList.remove('hidden');
@@ -315,11 +351,10 @@
             }
 
             const adminPhone = "6282113866890";
-            const textWa = `*KONFIRMASI SETORAN KOMISI PLATFORM MITRA BANGUNAN*\n\n` +
+            const textWa = `*BANTUAN SETORAN KOMISI PLATFORM MITRA BANGUNAN*\n\n` +
                            `Halo Admin,\n` +
                            `Saya pemilik toko: *${data.store.nama}* (${data.store.id})\n` +
-                           `Ingin mengonfirmasi setoran komisi platform terutang sebesar: *Rp ${totalCreator.toLocaleString('id-ID')}*.\n\n` +
-                           `Berikut kami lampirkan bukti transfer bank. Mohon diverifikasi. Terima kasih!`;
+                           `Ingin menanyakan status setoran komisi terutang sebesar: *Rp ${totalCreator.toLocaleString('id-ID')}*.`;
             
             document.getElementById('btnConfirmPayment').href = `https://api.whatsapp.com/send?phone=${adminPhone}&text=${encodeURIComponent(textWa)}`;
 
@@ -354,7 +389,6 @@
                         <td class="p-3 text-right font-bold text-emerald-600">Rp ${Number(trx.nominalInsentif || 0).toLocaleString('id-ID')}</td>
                         <td class="p-3 text-right font-bold text-amber-600">
                             Rp ${Number(trx.komisiCreator || 0).toLocaleString('id-ID')}
-                            <span class="block text-[9px] font-normal text-amber-700">(Terutang)</span>
                         </td>
                         <td class="p-3 text-center">${statusKasirBadge}</td>
                         <td class="p-3 font-medium text-slate-500">${trx.cashierName || '-'}</td>
@@ -364,7 +398,7 @@
         }
 
         /* -------------------------------------------------------------------------- */
-        /* LOGIKA SKRIP PARSER SHEETJS & UPLOAD KATALOG HARGA MATERIAL TOKO           */
+        /* LOGIKA PARSER SHEETJS 8-KOLOM & UPLOAD KATALOG HARGA TOKO                   */
         /* -------------------------------------------------------------------------- */
         
         function handleCatalogFileUpload(event) {
@@ -393,11 +427,12 @@
                         const kode = String(row.Kode_Material || row.kode || '').trim();
                         
                         return {
+                            storeId: currentActiveStoreId || String(row.StoreID || row.storeId || '').trim().toUpperCase(),
                             kode: kode,
                             kategori: String(row.Kategori || row.kategori || '').trim(),
                             tipe: String(row.Tipe_Item || row.tipe || (kode.startsWith('STD-') ? 'STANDARD_53' : 'CUSTOM_TOKO')).trim(),
                             nama: String(row.Nama_Material || row.nama || '').trim(),
-                            spek: String(row.Spesifikasi_Merk || row.spek || '').trim(),
+                            spek: String(row.Spesifikasi_Merk || row.spek || row.spesifikasi || '').trim(),
                             satuan: String(row.Satuan || row.satuan || '').trim(),
                             harga: cleanPrice
                         };
@@ -428,6 +463,7 @@
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition">
+                        <td class="p-2.5 font-bold text-teal-700">${item.storeId || currentActiveStoreId}</td>
                         <td class="p-2.5 font-mono font-bold text-slate-700">${item.kode || '-'}</td>
                         <td class="p-2.5 text-slate-600 font-medium">${item.kategori || '-'}</td>
                         <td class="p-2.5 text-center">${badgeTipe}</td>
@@ -485,16 +521,68 @@
             }
         }
 
+        /* -------------------------------------------------------------------------- */
+        /* LOGIKA PEMBAYARAN SETORAN QRIS DINAMIS                                    */
+        /* -------------------------------------------------------------------------- */
+
+        async function payQrisSettlement() {
+            if (!currentActiveStoreId) return alert("Sesi toko tidak aktif. Silakan login ulang!");
+            if (!GAS_WEB_APP_URL) return alert("API Web App belum diatur!");
+
+            const amountStr = prompt("Masukkan Nominal Setoran Komisi Platform (Rp):", "500000");
+            if (!amountStr) return;
+            
+            const amount = Number(amountStr.replace(/[^0-9]/g, ''));
+            if (!amount || amount <= 0) return alert("Nominal setoran tidak valid!");
+
+            try {
+                const res = await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'generateSettlementQris',
+                        storeId: currentActiveStoreId,
+                        amount: amount
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    const qrisBox = document.getElementById('qrisBox');
+                    qrisBox.innerHTML = '';
+
+                    new QRCode(qrisBox, {
+                        text: data.qrisString,
+                        width: 180,
+                        height: 180,
+                        colorDark: "#0f172a",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+
+                    document.getElementById('qrisAmountText').innerText = `Rp ${amount.toLocaleString('id-ID')}`;
+                    document.getElementById('qrisRefText').innerText = data.settlementId;
+                    openModal('modalQris');
+                } else {
+                    alert("Gagal membuat QRIS: " + data.message);
+                }
+            } catch(e) {
+                alert("Terjadi kesalahan koneksi server: " + e.toString());
+            }
+        }
+
         function logout() {
             localStorage.removeItem('mb_toko_session');
             location.reload();
         }
 
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
         function openConfigModal() {
             document.getElementById('cfgGasUrl').value = GAS_WEB_APP_URL;
-            document.getElementById('modalConfig').classList.remove('hidden');
+            openModal('modalConfig');
         }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
         function saveConfigUrl() {
             GAS_WEB_APP_URL = document.getElementById('cfgGasUrl').value.trim();
             localStorage.setItem('mb_gas_url', GAS_WEB_APP_URL);
