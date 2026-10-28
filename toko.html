@@ -8,10 +8,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
-    <!-- Pustaka SheetJS untuk membaca file Excel (XLSX/XLS) & CSV -->
+    <!-- Pustaka SheetJS & QRCode -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- QRCode JS Library untuk Render QRIS Dinamis -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <!-- Pustaka Midtrans Snap JS (Production) -->
+    <script type="text/javascript" src="https://app.midtrans.com/snap/snap.js" data-client-key="Mid-client-DUMMY"></script>
 
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; }
@@ -58,7 +60,6 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">PIN Kasir Toko</label>
-                    <!-- SANITASI PIN DENGAN WEBKIT-TEXT-SECURITY -->
                     <input type="text" id="loginPin" inputmode="numeric" autocomplete="off" placeholder="Masukkan 4-digit PIN" maxlength="6" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs font-bold focus:bg-white focus:border-teal-600 focus:outline-none" style="-webkit-text-security: disc;">
                 </div>
                 <button onclick="loginStore()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-xs py-3 rounded-xl shadow transition flex items-center justify-center gap-2">
@@ -112,7 +113,6 @@
                     </a>
                 </div>
 
-                <!-- Banner Edukasi Kode Material -->
                 <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-900 flex items-start gap-3">
                     <i class="fa-solid fa-circle-info text-amber-600 text-lg mt-0.5 shrink-0"></i>
                     <div class="space-y-1">
@@ -123,7 +123,6 @@
                     </div>
                 </div>
 
-                <!-- Input File Upload Area -->
                 <div class="border-2 border-dashed border-slate-300 hover:border-teal-500 rounded-2xl p-6 text-center bg-slate-50 hover:bg-teal-50/30 transition cursor-pointer" onclick="document.getElementById('fileCatalogInput').click()">
                     <i class="fa-solid fa-cloud-arrow-up text-3xl text-teal-600 mb-2"></i>
                     <p class="text-xs font-bold text-slate-700">Klik untuk memilih file Excel (.xlsx / .xls) atau CSV</p>
@@ -131,7 +130,6 @@
                     <input type="file" id="fileCatalogInput" accept=".csv, .xlsx, .xls" class="hidden" onchange="handleCatalogFileUpload(event)">
                 </div>
 
-                <!-- Preview Table Data Hasil Upload -->
                 <div id="catalogPreviewBox" class="hidden space-y-3 pt-3 border-t border-slate-100">
                     <div class="flex flex-wrap items-center justify-between gap-2">
                         <span class="text-xs font-bold text-slate-700" id="previewCountText">Preview Data Material (0 Item)</span>
@@ -166,7 +164,7 @@
                         <h3 class="text-sm font-black text-teal-400 uppercase tracking-wider flex items-center gap-2">
                             <i class="fa-solid fa-credit-card"></i> Pembayaran Setoran Komisi Platform
                         </h3>
-                        <p class="text-xs text-slate-300 font-medium">Lakukan pelunasan komisi terutang via Virtual Account BCA atau QRIS sebelum mencapai limit Rp 500.000.</p>
+                        <p class="text-xs text-slate-300 font-medium">Lakukan pelunasan komisi terutang via QRIS / E-Wallet / Bank Transfer sebelum mencapai limit Rp 500.000.</p>
                     </div>
                     <a id="btnConfirmPayment" href="#" target="_blank" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-xs px-4 py-2.5 rounded-xl shadow transition inline-flex items-center gap-2">
                         <i class="fa-brands fa-whatsapp text-sm"></i> Bantuan WA Admin
@@ -181,7 +179,7 @@
                     </div>
                     <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700 space-y-1">
                         <span class="text-slate-400 font-semibold block">Sistem Pembayaran Otomatis Midtrans:</span>
-                        <p class="text-slate-300 font-medium">Pembayaran via Virtual Account / QRIS terverifikasi otomatis oleh Webhook server dalam hitungan detik untuk membuka gembok kasir toko.</p>
+                        <p class="text-slate-300 font-medium">Pembayaran via Snap Popup terverifikasi otomatis oleh Webhook server dalam hitungan detik untuk membuka gembok kasir toko.</p>
                     </div>
                 </div>
             </section>
@@ -220,32 +218,6 @@
         </div>
 
     </main>
-
-    <!-- MODAL SETTLEMENT PEMBAYARAN MIDTRANS -->
-    <div id="modalQris" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center space-y-4">
-            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
-                    <i class="fa-solid fa-receipt text-teal-600"></i> Pembayaran Setoran Komisi
-                </h3>
-                <button onclick="closeModal('modalQris')" class="text-slate-400 hover:text-slate-600 font-bold text-lg">&times;</button>
-            </div>
-            
-            <div id="qrisBox" class="flex justify-center p-3 border-2 border-dashed border-teal-400 rounded-2xl bg-slate-50 min-h-[160px] items-center"></div>
-            
-            <div class="space-y-1">
-                <span class="text-[11px] font-bold text-slate-400 uppercase block">Total Nominal Setoran</span>
-                <strong id="qrisAmountText" class="text-lg font-black text-teal-700 block">Rp 0</strong>
-                <span id="qrisRefText" class="text-[10px] font-mono text-slate-500 block">SETOR-XXXXXX</span>
-            </div>
-
-            <p class="text-[11px] text-slate-500 leading-relaxed">
-                Pembayaran terverifikasi secara otomatis oleh sistem backend begitu transfer berhasil diselesaikan.
-            </p>
-            
-            <button onclick="closeModal('modalQris')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-xs w-full transition">Tutup Modal</button>
-        </div>
-    </div>
 
     <!-- CONFIG MODAL -->
     <div id="modalConfig" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
@@ -399,10 +371,7 @@
             });
         }
 
-        /* -------------------------------------------------------------------------- */
-        /* LOGIKA PARSER SHEETJS 8-KOLOM & UPLOAD KATALOG HARGA TOKO                   */
-        /* -------------------------------------------------------------------------- */
-        
+        /* LOGIKA PARSER SHEETJS 8-KOLOM & UPLOAD KATALOG HARGA TOKO */
         function handleCatalogFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -523,10 +492,7 @@
             }
         }
 
-        /* -------------------------------------------------------------------------- */
-        /* LOGIKA PEMBAYARAN SETORAN MIDTRANS (SUPPORT VIRTUAL ACCOUNT & QRIS)         */
-        /* -------------------------------------------------------------------------- */
-
+        /* LOGIKA PEMBAYARAN SETORAN VIA MIDTRANS SNAP POPUP */
         async function payQrisSettlement() {
             if (!currentActiveStoreId) return alert("Sesi toko tidak aktif. Silakan login ulang!");
 
@@ -547,39 +513,30 @@
                 });
 
                 const data = await res.json();
-                if (data.success) {
-                    const qrisBox = document.getElementById('qrisBox');
-                    qrisBox.innerHTML = '';
-
-                    if (data.type === 'va') {
-                        // Tampilan Nomor Virtual Account BCA
-                        qrisBox.innerHTML = `
-                            <div class="text-center py-2 space-y-2 w-full">
-                                <span class="text-xs font-bold text-slate-500 block">Nomor Virtual Account ${data.bank}</span>
-                                <div class="bg-teal-50 border border-teal-200 p-3 rounded-2xl">
-                                    <strong class="text-xl font-black text-teal-800 tracking-wider select-all block">${data.vaNumber}</strong>
-                                </div>
-                                <p class="text-[10px] text-slate-400">Salin kode di atas & bayar via m-BCA / ATM BCA / Internet Banking</p>
-                            </div>
-                        `;
-                    } else if (data.qrUrl) {
-                        qrisBox.innerHTML = `<img src="${data.qrUrl}" alt="QRIS Midtrans" class="w-48 h-48 object-contain mx-auto">`;
-                    } else if (data.qrString) {
-                        new QRCode(qrisBox, {
-                            text: data.qrString,
-                            width: 180,
-                            height: 180,
-                            colorDark: "#0f172a",
-                            colorLight: "#ffffff",
-                            correctLevel: QRCode.CorrectLevel.M
+                if (data.success && data.token) {
+                    // Tampilkan Pop-Up Pembayaran Midtrans Snap
+                    if (window.snap) {
+                        window.snap.pay(data.token, {
+                            onSuccess: function(result){
+                                alert("Pembayaran Berhasil! Limit toko dibuka kembali.");
+                                location.reload();
+                            },
+                            onPending: function(result){
+                                alert("Menunggu Pembayaran Diselesaikan...");
+                                location.reload();
+                            },
+                            onError: function(result){
+                                alert("Pembayaran Gagal!");
+                            },
+                            onClose: function(){
+                                console.log('Pop-up pembayaran ditutup oleh pengguna.');
+                            }
                         });
+                    } else if (data.redirect_url) {
+                        window.open(data.redirect_url, '_blank');
                     }
-
-                    document.getElementById('qrisAmountText').innerText = `Rp ${amount.toLocaleString('id-ID')}`;
-                    document.getElementById('qrisRefText').innerText = data.settlementId;
-                    openModal('modalQris');
                 } else {
-                    alert("Gagal membuat transaksi: " + data.message);
+                    alert("Gagal membuat transaksi Midtrans: " + (data.message || "Unknown error"));
                 }
             } catch(e) {
                 alert("Terjadi kesalahan koneksi server: " + e.toString());
