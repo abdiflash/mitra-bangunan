@@ -92,13 +92,13 @@
                     <strong id="kpiKomisiCreator" class="text-2xl font-black text-amber-400 block pt-1">Rp 0</strong>
                     <div class="pt-2">
                         <button onclick="payQrisSettlement()" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs px-3 py-1.5 rounded-xl transition inline-flex items-center gap-1.5 shadow">
-                            <i class="fa-solid fa-qrcode"></i> Bayar via QRIS Dinamis
+                            <i class="fa-solid fa-credit-card"></i> Bayar Setoran Komisi
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- MODUL KELOLA KATALOG HARGA MATERIAL TOKO (EXCEL 8-KOLOM IMPORT) -->
+            <!-- MODUL KELOLA KATALOG HARGA MATERIAL TOKO -->
             <section class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
                     <div>
@@ -166,7 +166,7 @@
                         <h3 class="text-sm font-black text-teal-400 uppercase tracking-wider flex items-center gap-2">
                             <i class="fa-solid fa-credit-card"></i> Pembayaran Setoran Komisi Platform
                         </h3>
-                        <p class="text-xs text-slate-300 font-medium">Lakukan pelunasan komisi terutang via QRIS Dinamis atau Transfer Bank sebelum mencapai limit Rp 500.000.</p>
+                        <p class="text-xs text-slate-300 font-medium">Lakukan pelunasan komisi terutang via Virtual Account BCA atau QRIS sebelum mencapai limit Rp 500.000.</p>
                     </div>
                     <a id="btnConfirmPayment" href="#" target="_blank" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-xs px-4 py-2.5 rounded-xl shadow transition inline-flex items-center gap-2">
                         <i class="fa-brands fa-whatsapp text-sm"></i> Bantuan WA Admin
@@ -180,8 +180,8 @@
                         <p class="text-slate-400">a.n. <strong>Leonardus Yesiabdi Luhur P.</strong></p>
                     </div>
                     <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700 space-y-1">
-                        <span class="text-slate-400 font-semibold block">Sistem Pembayaran QRIS Dinamis Midtrans:</span>
-                        <p class="text-slate-300 font-medium">Pembayaran via QRIS terverifikasi otomatis oleh Webhook server dalam hitungan detik untuk langsung membuka gembok kasir toko.</p>
+                        <span class="text-slate-400 font-semibold block">Sistem Pembayaran Otomatis Midtrans:</span>
+                        <p class="text-slate-300 font-medium">Pembayaran via Virtual Account / QRIS terverifikasi otomatis oleh Webhook server dalam hitungan detik untuk membuka gembok kasir toko.</p>
                     </div>
                 </div>
             </section>
@@ -221,17 +221,17 @@
 
     </main>
 
-    <!-- MODAL SETTLEMENT QRIS DINAMIS -->
+    <!-- MODAL SETTLEMENT PEMBAYARAN MIDTRANS -->
     <div id="modalQris" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center space-y-4">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                 <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
-                    <i class="fa-solid fa-qrcode text-teal-600"></i> Setoran QRIS Dinamis
+                    <i class="fa-solid fa-receipt text-teal-600"></i> Pembayaran Setoran Komisi
                 </h3>
                 <button onclick="closeModal('modalQris')" class="text-slate-400 hover:text-slate-600 font-bold text-lg">&times;</button>
             </div>
             
-            <div id="qrisBox" class="flex justify-center p-3 border-2 border-dashed border-teal-400 rounded-2xl bg-slate-50 min-h-[190px] items-center"></div>
+            <div id="qrisBox" class="flex justify-center p-3 border-2 border-dashed border-teal-400 rounded-2xl bg-slate-50 min-h-[160px] items-center"></div>
             
             <div class="space-y-1">
                 <span class="text-[11px] font-bold text-slate-400 uppercase block">Total Nominal Setoran</span>
@@ -240,7 +240,7 @@
             </div>
 
             <p class="text-[11px] text-slate-500 leading-relaxed">
-                Pindai dengan m-Banking (BCA/Mandiri/BRI) atau E-Wallet (Gopay/OVO/Dana). Verifikasi pembayaran otomatis diproses oleh server.
+                Pembayaran terverifikasi secara otomatis oleh sistem backend begitu transfer berhasil diselesaikan.
             </p>
             
             <button onclick="closeModal('modalQris')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-xs w-full transition">Tutup Modal</button>
@@ -260,7 +260,6 @@
     </div>
 
     <script>
-        // HARDCODED WEB APP URL UTAMA CREATOR DENGAN FALLBACK LOCALSTORAGE
         const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbxsQQMYsvWk6R3AkPhkEURDsxFaEyUnqwFyCv500uPYvK0Y0RhPvaHXgw5OcvYeH_tC/exec";
         let GAS_WEB_APP_URL = localStorage.getItem('mb_gas_url') || DEFAULT_GAS_URL;
 
@@ -525,7 +524,7 @@
         }
 
         /* -------------------------------------------------------------------------- */
-        /* LOGIKA PEMBAYARAN SETORAN QRIS DINAMIS MIDTRANS                            */
+        /* LOGIKA PEMBAYARAN SETORAN MIDTRANS (SUPPORT VIRTUAL ACCOUNT & QRIS)         */
         /* -------------------------------------------------------------------------- */
 
         async function payQrisSettlement() {
@@ -538,7 +537,6 @@
             if (!amount || amount <= 0) return alert("Nominal setoran tidak valid!");
 
             try {
-                // Memanggil Endpoint PHP Midtrans di edueasy.id
                 const res = await fetch('https://edueasy.id/api-mitra-bangunan/create-qris.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -553,11 +551,20 @@
                     const qrisBox = document.getElementById('qrisBox');
                     qrisBox.innerHTML = '';
 
-                    // Jika Midtrans mengembalikan URL gambar QRIS
-                    if (data.qrUrl) {
+                    if (data.type === 'va') {
+                        // Tampilan Nomor Virtual Account BCA
+                        qrisBox.innerHTML = `
+                            <div class="text-center py-2 space-y-2 w-full">
+                                <span class="text-xs font-bold text-slate-500 block">Nomor Virtual Account ${data.bank}</span>
+                                <div class="bg-teal-50 border border-teal-200 p-3 rounded-2xl">
+                                    <strong class="text-xl font-black text-teal-800 tracking-wider select-all block">${data.vaNumber}</strong>
+                                </div>
+                                <p class="text-[10px] text-slate-400">Salin kode di atas & bayar via m-BCA / ATM BCA / Internet Banking</p>
+                            </div>
+                        `;
+                    } else if (data.qrUrl) {
                         qrisBox.innerHTML = `<img src="${data.qrUrl}" alt="QRIS Midtrans" class="w-48 h-48 object-contain mx-auto">`;
                     } else if (data.qrString) {
-                        // Render ulang dengan QRCode JS jika berbentuk String
                         new QRCode(qrisBox, {
                             text: data.qrString,
                             width: 180,
@@ -572,7 +579,7 @@
                     document.getElementById('qrisRefText').innerText = data.settlementId;
                     openModal('modalQris');
                 } else {
-                    alert("Gagal membuat QRIS Midtrans: " + data.message);
+                    alert("Gagal membuat transaksi: " + data.message);
                 }
             } catch(e) {
                 alert("Terjadi kesalahan koneksi server: " + e.toString());
