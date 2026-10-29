@@ -11,12 +11,13 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
 
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; }
+        body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; transition: background-color 0.4s ease; }
+        .success-flash { background-color: #10B981 !important; }
     </style>
 </head>
-<body class="text-slate-800 min-h-screen pb-12">
+<body id="mainBody" class="text-slate-800 min-h-screen pb-12">
 
-    <!-- HEADER NAVIGATION -->
+    <!-- HEADER NAVIGATION (DENGAN INDIKATOR CABANG AKTIF) -->
     <header class="bg-slate-900 text-white shadow-md sticky top-0 z-30">
         <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-2.5">
@@ -24,13 +25,18 @@
                     <i class="fa-solid fa-cash-register"></i>
                 </div>
                 <div>
-                    <h1 class="font-extrabold text-base leading-tight">Kasir Mitra Bangunan</h1>
-                    <p class="text-xs text-teal-300">Pemindai QR & Verifikasi Transaksi Toko</p>
+                    <h1 class="font-extrabold text-base leading-tight">Kasir Pemindai QR</h1>
+                    <p class="text-xs text-teal-300">Verifikasi Diskon & Transaksi Toko</p>
                 </div>
             </div>
-            <button onclick="openConfigModal()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 font-semibold transition">
-                <i class="fa-solid fa-gear"></i> Set API
-            </button>
+            
+            <!-- IDENTITAS CABANG DITAMPAKAN DI HEADER -->
+            <div class="text-right bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700">
+                <span class="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">Status Cabang</span>
+                <strong id="activeStoreHeader" class="text-xs font-black text-emerald-400 block">
+                    <i class="fa-solid fa-store text-amber-400"></i> Memuat Cabang...
+                </strong>
+            </div>
         </div>
     </header>
 
@@ -48,18 +54,20 @@
 
             <div class="flex justify-center gap-2">
                 <button id="btnStartScan" onclick="startScanner()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow flex items-center gap-1.5 transition">
-                    <i class="fa-solid fa-camera"></i> Buka Kamera
+                    <i class="fa-solid fa-camera"></i> Buka Kamera HP/Laptop
                 </button>
                 <button id="btnStopScan" onclick="stopScanner()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl hidden transition">
                     Matikan Kamera
                 </button>
             </div>
 
-            <!-- Manual Input Fallback -->
+            <!-- Manual Input Fallback (Auto-Focus USB Scanner Ready) -->
             <div class="pt-3 border-t border-slate-100 max-w-sm mx-auto">
-                <label class="block text-xs font-semibold text-slate-500 mb-1">Atau Masukkan Kode Invoice Manual:</label>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">
+                    <i class="fa-solid fa-barcode text-slate-700"></i> Masukkan Kode / Scan via USB Hardware:
+                </label>
                 <div class="flex gap-2">
-                    <input type="text" id="manualTrxId" onkeypress="handleEnterKey(event)" placeholder="Contoh: MB-759889" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold uppercase focus:bg-white focus:border-teal-600 focus:outline-none">
+                    <input type="text" id="manualTrxId" onkeypress="handleEnterKey(event)" placeholder="Contoh: MB-759889" class="w-full bg-slate-50 border-2 border-teal-500 rounded-xl p-2.5 text-xs font-bold uppercase focus:bg-white focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-200">
                     <button id="btnCariManual" onclick="lookupManualTrx()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow transition flex items-center justify-center gap-1.5 whitespace-nowrap">
                         <i class="fa-solid fa-magnifying-glass"></i> Cari
                     </button>
@@ -68,7 +76,7 @@
         </section>
 
         <!-- TRANSACTION DETAIL & CASHIER ACTION BOX -->
-        <section id="resultSection" class="hidden bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 space-y-4">
+        <section id="resultSection" class="hidden bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 space-y-4 transition-all">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                 <div>
                     <span id="resTrxId" class="text-xs font-extrabold text-teal-700 uppercase tracking-wider block">MB-000000</span>
@@ -113,7 +121,6 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">PIN Kasir Toko <span class="text-red-500">*</span></label>
-                        
                         <input type="text" id="inputCashierPin" inputmode="numeric" autocomplete="off" placeholder="Masukkan PIN 4-digit" maxlength="6" class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-semibold focus:border-teal-600 focus:outline-none" style="-webkit-text-security: disc;">
                     </div>
                     <div>
@@ -140,23 +147,88 @@
 
     </main>
 
-    <!-- CONFIG MODAL -->
-    <div id="modalConfig" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-2xl p-5 shadow-2xl space-y-4">
-            <h3 class="font-extrabold text-base text-slate-900">Set API Web App (GAS)</h3>
-            <input type="text" id="cfgGasUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-semibold focus:outline-none">
-            <div class="flex justify-end gap-2">
-                <button onclick="closeModal('modalConfig')" class="bg-slate-200 font-bold px-3 py-2 rounded-xl text-xs">Batal</button>
-                <button onclick="saveConfigUrl()" class="bg-teal-600 text-white font-bold px-4 py-2 rounded-xl text-xs shadow">Simpan</button>
-            </div>
-        </div>
-    </div>
-
     <script>
-        let GAS_WEB_APP_URL = localStorage.getItem('mb_gas_url') || '';
+        // HARDCODED BACKEND API
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxsQQMYsvWk6R3AkPhkEURDsxFaEyUnqwFyCv500uPYvK0Y0RhPvaHXgw5OcvYeH_tC/exec";
+
         let html5QrcodeScanner = null;
         let currentLoadedTrx = null;
         let waSentState = false;
+        let activeStoreObj = null;
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            await initStoreBranchHeader();
+            autoFocusInput();
+        });
+
+        function autoFocusInput() {
+            const inputManual = document.getElementById('manualTrxId');
+            if (inputManual) {
+                inputManual.focus();
+                inputManual.select();
+            }
+        }
+
+        async function initStoreBranchHeader() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const pathSlug = window.location.pathname.replace(/^\/|\/$/g, '');
+            const queryStore = urlParams.get('storeId') || urlParams.get('store') || urlParams.get('s');
+            const targetStore = (queryStore || pathSlug).toLowerCase();
+
+            let stores = JSON.parse(localStorage.getItem('mb_stores_cache')) || [
+                { id: 'majujayamakmur-001-jkt', name: 'TB. Maju Jaya Makmur 1' },
+                { id: 'majujayamakmur-002-jkt', name: 'TB. Maju Jaya Makmur 2' }
+            ];
+
+            const headerElem = document.getElementById('activeStoreHeader');
+
+            if (targetStore && targetStore !== 'kasir.html' && targetStore !== 'index.html') {
+                activeStoreObj = stores.find(s => (s.id || '').toLowerCase() === targetStore || (s.slug || '').toLowerCase() === targetStore);
+            }
+
+            if (activeStoreObj) {
+                headerElem.innerHTML = `<i class="fa-solid fa-store text-amber-400"></i> ${activeStoreObj.name}`;
+            } else {
+                headerElem.innerHTML = `<i class="fa-solid fa-store text-emerald-400"></i> Multi-Toko Kasir Active`;
+            }
+        }
+
+        // BEEP AUDIO FEEDBACK SINTESIS (TANPA FILE EKSTERNAL)
+        function playBeepSound(type = 'success') {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                if (type === 'success') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, ctx.currentTime); // Note A5
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.15);
+                } else if (type === 'double_beep') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(1046.5, ctx.currentTime); // Note C6
+                    gain.gain.setValueAtTime(0.4, ctx.currentTime);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.25);
+                }
+            } catch (e) { console.log('Audio disabled/not supported'); }
+        }
+
+        function triggerVisualFeedback() {
+            playBeepSound('double_beep');
+            const body = document.getElementById('mainBody');
+            body.classList.add('success-flash');
+            setTimeout(() => {
+                body.classList.remove('success-flash');
+            }, 600);
+        }
 
         function startScanner() {
             document.getElementById('btnStartScan').classList.add('hidden');
@@ -181,6 +253,7 @@
 
         function onScanSuccess(decodedText) {
             stopScanner();
+            playBeepSound('success');
             let parsedId = decodedText;
             try {
                 const parsed = JSON.parse(decodedText);
@@ -200,6 +273,7 @@
         function lookupManualTrx() {
             const val = document.getElementById('manualTrxId').value.trim().toUpperCase();
             if (!val) return alert('Masukkan Kode Invoice!');
+            playBeepSound('success');
             fetchTrxDetails(val);
         }
 
@@ -250,28 +324,6 @@
                         btnCari.disabled = false;
                         btnCari.innerHTML = originalBtnHtml;
                     }
-                }
-            } else {
-                if (btnCari) {
-                    btnCari.disabled = false;
-                    btnCari.innerHTML = originalBtnHtml;
-                }
-
-                if (!isRenderedFromCache) {
-                    const dummyNew = {
-                        id: trxId,
-                        storeId: 'TOKO-001',
-                        custName: 'Albert Teo',
-                        custPhone: '081234567890',
-                        grandTotal: 10140000,
-                        modeIncentive: 'CASHBACK_TUKANG',
-                        items: [
-                            { name: '[Dinding] Bata Ringan Hebel 7.5cm (± 1732 pcs)', qty: 15.6, unit: 'm³', price: 650000, total: 10140000 }
-                        ],
-                        status: 'PENDING'
-                    };
-                    saveTrxToCache(dummyNew);
-                    renderTrxDetails(dummyNew, false);
                 }
             }
         }
@@ -331,13 +383,12 @@
                 text.innerHTML = `Akumulasi komisi platform terutang toko telah melampaui batas limit (≥ Rp 500.000).<br><strong class="text-red-700">Minta Pemilik Toko untuk melunasi setoran via QRIS / Transfer Bank di toko.html agar verifikasi kasir dapat dibuka kembali.</strong>`;
                 document.getElementById('resFinalTotal').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
             } else if (isDone) {
+                card.className = "p-4 rounded-2xl border-2 bg-emerald-50 border-emerald-400 text-emerald-900";
                 if (isCashback) {
-                    card.className = "p-4 rounded-2xl border-2 bg-emerald-50 border-emerald-400 text-emerald-900";
                     title.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i> STATUS: SELESAI (KOMISI TUNAI TELAH DISERAHKAN)`;
                     text.innerHTML = `Komisi tunai sebesar <strong>Rp ${inc.toLocaleString('id-ID')}</strong> telah diserahkan ke Tukang/Broker ${trx.cashierName ? '(Kasir: ' + trx.cashierName + ')' : ''}.<br>Ref Struk: <strong>${trx.strukNo || '-'}</strong>`;
                     document.getElementById('resFinalTotal').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
                 } else {
-                    card.className = "p-4 rounded-2xl border-2 bg-emerald-50 border-emerald-400 text-emerald-900";
                     title.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i> STATUS: SELESAI (NOTA DIPOTONG DISKON 1%)`;
                     text.innerHTML = `Nota telah dipotong diskon 1% sebesar <strong>Rp ${inc.toLocaleString('id-ID')}</strong> ${trx.cashierName ? '(Kasir: ' + trx.cashierName + ')' : ''}.<br>Ref Struk: <strong>${trx.strukNo || '-'}</strong>`;
                     document.getElementById('resFinalTotal').innerText = `Rp ${(subtotal - inc).toLocaleString('id-ID')}`;
@@ -471,6 +522,8 @@
                 }
             }
 
+            triggerVisualFeedback();
+
             currentLoadedTrx.status = 'SELESAI';
             currentLoadedTrx.cashierName = cashierName;
             currentLoadedTrx.strukNo = strukNo;
@@ -515,18 +568,8 @@
             if (pinInput) pinInput.value = '';
             if (strukInput) strukInput.value = '';
 
+            autoFocusInput();
             window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function openConfigModal() {
-            document.getElementById('cfgGasUrl').value = GAS_WEB_APP_URL;
-            document.getElementById('modalConfig').classList.remove('hidden');
-        }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-        function saveConfigUrl() {
-            GAS_WEB_APP_URL = document.getElementById('cfgGasUrl').value.trim();
-            localStorage.setItem('mb_gas_url', GAS_WEB_APP_URL);
-            closeModal('modalConfig');
         }
     </script>
 </body>
