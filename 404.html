@@ -75,17 +75,17 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Select Toko Mitra -->
+                <!-- Select Toko Mitra (Locked Single-Store View) -->
                 <div>
                     <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Toko Bangunan Tujuan</label>
                     <div class="relative">
                         <select id="selectStore" onchange="onStoreChange()" class="w-full bg-slate-50 border border-slate-300 text-slate-900 text-xs sm:text-sm font-bold rounded-xl p-3 appearance-none focus:bg-white focus:border-teal-600 focus:outline-none transition">
-                            <option value="">-- Pilih Toko Bangunan Mitra --</option>
+                            <option value="">-- Memuat Toko Mitra... --</option>
                         </select>
-                        <i class="fa-solid fa-chevron-down absolute right-3.5 top-3.5 text-slate-400 pointer-events-none text-xs"></i>
+                        <i class="fa-solid fa-lock absolute right-3.5 top-3.5 text-slate-400 pointer-events-none text-xs"></i>
                     </div>
                     <div class="flex items-center justify-between mt-1">
-                        <p id="storeAddressHint" class="text-[11px] text-slate-500 italic"><i class="fa-solid fa-location-dot text-teal-600"></i> Memuat daftar toko...</p>
+                        <p id="storeAddressHint" class="text-[11px] text-slate-500 italic"><i class="fa-solid fa-location-dot text-teal-600"></i> Memuat detail toko...</p>
                         <span id="storeCatalogStatus" class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 hidden">
                             <i class="fa-solid fa-check-circle"></i> Katalog Toko Aktif
                         </span>
@@ -705,8 +705,8 @@
         const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxsQQMYsvWk6R3AkPhkEURDsxFaEyUnqwFyCv500uPYvK0Y0RhPvaHXgw5OcvYeH_tC/exec";
 
         let storesList = JSON.parse(localStorage.getItem('mb_stores_cache')) || [
-            { id: 'TOKO-001', name: 'TB. Maju Jaya Makmur 1', address: 'Jl. Raya Bangunan No. 88', wa: '082113866890' },
-            { id: 'TOKO-002', name: 'TB. Maju Jaya Makmur 2', address: 'Jl. Industri No. 12', wa: '082113866890' }
+            { id: 'majujayamakmur-001-jkt', name: 'TB. Maju Jaya Makmur 1', address: 'Jl. Raya Bangunan No. 88 Jakarta', wa: '6282113866890' },
+            { id: 'majujayamakmur-002-jkt', name: 'TB. Maju Jaya Makmur 2', address: 'Jl. Raya Budi Luhur No. 128 Pekalongan', wa: '6282113866890' }
         ];
 
         let activeStoreCatalog = [];
@@ -716,24 +716,73 @@
         let currentTrxId = '';
         let modeDinding = 'ruangan';
 
-        window.addEventListener('DOMContentLoaded', () => {
-            renderStoresDropdown();
-            loadStoresFromGASBackground();
+        window.addEventListener('DOMContentLoaded', async () => {
             generateTrxId();
-
-            // CEK URL PARAMETER DARI SCAN QR TOKO (?storeId=TOKO-001)
-            const urlParams = new URLSearchParams(window.location.search);
-            const storeIdFromUrl = urlParams.get('storeId') || urlParams.get('store') || urlParams.get('s');
-            if (storeIdFromUrl) {
-                const select = document.getElementById('selectStore');
-                select.value = storeIdFromUrl.toUpperCase();
-                onStoreChange();
-            }
+            await loadStoresFromGASBackground();
+            applyStoreLockLogic();
         });
 
         function generateTrxId() {
             if (!currentTrxId) {
                 currentTrxId = 'MB-' + Date.now().toString().slice(-6);
+            }
+        }
+
+        async function loadStoresFromGASBackground() {
+            try {
+                const res = await fetch(`${GAS_WEB_APP_URL}?action=getStores`);
+                const data = await res.json();
+                if (data.success && Array.isArray(data.stores) && data.stores.length > 0) {
+                    storesList = data.stores;
+                    localStorage.setItem('mb_stores_cache', JSON.stringify(data.stores));
+                }
+            } catch(e) { console.log('Menggunakan data cache toko.'); }
+        }
+
+        function applyStoreLockLogic() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const pathSlug = window.location.pathname.replace(/^\/|\/$/g, '');
+            const querySlug = urlParams.get('s') || urlParams.get('storeId') || urlParams.get('store');
+            
+            let rawTarget = (querySlug || pathSlug).toLowerCase();
+            if (rawTarget === 'index.html' || rawTarget === '404.html') {
+                rawTarget = '';
+            }
+
+            const select = document.getElementById('selectStore');
+
+            // SKENARIO A: Pelanggan membuka via Link Cabang Spesifik
+            if (rawTarget && rawTarget !== '') {
+                const matchedStore = storesList.find(s => {
+                    const idVal = (s.id || '').toLowerCase();
+                    const slugVal = (s.slug || '').toLowerCase();
+                    return idVal === rawTarget || slugVal === rawTarget || idVal.includes(rawTarget);
+                });
+
+                if (matchedStore) {
+                    // Kunci dropdown HANYA untuk toko ini saja (Sembunyikan toko lain)
+                    select.innerHTML = `<option value="${matchedStore.id}">${matchedStore.name}</option>`;
+                    select.value = matchedStore.id;
+                    select.disabled = true;
+                    select.classList.add('bg-slate-200', 'cursor-not-allowed', 'opacity-90');
+                    
+                    onStoreChange();
+                } else {
+                    select.innerHTML = `<option value="">-- Toko Tidak Ditemukan --</option>`;
+                    select.disabled = true;
+                    select.classList.add('bg-slate-200', 'cursor-not-allowed');
+                    document.getElementById('storeAddressHint').innerHTML = 
+                        `<span class="text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Link toko tidak valid. Harap scan QR Code resmi toko!</span>`;
+                }
+            } 
+            // SKENARIO B: Pelanggan membuka URL Utama tanpa link cabang
+            else {
+                select.innerHTML = `<option value="">-- Akses Terkunci: Scan QR Code Toko --</option>`;
+                select.disabled = true;
+                select.classList.add('bg-slate-200', 'cursor-not-allowed');
+                
+                document.getElementById('storeAddressHint').innerHTML = 
+                    `<span class="text-amber-700 font-bold"><i class="fa-solid fa-lock text-amber-600"></i> Silakan scan QR Code di meja kasir toko mitra untuk membuka kalkulator!</span>`;
             }
         }
 
@@ -775,34 +824,6 @@
             autoUpdateQR();
         }
 
-        async function loadStoresFromGASBackground() {
-            try {
-                const res = await fetch(`${GAS_WEB_APP_URL}?action=getStores`);
-                const data = await res.json();
-                if (data.success && data.stores.length > 0) {
-                    storesList = data.stores;
-                    localStorage.setItem('mb_stores_cache', JSON.stringify(data.stores));
-                    renderStoresDropdown();
-                }
-            } catch(e) { console.log('Menggunakan data cache toko.'); }
-        }
-
-        function renderStoresDropdown() {
-            const select = document.getElementById('selectStore');
-            const currentVal = select.value;
-            select.innerHTML = '<option value="">-- Pilih Toko Bangunan Mitra --</option>';
-            storesList.forEach(s => {
-                select.innerHTML += `<option value="${s.id}">${s.name}</option>`;
-            });
-
-            if (currentVal && storesList.some(s => s.id === currentVal)) {
-                select.value = currentVal;
-            } else if (storesList.length > 0 && !select.value) {
-                select.value = storesList[0].id;
-            }
-            onStoreChange();
-        }
-
         async function onStoreChange() {
             const val = document.getElementById('selectStore').value;
             const store = storesList.find(s => s.id === val);
@@ -811,8 +832,6 @@
 
             if (store) {
                 hint.innerHTML = `<i class="fa-solid fa-location-dot text-teal-600"></i> ${store.address} (WA: ${store.wa || '-'})`;
-            } else {
-                hint.innerHTML = 'Silakan pilih toko bangunan.';
             }
 
             if (val) {
@@ -854,7 +873,7 @@
         function openCustomMaterialModal() {
             const storeSelect = document.getElementById('selectStore').value;
             if (!storeSelect) {
-                alert("Silakan pilih Toko Bangunan Tujuan pada Langkah 1 terlebih dahulu!");
+                alert("Sistem terkunci! Harap scan QR Code resmi di kasir toko mitra untuk memilih toko.");
                 return;
             }
 
