@@ -59,6 +59,15 @@
 
     <main class="max-w-4xl mx-auto px-4 mt-4 space-y-4">
 
+        <!-- BANNER ALERTA BLOKIR KASIR JIKA LIMIT TERLAMPAUI -->
+        <div id="kasirBlockBanner" class="hidden bg-rose-950/90 border-2 border-rose-500 text-rose-200 p-4 rounded-2xl flex items-center gap-3 shadow-2xl">
+            <i class="fa-solid fa-triangle-exclamation text-3xl text-rose-400 shrink-0"></i>
+            <div>
+                <strong class="text-sm font-bold text-white block">LAYANAN VERIFIKASI KASIR DITANGGUHKAN (DIBLOKIR)</strong>
+                <p class="text-xs text-rose-300 mt-0.5">Setoran komisi terutang platform telah melampaui limit Rp 500.000. Minta Pemilik Toko untuk melunasi setoran via Midtrans di <code class="bg-rose-900/60 px-1.5 py-0.5 rounded text-rose-200 font-mono">toko.html</code> agar limit terbuka kembali.</p>
+            </div>
+        </div>
+
         <!-- CAMERA SCANNER & INPUT MANUAL -->
         <section class="bg-slate-800/90 rounded-2xl p-4 sm:p-5 border border-slate-700 text-center space-y-4 shadow-2xl">
             <h2 class="font-bold text-slate-200 text-xs sm:text-sm flex items-center justify-center gap-2">
@@ -81,7 +90,7 @@
             <!-- Manual Input Hardware Barcode Scanner -->
             <div class="pt-3 border-t border-slate-700/60 max-w-sm mx-auto">
                 <div class="flex gap-2">
-                    <input type="text" id="manualTrxId" onkeypress="handleEnterKey(event)" placeholder="Ketik / USB Scan ID (Contoh: MB-846563)" class="w-full bg-slate-900 border border-slate-600 rounded-xl p-2.5 text-xs font-mono font-bold text-emerald-400 focus:border-emerald-500 focus:outline-none">
+                    <input type="text" id="manualTrxId" onkeypress="handleEnterKey(event)" placeholder="Ketik / USB Scan ID (Contoh: MB-656709)" class="w-full bg-slate-900 border border-slate-600 rounded-xl p-2.5 text-xs font-mono font-bold text-emerald-400 focus:border-emerald-500 focus:outline-none">
                     <button id="btnCariManual" onclick="lookupManualTrx()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center justify-center gap-1">
                         <i class="fa-solid fa-magnifying-glass"></i> Cari
                     </button>
@@ -175,6 +184,7 @@
         let currentLoadedTrx = null;
         let compressedBase64Image = "";
         let terminalToken = "";
+        let isStoreBlocked = false; // Flag status blokir toko
 
         // STATE KASIR SHIFT AKTIF & AKUMULASI LAPORAN
         let currentCashier = localStorage.getItem('MB_ACTIVE_CASHIER') || 'Kardi';
@@ -196,7 +206,6 @@
             terminalToken = token;
         }
 
-        // TAMPILKAN KASIR AKTIF DI HEADER & AUTO-FILL INPUT FORM
         function updateCashierUI() {
             const cashierLabel = document.getElementById('activeCashierName');
             if (cashierLabel) cashierLabel.innerText = currentCashier;
@@ -205,14 +214,12 @@
             if (nameEl) nameEl.value = currentCashier;
         }
 
-        // FUNGSI GANTI KASIR SHIFT
         function changeActiveCashier() {
             const inputName = prompt("Masukkan Nama Staf Kasir yang Bertugas Shift Ini:", currentCashier);
             if (inputName && inputName.trim() !== "") {
                 currentCashier = inputName.trim();
                 localStorage.setItem('MB_ACTIVE_CASHIER', currentCashier);
                 
-                // Reset Statistik Shift untuk Kasir Baru
                 shiftTrxCount = 0;
                 shiftTotalOmzet = 0;
                 accumulatedKasirBonus = 0;
@@ -224,7 +231,6 @@
             }
         }
 
-        // FUNGSI KIRIM REKAP SHIFT WA KE PEMILIK TOKO
         function sendShiftWaReport() {
             const ownerPhone = "6282113866890";
             const storeName = document.getElementById('activeStoreHeader')?.innerText || "TB. Maju Jaya Makmur";
@@ -242,7 +248,6 @@
             window.open(`https://api.whatsapp.com/send?phone=${ownerPhone}&text=${encodeURIComponent(textWa)}`, '_blank');
         }
 
-        // Kompresi Foto Struk ke Base64 JPEG Ringan (<100KB)
         function handleImageCapture(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -340,8 +345,19 @@
 
         function renderTrxDetails(trx, isLimitExceeded = false) {
             currentLoadedTrx = trx;
+            isStoreBlocked = isLimitExceeded;
+
             const resSec = document.getElementById('resultSection');
+            const blockBanner = document.getElementById('kasirBlockBanner');
+
             resSec.classList.remove('hidden');
+
+            // Cek Banner Blokir Limit Terutang
+            if (isLimitExceeded) {
+                blockBanner.classList.remove('hidden');
+            } else {
+                blockBanner.classList.add('hidden');
+            }
 
             document.getElementById('resTrxId').innerText = trx.id;
             document.getElementById('resCustName').innerText = `Pelanggan: ${trx.custName || 'Umum'}`;
@@ -361,6 +377,27 @@
             let inc = Number(trx.incentiveVal) || Math.round(subtotal * 0.01);
             const isCashback = (trx.modeIncentive === 'CASHBACK_TUKANG' || trx.modeIncentive === 'KOMISI_TUKANG');
 
+            const authBox = document.getElementById('cashierAuthBox');
+            const actionBarButtons = document.getElementById('actionBarButtons');
+
+            // --- JIKA TRANSAKSI MASIH PENDING & TOKO TERKUNCI/DIBLOKIR ---
+            if (!isDone && isLimitExceeded) {
+                card.className = "p-4 rounded-xl border bg-rose-950/90 border-rose-500 text-rose-200 space-y-1";
+                title.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-rose-400 text-base"></i> KASIR DIBLOKIR: SETORAN PLATFORM TERLAMPAUI`;
+                text.innerHTML = `Setoran komisi platform terutang (Rp 536.060) telah melampaui limit Rp 500.000.<br><strong class="text-white">Layanan verifikasi ditangguhkan. Minta Pemilik Toko melunasi setoran via Midtrans di toko.html.</strong>`;
+                
+                document.getElementById('resFinalTotal').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
+
+                authBox.classList.add('hidden'); // Sembunyikan form foto struk & nama kasir
+                actionBarButtons.innerHTML = `
+                    <button disabled class="bg-rose-950 text-rose-400 border border-rose-700/60 font-black text-xs px-5 py-3 rounded-xl cursor-not-allowed opacity-95 flex items-center gap-2">
+                        <i class="fa-solid fa-ban text-base"></i> TRANSAKSI DIBLOKIR (WAJIB SETOR)
+                    </button>
+                `;
+                return;
+            }
+
+            // --- JIKA TRANSAKSI SELESAI ---
             if (isDone) {
                 card.className = "p-4 rounded-xl border bg-emerald-950/40 border-emerald-500/40 text-emerald-200 space-y-1.5";
                 title.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> TRANSAKSI SELESAI (VERIFIED)`;
@@ -371,7 +408,18 @@
 
                 text.innerHTML = `No. Struk Toko: <strong>${trx.strukNo || '-'}</strong> | Kasir: <strong>${trx.cashierName || '-'}</strong><br>${komisiDetail}`;
                 document.getElementById('resFinalTotal').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
+
+                authBox.classList.add('hidden');
+                actionBarButtons.innerHTML = `
+                    <button onclick="sendWaResi()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center gap-1.5">
+                        <i class="fa-brands fa-whatsapp text-sm"></i> Kirim Resi WA
+                    </button>
+                    <button onclick="resetKasirUI()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition">
+                        Scan Lagi
+                    </button>
+                `;
             } else {
+                // --- JIKA TRANSAKSI PENDING & TOKO LANCAR ---
                 if (isCashback) {
                     card.className = "p-4 rounded-xl border bg-amber-950/40 border-amber-500/40 text-amber-200";
                     title.innerHTML = `<i class="fa-solid fa-hand-holding-dollar text-amber-400"></i> MODE: KOMISI TUNAI TUKANG (1%)`;
@@ -383,6 +431,14 @@
                     text.innerHTML = `Potong nota 1% (Rp ${inc.toLocaleString('id-ID')}).<br>Tagihkan ke pembeli: <strong>Rp ${(subtotal - inc).toLocaleString('id-ID')}</strong>`;
                     document.getElementById('resFinalTotal').innerText = `Rp ${(subtotal - inc).toLocaleString('id-ID')}`;
                 }
+
+                authBox.classList.remove('hidden');
+                updateCashierUI();
+                actionBarButtons.innerHTML = `
+                    <button id="btnVerify" onclick="verifyTrx()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-5 py-3 rounded-xl shadow-lg transition flex items-center gap-2">
+                        <i class="fa-solid fa-circle-check text-base"></i> SELESAIKAN TRANSAKSI
+                    </button>
+                `;
             }
 
             const tbody = document.getElementById('resTableBody');
@@ -394,33 +450,11 @@
                     <td class="p-2.5 text-right font-bold text-emerald-400">Rp ${Number(it.total || 0).toLocaleString('id-ID')}</td>
                 </tr>
             `).join('');
-
-            const authBox = document.getElementById('cashierAuthBox');
-            const actionBarButtons = document.getElementById('actionBarButtons');
-
-            if (isDone) {
-                authBox.classList.add('hidden');
-                actionBarButtons.innerHTML = `
-                    <button onclick="sendWaResi()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center gap-1.5">
-                        <i class="fa-brands fa-whatsapp text-sm"></i> Kirim Resi WA
-                    </button>
-                    <button onclick="resetKasirUI()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition">
-                        Scan Lagi
-                    </button>
-                `;
-            } else {
-                authBox.classList.remove('hidden');
-                updateCashierUI();
-                actionBarButtons.innerHTML = `
-                    <button id="btnVerify" onclick="verifyTrx()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-5 py-3 rounded-xl shadow-lg transition flex items-center gap-2">
-                        <i class="fa-solid fa-circle-check text-base"></i> SELESAIKAN TRANSAKSI
-                    </button>
-                `;
-            }
         }
 
         async function verifyTrx() {
             if (!currentLoadedTrx) return;
+            if (isStoreBlocked) return alert("❌ TRANSAKSI DIBLOKIR!\nSetoran komisi platform toko melampaui Rp 500.000. Minta pemilik toko untuk melunasi setoran.");
 
             const nameEl = document.getElementById('inputCashierName');
             const strukEl = document.getElementById('inputStrukNo');
@@ -458,7 +492,6 @@
                     return;
                 }
 
-                // Kalkulasi Bonus Kasir 0.2% & Statistik Shift
                 const grandTotal = Number(currentLoadedTrx.grandTotal || 0);
                 const bonusAmt = grandTotal * 0.002;
                 
@@ -489,7 +522,6 @@
             }
         }
 
-        // FUNGSI SEND WA RESI DENGAN BUKTI KOMISI TUKANG 1%
         function sendWaResi() {
             if (!currentLoadedTrx) return;
             let targetPhone = String(currentLoadedTrx.custPhone || '').replace(/[^0-9]/g, '');
@@ -515,7 +547,7 @@
                         `----------------------------------------\n\n` +
                         `Terima kasih atas kerja samanya!`;
 
-            window.open(`https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodeURIComponent(msg)}`, '_blank');
+            window.open(`https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodeURIComponent(textWa)}`, '_blank');
         }
 
         function resetKasirUI() {
