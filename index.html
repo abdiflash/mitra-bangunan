@@ -1,0 +1,1757 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modular School Event Landing Page Builder</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Google Fonts: Montserrat & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poetsen+One&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            poetsen: ['Poetsen One', 'cursive', 'sans-serif'],
+            fredoka: ['Fredoka', 'sans-serif'],
+            jakarta: ['Plus Jakarta Sans', 'sans-serif'],
+            montserrat: ['Montserrat', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    
+    .view-desktop { width: 100%; height: 100%; transition: all 0.3s ease; }
+    .view-tablet { width: 768px; height: 90%; margin: 20px auto; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); overflow-y: auto; border: 8px solid #334155; }
+    .view-mobile { width: 375px; height: 85%; margin: 20px auto; border-radius: 36px; border: 10px solid #1e293b; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3); overflow-y: auto; }
+
+    .view-mobile .mobile-grid-1col { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; }
+    .view-mobile .mobile-grid-2col { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+    .view-mobile .mobile-hide-cta { display: none !important; }
+    .view-mobile .mobile-hide-tagline { display: none !important; }
+    .view-mobile .mobile-title-truncate { max-width: 140px !important; font-size: 12px !important; }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 h-screen overflow-hidden flex flex-col">
+
+  <!-- TOP HEADER BUILDER -->
+  <header class="bg-slate-900 text-white px-6 py-3 flex items-center justify-between shadow-md z-30">
+    <div class="flex items-center gap-3">
+      <div class="bg-emerald-500 text-slate-950 font-bold p-2.5 rounded-xl flex items-center justify-center">
+        <i class="fas fa-folder-tree text-xl"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-base sm:text-lg leading-tight flex items-center gap-2">
+          Universal School Event Builder
+          <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] px-2 py-0.5 rounded-full font-mono uppercase">Full Version</span>
+        </h1>
+        <p class="text-xs text-slate-400">Preview real-time, integrasi GAS/Sheets, dan kustomisasi warna footer</p>
+      </div>
+    </div>
+
+    <!-- Switcher Tampilan Layar -->
+    <div class="hidden md:flex items-center bg-slate-800 p-1 rounded-xl border border-slate-700">
+      <button onclick="setDeviceView('desktop')" id="btn-desktop" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-slate-700 flex items-center gap-2 transition">
+        <i class="fas fa-desktop"></i> Laptop/PC
+      </button>
+      <button onclick="setDeviceView('tablet')" id="btn-tablet" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white flex items-center gap-2 transition">
+        <i class="fas fa-tablet-alt"></i> Tablet
+      </button>
+      <button onclick="setDeviceView('mobile')" id="btn-mobile" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white flex items-center gap-2 transition">
+        <i class="fas fa-mobile-alt"></i> Hape (375px)
+      </button>
+    </div>
+
+    <!-- Tombol Ekspor Kode & Backup -->
+    <div class="flex items-center gap-2">
+      <button onclick="downloadConfigJSON()" title="Simpan file settingan ke PC" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-3 py-2.5 rounded-xl border border-slate-700 flex items-center gap-1.5 transition">
+        <i class="fas fa-download"></i> Save Config
+      </button>
+      <label title="Muat file settingan dari PC" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-3 py-2.5 rounded-xl border border-slate-700 flex items-center gap-1.5 transition cursor-pointer">
+        <i class="fas fa-upload"></i> Load Config
+        <input type="file" id="jsonInputFile" accept=".json" onchange="uploadConfigJSON(event)" class="hidden">
+      </label>
+      <button onclick="openExportModal()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-lg transition">
+        <i class="fas fa-code"></i> Ekspor Kode HTML
+      </button>
+    </div>
+  </header>
+
+  <!-- SPLIT SCREEN WORKSPACE -->
+  <div class="flex-1 flex overflow-hidden">
+    
+    <!-- PANEL KIRI: EDITOR MODULAR -->
+    <aside class="w-full lg:w-[520px] xl:w-[560px] bg-white border-r border-slate-200 flex flex-col h-full z-20 shadow-lg">
+      
+      <!-- Sakelar Mode Pengeditan Bahasa Teks & Reset -->
+      <div class="p-3 bg-slate-900 text-white border-b border-slate-800 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-slate-300">Mode Edit:</span>
+          <div class="flex bg-slate-800 p-1 rounded-lg">
+            <button onclick="setEditLanguage('id')" id="btn-edit-id" class="px-2.5 py-0.5 rounded text-xs font-bold bg-emerald-500 text-slate-950 transition">🇮🇩 ID</button>
+            <button onclick="setEditLanguage('en')" id="btn-edit-en" class="px-2.5 py-0.5 rounded text-xs font-bold text-slate-400 hover:text-white transition">🇬🇧 EN</button>
+          </div>
+        </div>
+        <button onclick="resetToDefault()" class="text-[11px] text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1">
+          <i class="fas fa-rotate-left"></i> Reset Form
+        </button>
+      </div>
+
+      <!-- Navigasi Tab Editor -->
+      <div class="flex border-b border-slate-200 bg-slate-50 text-xs font-semibold overflow-x-auto">
+        <button onclick="switchTab('tab-branding')" id="nav-tab-branding" class="tab-btn px-4 py-3 border-b-2 border-emerald-600 text-emerald-600 flex items-center gap-2 whitespace-nowrap">
+          <i class="fas fa-id-card"></i> Identitas & Folder
+        </button>
+        <button onclick="switchTab('tab-hero')" id="nav-tab-hero" class="tab-btn px-4 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2 whitespace-nowrap">
+          <i class="fas fa-video"></i> Hero & Media
+        </button>
+        <button onclick="switchTab('tab-urgency')" id="nav-tab-urgency" class="tab-btn px-4 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2 whitespace-nowrap">
+          <i class="fas fa-stopwatch"></i> ⏱️ Timer & Kuota
+        </button>
+        <button onclick="switchTab('tab-badges')" id="nav-tab-badges" class="tab-btn px-4 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2 whitespace-nowrap">
+          <i class="fas fa-certificate"></i> Badge Ribbon
+        </button>
+        <button onclick="switchTab('tab-usps')" id="nav-tab-usps" class="tab-btn px-4 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2 whitespace-nowrap">
+          <i class="fas fa-star"></i> Kartu USP
+        </button>
+        <button onclick="switchTab('tab-activities')" id="nav-tab-activities" class="tab-btn px-4 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2 whitespace-nowrap">
+          <i class="fas fa-child"></i> Aktivitas (+Foto)
+        </button>
+        <button onclick="switchTab('tab-testimonials')" id="nav-tab-testimonials" class="tab-btn px-4 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2 whitespace-nowrap">
+          <i class="fas fa-quote-left"></i> Testimoni & FAQ
+        </button>
+        <button onclick="switchTab('tab-integration')" id="nav-tab-integration" class="tab-btn px-4 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2 whitespace-nowrap">
+          <i class="fas fa-paper-plane"></i> Form & RSVP
+        </button>
+      </div>
+
+      <!-- Content Scroll Form Editor -->
+      <div class="flex-1 overflow-y-auto p-5 space-y-5">
+        
+        <!-- TAB 1: LOGO, IDENTITAS & DYNAMIC EVENT FOLDER -->
+        <div id="tab-branding" class="tab-content space-y-4">
+          <div class="border-b pb-2">
+            <h3 class="font-bold text-slate-800 text-sm">Logo Sekolah & Configuration Folder Event</h3>
+            <p class="text-xs text-slate-500">Atur folder penyimpanan asset GitHub agar builder dapat dipakai berulang kali.</p>
+          </div>
+
+          <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
+            <label class="block text-xs font-bold text-amber-900 flex items-center gap-1.5">
+              <i class="fas fa-folder-open text-amber-600"></i> Nama Folder Event di GitHub Assets
+            </label>
+            <input type="text" id="cfg-eventFolder" oninput="onEventFolderChange()" class="w-full text-xs p-2.5 rounded-lg border border-amber-300 font-mono font-bold bg-white text-slate-900" placeholder="2026-11-sitin-kbtk">
+            <div class="text-[10px] text-amber-800 leading-relaxed font-mono bg-amber-100/70 p-2 rounded">
+              <div>📁 <b>assets/[nama-event]/logo/logoathalia_white.png</b></div>
+              <div>📁 <b>assets/[nama-event]/video/hero.mp4</b></div>
+              <div>📁 <b>assets/[nama-event]/poster/foto1.jpg, foto2.jpg...</b></div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Tipe Logo Header</label>
+            <select id="cfg-logoType" onchange="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300">
+              <option value="image">Gambar Logo (Path GitHub Assets / URL)</option>
+              <option value="initial">Inisial Huruf (Ikon Bulat)</option>
+            </select>
+          </div>
+
+          <div id="logoUrlContainer">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Path / URL Gambar Logo Sekolah</label>
+            <input type="text" id="cfg-logoUrl" oninput="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300 font-mono text-[11px]">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Nama Sekolah / Instansi</label>
+            <input type="text" id="cfg-schoolName" oninput="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Tagline Header (<span class="edit-lang-label text-emerald-600 font-extrabold">ID</span>)</label>
+            <input type="text" id="cfg-schoolTagline" oninput="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300">
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 pt-2">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Warna Utama</label>
+              <input type="color" id="cfg-colorPrimary" onchange="updateStateFromInputs()" class="w-full h-9 rounded-lg border cursor-pointer" value="#094B5C">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Warna Aksen</label>
+              <input type="color" id="cfg-colorAccent" onchange="updateStateFromInputs()" class="w-full h-9 rounded-lg border cursor-pointer" value="#FACC15">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Warna Footer</label>
+              <input type="color" id="cfg-colorFooter" onchange="updateStateFromInputs()" class="w-full h-9 rounded-lg border cursor-pointer" value="#0f172a">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Gaya Font Judul Utama</label>
+            <select id="cfg-headingFont" onchange="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300">
+              <option value="font-montserrat">Montserrat (Bold & Modern)</option>
+              <option value="font-poetsen">Poetsen One (Playful & Tebal)</option>
+              <option value="font-fredoka">Fredoka (Ramah Bulat)</option>
+              <option value="font-jakarta">Plus Jakarta Sans (Bersih)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- TAB 2: HERO & MEDIA -->
+        <div id="tab-hero" class="tab-content hidden space-y-4">
+          <div class="border-b pb-2">
+            <h3 class="font-bold text-slate-800 text-sm">Bagian Hero & Media Utama</h3>
+            <p class="text-xs text-slate-500">Pilih media YouTube, File Video MP4 Looping Lokal, atau Gambar Poster.</p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Tipe Media Utama Hero</label>
+            <select id="cfg-heroMediaType" onchange="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300 font-semibold bg-emerald-50 border-emerald-300">
+              <option value="mp4">🎬 File Video MP4 Looping (assets/[folder]/video/hero.mp4)</option>
+              <option value="youtube">📹 Video YouTube Embed Link</option>
+              <option value="image">🖼️ Gambar Poster Utama</option>
+            </select>
+          </div>
+
+          <div id="heroMp4Container">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Path File Video MP4 (GitHub Assets)</label>
+            <input type="text" id="cfg-heroMp4Url" oninput="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300 font-mono text-[11px]">
+          </div>
+
+          <div id="heroYoutubeContainer" class="hidden">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Link Video YouTube</label>
+            <input type="text" id="cfg-heroYoutubeUrl" oninput="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300" placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ">
+          </div>
+
+          <div id="heroImageContainer" class="hidden">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Path / URL Gambar Hero (Poster)</label>
+            <input type="text" id="cfg-heroImg" oninput="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300 font-mono text-[11px]">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Running Banner Ticker (<span class="edit-lang-label text-emerald-600 font-extrabold">ID</span>)</label>
+            <input type="text" id="cfg-urgencyText" oninput="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Badge Tagline Hero (<span class="edit-lang-label text-emerald-600 font-extrabold">ID</span>)</label>
+            <input type="text" id="cfg-heroBadge" oninput="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Judul Utama Hero / Headline (<span class="edit-lang-label text-emerald-600 font-extrabold">ID</span>)</label>
+            <input type="text" id="cfg-heroTitle" oninput="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Sub-Judul Hero (<span class="edit-lang-label text-emerald-600 font-extrabold">ID</span>)</label>
+            <textarea id="cfg-heroSub" oninput="updateStateFromInputs()" rows="3" class="w-full text-xs p-2.5 rounded-lg border border-slate-300"></textarea>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 pt-2">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Teks Tombol CTA Utama (<span class="edit-lang-label text-emerald-600 font-extrabold">ID</span>)</label>
+              <input type="text" id="cfg-btnPrimaryText" oninput="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Teks Tombol WA Sekunder (<span class="edit-lang-label text-emerald-600 font-extrabold">ID</span>)</label>
+              <input type="text" id="cfg-btnWAText" oninput="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300">
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: TIMER & KUOTA -->
+        <div id="tab-urgency" class="tab-content hidden space-y-4">
+          <div class="border-b pb-2">
+            <h3 class="font-bold text-slate-800 text-sm">⏱️ Countdown Tanggal & Bar Kuota</h3>
+            <p class="text-xs text-slate-500">Mendorong calon ortu mendaftar lebih cepat tanpa menunda.</p>
+          </div>
+
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-bold text-slate-800">Tampilkan Countdown Tanggal</label>
+              <input type="checkbox" id="cfg-showCountdown" onchange="updateStateFromInputs()" class="w-4 h-4 accent-emerald-500">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Judul Countdown (<span class="edit-lang-label text-emerald-600 font-extrabold">ID</span>)</label>
+              <input type="text" id="cfg-countdownTitle" oninput="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Target Tanggal & Jam (Hitung Mundur)</label>
+              <input type="datetime-local" id="cfg-countdownTarget" onchange="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300">
+            </div>
+          </div>
+
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-bold text-slate-800">Tampilkan Bar Kuota Kursi</label>
+              <input type="checkbox" id="cfg-showQuotaBar" onchange="updateStateFromInputs()" class="w-4 h-4 accent-emerald-500">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Judul Bar Kuota (<span class="edit-lang-label text-emerald-600 font-extrabold">ID</span>)</label>
+              <input type="text" id="cfg-quotaTitle" oninput="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Total Kuota Sesi</label>
+                <input type="number" id="cfg-totalQuota" oninput="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Sisa Kuota Tersedia</label>
+                <input type="number" id="cfg-remainingQuota" oninput="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: RIBBON BADGES -->
+        <div id="tab-badges" class="tab-content hidden space-y-4">
+          <div class="flex justify-between items-center border-b pb-2">
+            <div>
+              <h3 class="font-bold text-slate-800 text-sm">Badge Ribbon Sorotan</h3>
+              <p class="text-xs text-slate-500">Poin ringkas penunjang konversi di bawah hero.</p>
+            </div>
+            <button onclick="addItem('badges')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 shadow">
+              <i class="fas fa-plus"></i> Tambah Badge
+            </button>
+          </div>
+          <div id="badges-editor-list" class="space-y-3"></div>
+        </div>
+
+        <!-- TAB 5: KARTU USP -->
+        <div id="tab-usps" class="tab-content hidden space-y-4">
+          <div class="flex justify-between items-center border-b pb-2">
+            <div>
+              <h3 class="font-bold text-slate-800 text-sm">Kartu Keunggulan (USP)</h3>
+              <p class="text-xs text-slate-500">Menjawab keraguan calon orang tua murid.</p>
+            </div>
+            <button onclick="addItem('usps')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 shadow">
+              <i class="fas fa-plus"></i> Tambah Kartu USP
+            </button>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Judul Bagian USP (<span class="edit-lang-label text-emerald-600 font-extrabold">ID</span>)</label>
+            <input type="text" id="cfg-uspSectionTitle" oninput="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300">
+          </div>
+          <div id="usps-editor-list" class="space-y-3"></div>
+        </div>
+
+        <!-- TAB 6: AKTIVITAS (WITH FOTO POSTER SUPPORT) -->
+        <div id="tab-activities" class="tab-content hidden space-y-4">
+          <div class="flex justify-between items-center border-b pb-2">
+            <div>
+              <h3 class="font-bold text-slate-800 text-sm">Aktivitas Pembelajaran (+Foto)</h3>
+              <p class="text-xs text-slate-500">Modul eksplorasi siswa dengan lampiran foto poster.</p>
+            </div>
+            <button onclick="addItem('activities')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 shadow">
+              <i class="fas fa-plus"></i> Tambah Aktivitas
+            </button>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Judul Bagian Aktivitas (<span class="edit-lang-label text-emerald-600 font-extrabold">ID</span>)</label>
+            <input type="text" id="cfg-actSectionTitle" oninput="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300">
+          </div>
+          <div id="activities-editor-list" class="space-y-3"></div>
+        </div>
+
+        <!-- TAB 7: TESTIMONI & FAQ -->
+        <div id="tab-testimonials" class="tab-content hidden space-y-6">
+          <div class="space-y-3">
+            <div class="border-b pb-2">
+              <label class="block text-xs font-bold text-slate-700 mb-1">Judul Bagian Testimoni (<span class="edit-lang-label text-emerald-600 font-extrabold">ID</span>)</label>
+              <input type="text" id="cfg-testimonialSectionTitle" oninput="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300">
+            </div>
+            <div class="flex justify-between items-center pt-2">
+              <h4 class="font-bold text-slate-800 text-xs">Daftar Testimoni (Tanpa Foto)</h4>
+              <button onclick="addItem('testimonials')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 shadow">
+                <i class="fas fa-plus"></i> Tambah Testimoni
+              </button>
+            </div>
+            <div id="testimonials-editor-list" class="space-y-3"></div>
+          </div>
+
+          <div class="space-y-3 pt-4 border-t">
+            <div class="border-b pb-2">
+              <label class="block text-xs font-bold text-slate-700 mb-1">Judul Bagian FAQ (<span class="edit-lang-label text-emerald-600 font-extrabold">ID</span>)</label>
+              <input type="text" id="cfg-faqSectionTitle" oninput="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300">
+            </div>
+            <div class="flex justify-between items-center pt-2">
+              <h4 class="font-bold text-slate-800 text-xs">Daftar Accordion FAQ</h4>
+              <button onclick="addItem('faqs')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 shadow">
+                <i class="fas fa-plus"></i> Tambah FAQ
+              </button>
+            </div>
+            <div id="faqs-editor-list" class="space-y-3"></div>
+          </div>
+        </div>
+
+        <!-- TAB 8: INTEGRASI FORM & RSVP -->
+        <div id="tab-integration" class="tab-content hidden space-y-4">
+          <div class="border-b pb-2">
+            <h3 class="font-bold text-slate-800 text-sm">Formulir Pendaftaran, RSVP & WA</h3>
+            <p class="text-xs text-slate-500">Hubungkan pendaftaran ke Google Sheets & WhatsApp Admin.</p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Judul Utama Formulir (<span class="edit-lang-label text-emerald-600 font-extrabold">ID</span>)</label>
+            <input type="text" id="cfg-formTitle" oninput="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Sub-Judul Formulir (<span class="edit-lang-label text-emerald-600 font-extrabold">ID</span>)</label>
+            <input type="text" id="cfg-formSubtitle" oninput="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Google Apps Script Web App URL</label>
+            <input type="text" id="cfg-scriptUrl" oninput="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300" placeholder="https://script.google.com/macros/s/.../exec">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Nomor WhatsApp Admin (Format 62...)</label>
+            <input type="text" id="cfg-whatsapp" oninput="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Pilihan Sesi Jadwal (<span class="edit-lang-label text-emerald-600 font-extrabold">ID</span> - Pisahkan Koma)</label>
+            <input type="text" id="cfg-sessions" oninput="updateStateFromInputs()" class="w-full text-xs p-2.5 rounded-lg border border-slate-300">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Alamat Sekolah / Footer Text (<span class="edit-lang-label text-emerald-600 font-extrabold">ID</span>)</label>
+            <textarea id="cfg-footerAddress" oninput="updateStateFromInputs()" rows="2" class="w-full text-xs p-2.5 rounded-lg border border-slate-300"></textarea>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- RIGHT PANEL: LIVE CANVAS PREVIEW -->
+    <main class="flex-1 bg-slate-200 overflow-hidden flex flex-col justify-center items-center relative">
+      <div id="preview-wrapper" class="view-desktop bg-white overflow-y-auto">
+        <div id="live-preview"></div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- MODAL EXPORT HTML -->
+  <div id="exportModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
+        <h3 class="font-bold text-base flex items-center gap-2">
+          <i class="fas fa-code text-emerald-400"></i> Kode HTML Standalone SIAP PAKAI
+        </h3>
+        <button onclick="closeExportModal()" class="text-slate-400 hover:text-white text-xl"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="p-6 flex-1 overflow-y-auto space-y-3">
+        <p class="text-xs text-slate-600">Salin kode HTML di bawah ini dan simpan sebagai file <code class="bg-slate-100 px-1.5 py-0.5 rounded text-rose-600 font-mono text-xs">index.html</code> di repository GitHub Anda.</p>
+        <textarea id="exportCodeTextarea" readonly class="w-full h-80 p-4 font-mono text-xs bg-slate-950 text-emerald-400 rounded-xl focus:outline-none border border-slate-800"></textarea>
+      </div>
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
+        <button onclick="closeExportModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800">Tutup</button>
+        <button onclick="copyGeneratedHTML()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs px-5 py-2.5 rounded-xl flex items-center gap-2 shadow transition">
+          <i class="fas fa-copy"></i> Salin Seluruh Kode
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION LOGIC JS -->
+  <script>
+    let currentEditLang = 'id';
+    let currentPreviewLang = 'id';
+    let previewTimerInterval = null;
+
+    function getYouTubeEmbedUrl(url) {
+      if (!url) return '';
+      let videoId = '';
+      if (url.indexOf('youtu.be/') !== -1) {
+        videoId = url.split('youtu.be/')[1].split('?')[0].split('&')[0];
+      } else if (url.indexOf('v=') !== -1) {
+        videoId = url.split('v=')[1].split('&')[0];
+      } else if (url.indexOf('embed/') !== -1) {
+        videoId = url.split('embed/')[1].split('?')[0];
+      }
+      return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}` : url;
+    }
+
+    // INITIAL STATE TEMPLATE
+    const defaultState = {
+      eventFolder: '2026-11-sitin-kbtk',
+      logoType: 'image',
+      logoUrl: './assets/2026-11-sitin-kbtk/logo/logoathalia_white.png', 
+      schoolName: "KB-TK Sekolah Athalia",
+      schoolTagline: { id: "PROGRAM SIT-IN CLASS", en: "SIT-IN CLASS PROGRAM" },
+      colorPrimary: '#094B5C',
+      colorAccent: '#FACC15',
+      colorFooter: '#0f172a',
+      headingFont: 'font-montserrat',
+      heroMediaType: 'mp4',
+      heroYoutubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      heroMp4Url: './assets/2026-11-sitin-kbtk/video/hero.mp4', 
+      heroImg: './assets/2026-11-sitin-kbtk/poster/hero.jpg', 
+      urgencyText: { id: "🔥 KUOTA TERBATAS: Sit-In Class KB-TK Athalia November 2026!", en: "🔥 LIMITED SEATS: KB-TK Athalia Sit-In Class November 2026!" },
+      heroBadge: { id: "✨ UNTUK SI KECIL USIA 1–4 TAHUN", en: "✨ FOR CHILDREN AGED 1–4 YEARS" },
+      heroTitle: { id: "Little Hands, Big Wonder.", en: "Little Hands, Big Wonder." },
+      heroSub: { id: "Satu hari eksplorasi seru di KB-TK Athalia. Si kecil belajar secara langsung bersama teman dan guru dalam lingkungan berbasis karakter Kristiani.", en: "One playful day of discovery at KB-TK Athalia. Hands-on learning in a Christian character-based environment." },
+      btnPrimaryText: { id: "Ikut Sit-In Class (Gratis)", en: "Join Free Sit-In Class" },
+      btnWAText: { id: "Tanya Admin WA", en: "Chat Admin on WA" },
+      showCountdown: true,
+      countdownTarget: "2026-11-30T23:59",
+      countdownTitle: { id: "⏳ Pendaftaran Sit-In Class Ditutup Dalam:", en: "⏳ Sit-In Class Registration Closes In:" },
+      showQuotaBar: true,
+      totalQuota: 20,
+      remainingQuota: 7,
+      quotaTitle: { id: "🔥 Status Kuota Sesi November 2026", en: "🔥 November 2026 Seat Capacity Status" },
+      badges: [
+        { id: 1, title: { id: "Usia 1–4 Tahun", en: "Ages 1–4" }, sub: { id: "Kelas eksplorasi awal", en: "Early exploration class" } },
+        { id: 2, title: { id: "Karakter Kristiani", en: "Christian Character" }, sub: { id: "Pendidikan berbasis nilai", en: "Value-based education" } },
+        { id: 3, title: { id: "Pendampingan", en: "Guided" }, sub: { id: "Orang tua ikut menemani", en: "Parents can accompany" } },
+        { id: 4, title: { id: "Kuota Terbatas", en: "Limited Seats" }, sub: { id: "Maksimal 8 anak/sesi", en: "Max 8 kids/session" } }
+      ],
+      uspSectionTitle: { id: "Mengapa Harus Mencoba Sit-In Class Athalia?", en: "Why Should You Try Athalia Sit-In Class?" },
+      usps: [
+        { id: 1, icon: "fa-heart", title: { id: "Teacher Fit & Guru Peka", en: "Empathetic Teachers" }, desc: { id: "Guru terlatih yang ramah, sigap, dan memahami pendekatan emosi anak.", en: "Trained teachers who guide every child according to their developmental pace." } },
+        { id: 2, icon: "fa-smile", title: { id: "Judgment-Free Environment", en: "Judgment-Free Environment" }, desc: { id: "Orang tua dan anak merasa diterima tanpa rasa khawatir dihakimi.", en: "Parents and children feel accepted without fear of judgment." } },
+        { id: 3, icon: "fa-hands-helping", title: { id: "Kerjasama Ortu & Sekolah", en: "Parent & School Collaboration" }, desc: { id: "Diskusi terbuka dan evaluasi berkala bersama orang tua.", en: "Open discussions and periodic evaluation with parents." } }
+      ],
+      actSectionTitle: { id: "Bukan Sekadar Melihat-Lihat", en: "More Than Just Watching" },
+      activities: [
+        { id: 1, img: "./assets/2026-11-sitin-kbtk/poster/foto1.jpg", title: { id: "✋ Sentuhan Tekstur", en: "✋ Texture Touch" }, desc: { id: "Mengenal dunia lewat sentuhan lembut, kasar, basah & kering.", en: "Discovering world through soft, rough, wet & dry textures." } },
+        { id: 2, img: "./assets/2026-11-sitin-kbtk/poster/foto2.jpg", title: { id: "🎭 Bermain Peran", en: "🎭 Role Play" }, desc: { id: "Menjadi dokter, pedagang, atau koki bersama teman baru.", en: "Playing doctor, merchant, or chef with new friends." } },
+        { id: 3, img: "./assets/2026-11-sitin-kbtk/poster/foto3.jpg", title: { id: "🌱 Menanam", en: "🌱 Gardening" }, desc: { id: "Menyentuh tanah dan merawat tanaman dengan tangan sendiri.", en: "Touching soil and caring for plants with their own hands." } },
+        { id: 4, img: "./assets/2026-11-sitin-kbtk/poster/foto4.jpg", title: { id: "🔍 Memasak", en: "🔍 Cooking" }, desc: { id: "Mengaduk, menuang, dan mencicipi hasil karya kecilnya.", en: "Stirring, pouring, and tasting their own little creations." } }
+      ],
+      testimonialSectionTitle: { id: "Kata Orang Tua Murid", en: "What Parents Say" },
+      testimonials: [
+        { id: 1, name: "Ibu Maria", role: { id: "Mama Kenzo (Usia 3 Tahun)", en: "Kenzo's Mom (Age 3)" }, quote: { id: "Awalnya khawatir Kenzo pemalu, tapi gurunya sangat gercep merangkul. Kenzo langsung betah dan senang!", en: "I was worried Kenzo was too shy, but the teachers welcomed him warmly. He immediately loved it!" } }
+      ],
+      faqSectionTitle: { id: "Pertanyaan Sering Diajukan (FAQ)", en: "Frequently Asked Questions (FAQ)" },
+      faqs: [
+        { id: 1, q: { id: "Apakah orang tua boleh menemani di dalam kelas?", en: "Can parents accompany children inside the class?" }, a: { id: "Ya! Pada program Sit-In Class, orang tua sangat dianjurkan menemani si kecil secara penuh.", en: "Yes! Parents are warmly encouraged to join and accompany their child throughout the session." } },
+        { id: 2, q: { id: "Berapa lama durasi setiap sesi?", en: "How long is each session?" }, a: { id: "Setiap sesi berlangsung selama 60 hingga 90 menit penuh dengan aktivitas interaktif.", en: "Each session runs for 60 to 90 minutes packed with engaging interactive activities." } }
+      ],
+      formTitle: { id: "Formulir Pendaftaran Sit-In Class", en: "Sit-In Class Registration Form" },
+      formSubtitle: { id: "Langkah awal menuju pengalaman belajar terbaik si kecil. Konfirmasi kehadiran Anda sekarang!", en: "The first step to your child's bright learning journey. Confirm your attendance today!" },
+      scriptUrl: "",
+      whatsapp: "6287771414812",
+      sessions: { id: "Sesi Sabtu Pagi (09.00 - 10.30 WIB), Sesi Sabtu Siang (11.00 - 12.30 WIB)", en: "Saturday Morning Session (09.00 - 10.30 AM), Saturday Afternoon Session (11.00 - 12.30 PM)" },
+      footerAddress: { id: "Regensi Melati Mas Blok B1, D1, B14, BSD, Serpong Utara, Tangerang Selatan", en: "Regensi Melati Mas Block B1, D1, B14, BSD, North Serpong, South Tangerang" }
+    };
+
+    let state = JSON.parse(JSON.stringify(defaultState));
+
+    function saveToLocalStorage() {
+      localStorage.setItem('athalia_builder_state', JSON.stringify(state));
+    }
+
+    function loadFromLocalStorage() {
+      const saved = localStorage.getItem('athalia_builder_state');
+      if(saved) {
+        try { state = JSON.parse(saved); } catch(e) {}
+      }
+    }
+
+    function resetToDefault() {
+      if(confirm("Reset seluruh isi form ke template default?")) {
+        localStorage.removeItem('athalia_builder_state');
+        state = JSON.parse(JSON.stringify(defaultState));
+        populateInputsFromState();
+        renderEditorLists();
+        renderPreview();
+      }
+    }
+
+    function downloadConfigJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+      const anchor = document.createElement('a');
+      anchor.setAttribute("href", dataStr);
+      anchor.setAttribute("download", `${state.eventFolder || 'event'}-config.json`);
+      anchor.click();
+    }
+
+    function uploadConfigJSON(event) {
+      const file = event.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          state = JSON.parse(e.target.result);
+          saveToLocalStorage();
+          populateInputsFromState();
+          renderEditorLists();
+          renderPreview();
+          alert("Settingan berhasil dimuat dari file JSON!");
+        } catch(err) {
+          alert("File JSON tidak valid!");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function startPreviewTimer() {
+      if(previewTimerInterval) clearInterval(previewTimerInterval);
+      if(!state.showCountdown || !state.countdownTarget) return;
+
+      function update() {
+        const targetTime = new Date(state.countdownTarget).getTime();
+        const now = new Date().getTime();
+        const diff = targetTime - now;
+
+        const dEl = document.getElementById('prev-cd-d');
+        const hEl = document.getElementById('prev-cd-h');
+        const mEl = document.getElementById('prev-cd-m');
+        const sEl = document.getElementById('prev-cd-s');
+
+        if(!dEl) return;
+
+        if(diff <= 0 || isNaN(diff)) {
+          dEl.innerText = "00";
+          hEl.innerText = "00";
+          mEl.innerText = "00";
+          sEl.innerText = "00";
+          return;
+        }
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+        dEl.innerText = days < 10 ? '0' + days : days;
+        hEl.innerText = hours < 10 ? '0' + hours : hours;
+        mEl.innerText = mins < 10 ? '0' + mins : mins;
+        sEl.innerText = secs < 10 ? '0' + secs : secs;
+      }
+
+      update();
+      previewTimerInterval = setInterval(update, 1000);
+    }
+
+    function onEventFolderChange() {
+      const folder = document.getElementById('cfg-eventFolder').value.trim();
+      state.eventFolder = folder;
+      
+      if(folder) {
+        state.logoUrl = `./assets/${folder}/logo/logoathalia_white.png`;
+        state.heroMp4Url = `./assets/${folder}/video/hero.mp4`;
+        state.heroImg = `./assets/${folder}/poster/hero.jpg`;
+
+        state.activities.forEach((act, i) => {
+          act.img = `./assets/${folder}/poster/foto${i+1}.jpg`;
+        });
+
+        document.getElementById('cfg-logoUrl').value = state.logoUrl;
+        document.getElementById('cfg-heroMp4Url').value = state.heroMp4Url;
+        document.getElementById('cfg-heroImg').value = state.heroImg;
+      }
+      saveToLocalStorage();
+      renderEditorLists();
+      renderPreview();
+    }
+
+    function getHeadingFontClass(fontKey) {
+      return fontKey === 'font-montserrat' ? 'font-montserrat font-bold sm:font-extrabold' : fontKey;
+    }
+
+    function setEditLanguage(lang) {
+      currentEditLang = lang;
+      document.getElementById('btn-edit-id').className = lang === 'id' ? "px-2.5 py-0.5 rounded text-xs font-bold bg-emerald-500 text-slate-950 transition" : "px-2.5 py-0.5 rounded text-xs font-bold text-slate-400 hover:text-white transition";
+      document.getElementById('btn-edit-en').className = lang === 'en' ? "px-2.5 py-0.5 rounded text-xs font-bold bg-emerald-500 text-slate-950 transition" : "px-2.5 py-0.5 rounded text-xs font-bold text-slate-400 hover:text-white transition";
+      document.querySelectorAll('.edit-lang-label').forEach(el => el.innerText = lang.toUpperCase());
+      populateInputsFromState();
+      renderEditorLists();
+    }
+
+    function setPreviewLanguage(lang) {
+      currentPreviewLang = lang;
+      renderPreview();
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('border-emerald-600', 'text-emerald-600');
+        btn.classList.add('border-transparent', 'text-slate-500');
+      });
+      document.getElementById(tabId).classList.remove('hidden');
+      const activeNav = document.getElementById('nav-' + tabId);
+      activeNav.classList.remove('border-transparent', 'text-slate-500');
+      activeNav.classList.add('border-emerald-600', 'text-emerald-600');
+    }
+
+    function setDeviceView(type) {
+      const wrapper = document.getElementById('preview-wrapper');
+      const btnD = document.getElementById('btn-desktop');
+      const btnT = document.getElementById('btn-tablet');
+      const btnM = document.getElementById('btn-mobile');
+
+      btnD.className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white flex items-center gap-2 transition";
+      btnT.className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white flex items-center gap-2 transition";
+      btnM.className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white flex items-center gap-2 transition";
+
+      wrapper.className = "bg-white overflow-y-auto ";
+      if(type === 'desktop') {
+        wrapper.classList.add('view-desktop');
+        btnD.className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-slate-700 flex items-center gap-2 transition";
+      } else if(type === 'tablet') {
+        wrapper.classList.add('view-tablet');
+        btnT.className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-slate-700 flex items-center gap-2 transition";
+      } else if(type === 'mobile') {
+        wrapper.classList.add('view-mobile');
+        btnM.className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-slate-700 flex items-center gap-2 transition";
+      }
+    }
+
+    function populateInputsFromState() {
+      const lang = currentEditLang;
+      document.getElementById('cfg-eventFolder').value = state.eventFolder || '';
+      document.getElementById('cfg-logoType').value = state.logoType;
+      document.getElementById('cfg-logoUrl').value = state.logoUrl;
+      document.getElementById('cfg-schoolName').value = state.schoolName;
+      document.getElementById('cfg-schoolTagline').value = state.schoolTagline[lang] || '';
+      document.getElementById('cfg-colorPrimary').value = state.colorPrimary;
+      document.getElementById('cfg-colorAccent').value = state.colorAccent;
+      document.getElementById('cfg-colorFooter').value = state.colorFooter || '#0f172a';
+      document.getElementById('cfg-headingFont').value = state.headingFont;
+      
+      document.getElementById('cfg-heroMediaType').value = state.heroMediaType;
+      document.getElementById('cfg-heroYoutubeUrl').value = state.heroYoutubeUrl;
+      document.getElementById('cfg-heroMp4Url').value = state.heroMp4Url;
+      document.getElementById('cfg-heroImg').value = state.heroImg;
+
+      document.getElementById('cfg-urgencyText').value = state.urgencyText[lang] || '';
+      document.getElementById('cfg-heroBadge').value = state.heroBadge[lang] || '';
+      document.getElementById('cfg-heroTitle').value = state.heroTitle[lang] || '';
+      document.getElementById('cfg-heroSub').value = state.heroSub[lang] || '';
+      document.getElementById('cfg-btnPrimaryText').value = state.btnPrimaryText[lang] || '';
+      document.getElementById('cfg-btnWAText').value = state.btnWAText[lang] || '';
+
+      document.getElementById('cfg-showCountdown').checked = state.showCountdown;
+      document.getElementById('cfg-countdownTitle').value = state.countdownTitle[lang] || '';
+      document.getElementById('cfg-countdownTarget').value = state.countdownTarget;
+      document.getElementById('cfg-showQuotaBar').checked = state.showQuotaBar;
+      document.getElementById('cfg-quotaTitle').value = state.quotaTitle[lang] || '';
+      document.getElementById('cfg-totalQuota').value = state.totalQuota;
+      document.getElementById('cfg-remainingQuota').value = state.remainingQuota;
+
+      document.getElementById('cfg-uspSectionTitle').value = state.uspSectionTitle[lang] || '';
+      document.getElementById('cfg-actSectionTitle').value = state.actSectionTitle[lang] || '';
+      document.getElementById('cfg-testimonialSectionTitle').value = state.testimonialSectionTitle[lang] || '';
+      document.getElementById('cfg-faqSectionTitle').value = state.faqSectionTitle[lang] || '';
+      document.getElementById('cfg-formTitle').value = state.formTitle[lang] || '';
+      document.getElementById('cfg-formSubtitle').value = state.formSubtitle[lang] || '';
+      document.getElementById('cfg-scriptUrl').value = state.scriptUrl;
+      document.getElementById('cfg-whatsapp').value = state.whatsapp;
+      document.getElementById('cfg-sessions').value = state.sessions[lang] || '';
+      document.getElementById('cfg-footerAddress').value = state.footerAddress[lang] || '';
+
+      const logoUrlBox = document.getElementById('logoUrlContainer');
+      logoUrlBox.className = state.logoType === 'image' ? '' : 'hidden';
+
+      const ytBox = document.getElementById('heroYoutubeContainer');
+      const mp4Box = document.getElementById('heroMp4Container');
+      const imgBox = document.getElementById('heroImageContainer');
+
+      ytBox.classList.add('hidden');
+      mp4Box.classList.add('hidden');
+      imgBox.classList.add('hidden');
+
+      if(state.heroMediaType === 'youtube') ytBox.classList.remove('hidden');
+      else if(state.heroMediaType === 'mp4') mp4Box.classList.remove('hidden');
+      else imgBox.classList.remove('hidden');
+    }
+
+    function updateStateFromInputs() {
+      const lang = currentEditLang;
+      state.eventFolder = document.getElementById('cfg-eventFolder').value.trim();
+      state.logoType = document.getElementById('cfg-logoType').value;
+      state.logoUrl = document.getElementById('cfg-logoUrl').value;
+      state.schoolName = document.getElementById('cfg-schoolName').value;
+      state.schoolTagline[lang] = document.getElementById('cfg-schoolTagline').value;
+      state.colorPrimary = document.getElementById('cfg-colorPrimary').value;
+      state.colorAccent = document.getElementById('cfg-colorAccent').value;
+      state.colorFooter = document.getElementById('cfg-colorFooter').value;
+      state.headingFont = document.getElementById('cfg-headingFont').value;
+
+      state.heroMediaType = document.getElementById('cfg-heroMediaType').value;
+      state.heroYoutubeUrl = document.getElementById('cfg-heroYoutubeUrl').value;
+      state.heroMp4Url = document.getElementById('cfg-heroMp4Url').value;
+      state.heroImg = document.getElementById('cfg-heroImg').value;
+
+      state.urgencyText[lang] = document.getElementById('cfg-urgencyText').value;
+      state.heroBadge[lang] = document.getElementById('cfg-heroBadge').value;
+      state.heroTitle[lang] = document.getElementById('cfg-heroTitle').value;
+      state.heroSub[lang] = document.getElementById('cfg-heroSub').value;
+      state.btnPrimaryText[lang] = document.getElementById('cfg-btnPrimaryText').value;
+      state.btnWAText[lang] = document.getElementById('cfg-btnWAText').value;
+
+      state.showCountdown = document.getElementById('cfg-showCountdown').checked;
+      state.countdownTitle[lang] = document.getElementById('cfg-countdownTitle').value;
+      state.countdownTarget = document.getElementById('cfg-countdownTarget').value;
+      state.showQuotaBar = document.getElementById('cfg-showQuotaBar').checked;
+      state.quotaTitle[lang] = document.getElementById('cfg-quotaTitle').value;
+      state.totalQuota = parseInt(document.getElementById('cfg-totalQuota').value) || 20;
+      state.remainingQuota = parseInt(document.getElementById('cfg-remainingQuota').value) || 0;
+
+      state.uspSectionTitle[lang] = document.getElementById('cfg-uspSectionTitle').value;
+      state.actSectionTitle[lang] = document.getElementById('cfg-actSectionTitle').value;
+      state.testimonialSectionTitle[lang] = document.getElementById('cfg-testimonialSectionTitle').value;
+      state.faqSectionTitle[lang] = document.getElementById('cfg-faqSectionTitle').value;
+      state.formTitle[lang] = document.getElementById('cfg-formTitle').value;
+      state.formSubtitle[lang] = document.getElementById('cfg-formSubtitle').value;
+      state.scriptUrl = document.getElementById('cfg-scriptUrl').value;
+      state.whatsapp = document.getElementById('cfg-whatsapp').value;
+      state.sessions[lang] = document.getElementById('cfg-sessions').value;
+      state.footerAddress[lang] = document.getElementById('cfg-footerAddress').value;
+
+      const logoUrlBox = document.getElementById('logoUrlContainer');
+      logoUrlBox.className = state.logoType === 'image' ? '' : 'hidden';
+
+      const ytBox = document.getElementById('heroYoutubeContainer');
+      const mp4Box = document.getElementById('heroMp4Container');
+      const imgBox = document.getElementById('heroImageContainer');
+
+      ytBox.classList.add('hidden');
+      mp4Box.classList.add('hidden');
+      imgBox.classList.add('hidden');
+
+      if(state.heroMediaType === 'youtube') ytBox.classList.remove('hidden');
+      else if(state.heroMediaType === 'mp4') mp4Box.classList.remove('hidden');
+      else imgBox.classList.remove('hidden');
+
+      saveToLocalStorage();
+      renderPreview();
+    }
+
+    function addItem(listName) {
+      const id = Date.now();
+      const folder = state.eventFolder || '2026-11-sitin-kbtk';
+      if(listName === 'badges') {
+        state.badges.push({ id, title: { id: "Badge Baru", en: "New Badge" }, sub: { id: "Keterangan ringkas", en: "Short summary" } });
+      } else if(listName === 'usps') {
+        state.usps.push({ id, icon: "fa-star", title: { id: "Keunggulan Baru", en: "New Feature" }, desc: { id: "Penjelasan keunggulan...", en: "Feature explanation..." } });
+      } else if(listName === 'activities') {
+        const nextIdx = state.activities.length + 1;
+        state.activities.push({ 
+          id, 
+          img: `./assets/${folder}/poster/foto${nextIdx}.jpg`,
+          title: { id: "✨ Aktivitas Baru", en: "✨ New Activity" }, 
+          desc: { id: "Deskripsi aktivitas...", en: "Activity description..." } 
+        });
+      } else if(listName === 'testimonials') {
+        state.testimonials.push({ id, name: "Nama Orang Tua", role: { id: "Orang Tua Murid", en: "Parent" }, quote: { id: "Ulasan positif mengenai sekolah...", en: "Positive review about school..." } });
+      } else if(listName === 'faqs') {
+        state.faqs.push({ id, q: { id: "Pertanyaan Baru?", en: "New Question?" }, a: { id: "Jawaban pertanyaan...", en: "Answer to question..." } });
+      }
+      saveToLocalStorage();
+      renderEditorLists();
+      renderPreview();
+    }
+
+    function deleteItem(listName, index) {
+      state[listName].splice(index, 1);
+      saveToLocalStorage();
+      renderEditorLists();
+      renderPreview();
+    }
+
+    function moveItem(listName, index, direction) {
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= state[listName].length) return;
+      const temp = state[listName][index];
+      state[listName][index] = state[listName][targetIndex];
+      state[listName][targetIndex] = temp;
+      saveToLocalStorage();
+      renderEditorLists();
+      renderPreview();
+    }
+
+    function updateItemField(listName, index, field, value) {
+      if(typeof state[listName][index][field] === 'object') {
+        state[listName][index][field][currentEditLang] = value;
+      } else {
+        state[listName][index][field] = value;
+      }
+      saveToLocalStorage();
+      renderPreview();
+    }
+
+    function renderEditorLists() {
+      const lang = currentEditLang;
+      document.getElementById('badges-editor-list').innerHTML = state.badges.map((item, idx) => `
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-slate-700">Badge #${idx+1}</span>
+            <div class="flex items-center gap-1">
+              <button onclick="moveItem('badges', ${idx}, -1)" class="p-1 text-slate-500 text-xs"><i class="fas fa-arrow-up"></i></button>
+              <button onclick="moveItem('badges', ${idx}, 1)" class="p-1 text-slate-500 text-xs"><i class="fas fa-arrow-down"></i></button>
+              <button onclick="deleteItem('badges', ${idx})" class="p-1 text-rose-500 text-xs"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+          <input type="text" value="${item.title[lang] || ''}" oninput="updateItemField('badges', ${idx}, 'title', this.value)" class="w-full text-xs p-2 rounded border border-slate-300" placeholder="Judul Badge (${lang.toUpperCase()})">
+          <input type="text" value="${item.sub[lang] || ''}" oninput="updateItemField('badges', ${idx}, 'sub', this.value)" class="w-full text-xs p-2 rounded border border-slate-300" placeholder="Sub Badge (${lang.toUpperCase()})">
+        </div>
+      `).join('');
+
+      document.getElementById('usps-editor-list').innerHTML = state.usps.map((item, idx) => `
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-slate-700">USP #${idx+1}</span>
+            <div class="flex items-center gap-1">
+              <button onclick="moveItem('usps', ${idx}, -1)" class="p-1 text-slate-500 text-xs"><i class="fas fa-arrow-up"></i></button>
+              <button onclick="moveItem('usps', ${idx}, 1)" class="p-1 text-slate-500 text-xs"><i class="fas fa-arrow-down"></i></button>
+              <button onclick="deleteItem('usps', ${idx})" class="p-1 text-rose-500 text-xs"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <input type="text" value="${item.icon}" oninput="updateItemField('usps', ${idx}, 'icon', this.value)" class="w-1/3 text-xs p-2 rounded border border-slate-300" placeholder="Icon (fa-heart)">
+            <input type="text" value="${item.title[lang] || ''}" oninput="updateItemField('usps', ${idx}, 'title', this.value)" class="w-2/3 text-xs p-2 rounded border border-slate-300" placeholder="Judul (${lang.toUpperCase()})">
+          </div>
+          <textarea oninput="updateItemField('usps', ${idx}, 'desc', this.value)" rows="2" class="w-full text-xs p-2 rounded border border-slate-300" placeholder="Deskripsi (${lang.toUpperCase()})">${item.desc[lang] || ''}</textarea>
+        </div>
+      `).join('');
+
+      document.getElementById('activities-editor-list').innerHTML = state.activities.map((item, idx) => `
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-slate-700">Aktivitas #${idx+1}</span>
+            <div class="flex items-center gap-1">
+              <button onclick="moveItem('activities', ${idx}, -1)" class="p-1 text-slate-500 text-xs"><i class="fas fa-arrow-up"></i></button>
+              <button onclick="moveItem('activities', ${idx}, 1)" class="p-1 text-slate-500 text-xs"><i class="fas fa-arrow-down"></i></button>
+              <button onclick="deleteItem('activities', ${idx})" class="p-1 text-rose-500 text-xs"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+          <input type="text" value="${item.img || ''}" oninput="updateItemField('activities', ${idx}, 'img', this.value)" class="w-full text-xs p-2 rounded border border-slate-300 font-mono text-[11px]" placeholder="Path Foto (assets/folder/poster/foto1.jpg)">
+          <input type="text" value="${item.title[lang] || ''}" oninput="updateItemField('activities', ${idx}, 'title', this.value)" class="w-full text-xs p-2 rounded border border-slate-300 font-bold" placeholder="Judul (${lang.toUpperCase()})">
+          <textarea oninput="updateItemField('activities', ${idx}, 'desc', this.value)" rows="2" class="w-full text-xs p-2 rounded border border-slate-300" placeholder="Deskripsi (${lang.toUpperCase()})">${item.desc[lang] || ''}</textarea>
+        </div>
+      `).join('');
+
+      document.getElementById('testimonials-editor-list').innerHTML = state.testimonials.map((item, idx) => `
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-slate-700">Testimoni #${idx+1}</span>
+            <div class="flex items-center gap-1">
+              <button onclick="moveItem('testimonials', ${idx}, -1)" class="p-1 text-slate-500 text-xs"><i class="fas fa-arrow-up"></i></button>
+              <button onclick="moveItem('testimonials', ${idx}, 1)" class="p-1 text-slate-500 text-xs"><i class="fas fa-arrow-down"></i></button>
+              <button onclick="deleteItem('testimonials', ${idx})" class="p-1 text-rose-500 text-xs"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <input type="text" value="${item.name}" oninput="updateItemField('testimonials', ${idx}, 'name', this.value)" class="text-xs p-2 rounded border border-slate-300" placeholder="Nama Ortu">
+            <input type="text" value="${item.role[lang] || ''}" oninput="updateItemField('testimonials', ${idx}, 'role', this.value)" class="text-xs p-2 rounded border border-slate-300" placeholder="Keterangan (${lang.toUpperCase()})">
+          </div>
+          <textarea oninput="updateItemField('testimonials', ${idx}, 'quote', this.value)" rows="2" class="w-full text-xs p-2 rounded border border-slate-300" placeholder="Ulasan (${lang.toUpperCase()})">${item.quote[lang] || ''}</textarea>
+        </div>
+      `).join('');
+
+      document.getElementById('faqs-editor-list').innerHTML = state.faqs.map((item, idx) => `
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-slate-700">FAQ #${idx+1}</span>
+            <div class="flex items-center gap-1">
+              <button onclick="moveItem('faqs', ${idx}, -1)" class="p-1 text-slate-500 text-xs"><i class="fas fa-arrow-up"></i></button>
+              <button onclick="moveItem('faqs', ${idx}, 1)" class="p-1 text-slate-500 text-xs"><i class="fas fa-arrow-down"></i></button>
+              <button onclick="deleteItem('faqs', ${idx})" class="p-1 text-rose-500 text-xs"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+          <input type="text" value="${item.q[lang] || ''}" oninput="updateItemField('faqs', ${idx}, 'q', this.value)" class="w-full text-xs p-2 rounded border border-slate-300" placeholder="Pertanyaan (${lang.toUpperCase()})">
+          <textarea oninput="updateItemField('faqs', ${idx}, 'a', this.value)" rows="2" class="w-full text-xs p-2 rounded border border-slate-300" placeholder="Jawaban (${lang.toUpperCase()})">${item.a[lang] || ''}</textarea>
+        </div>
+      `).join('');
+    }
+
+    function renderPreview() {
+      const container = document.getElementById('live-preview');
+      const lang = currentPreviewLang;
+      const headingFontClass = getHeadingFontClass(state.headingFont);
+      const sessionOptions = (state.sessions[lang] || '').split(',').map(s => `<option value="${s.trim()}">${s.trim()}</option>`).join('');
+
+      let logoHtml = `<div style="background-color: ${state.colorAccent}" class="w-7 h-7 sm:w-9 sm:h-9 rounded-full text-slate-950 flex items-center justify-center font-bold text-xs sm:text-lg ${headingFontClass} flex-shrink-0">${state.schoolName.charAt(0)}</div>`;
+      if(state.logoType === 'image' && state.logoUrl) {
+        logoHtml = `<img src="${state.logoUrl}" alt="Logo Athalia" class="h-7 sm:h-9 w-auto object-contain flex-shrink-0" onerror="this.outerHTML='<div style=\'background-color: ${state.colorAccent}\' class=\'w-7 h-7 sm:w-9 sm:h-9 rounded-full text-slate-950 flex items-center justify-center font-bold text-xs sm:text-lg flex-shrink-0\'>${state.schoolName.charAt(0)}</div>';">`;
+      }
+
+      let heroMediaHtml = '';
+      if(state.heroMediaType === 'youtube' && state.heroYoutubeUrl) {
+        const embedUrl = getYouTubeEmbedUrl(state.heroYoutubeUrl);
+        heroMediaHtml = `
+          <div class="relative w-full overflow-hidden rounded-2xl sm:rounded-3xl shadow-2xl border-2 sm:border-4 border-white/10 aspect-video">
+            <iframe src="${embedUrl}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen class="absolute top-0 left-0 w-full h-full"></iframe>
+          </div>
+        `;
+      } else if(state.heroMediaType === 'mp4' && state.heroMp4Url) {
+        heroMediaHtml = `
+          <div class="rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border-2 sm:border-4 border-white/10 aspect-video bg-black">
+            <video src="${state.heroMp4Url}" controls autoplay loop muted class="w-full h-full object-cover"></video>
+          </div>
+        `;
+      } else {
+        heroMediaHtml = `
+          <div class="rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border-2 sm:border-4 border-white/10">
+            <img src="${state.heroImg}" alt="Poster Athalia Event" class="w-full h-auto max-h-[420px] object-cover">
+          </div>
+        `;
+      }
+
+      const takenQuota = Math.max(0, state.totalQuota - state.remainingQuota);
+      const quotaPercent = Math.min(100, Math.round((takenQuota / state.totalQuota) * 100)) || 0;
+
+      const labels = {
+        parentName: lang === 'id' ? 'Nama Orang Tua / Wali' : 'Parent / Guardian Name',
+        childName: lang === 'id' ? 'Nama Anak' : 'Child Name',
+        childAge: lang === 'id' ? 'Usia Anak (1-4 Tahun)' : 'Child Age (1-4 Years)',
+        waNumber: lang === 'id' ? 'Nomor WhatsApp Aktif' : 'Active WhatsApp Number',
+        selectSession: lang === 'id' ? 'Pilih Sesi Uji Coba' : 'Select Trial Session',
+        rsvpConfirm: lang === 'id' ? 'Konfirmasi Kehadiran RSVP' : 'RSVP Attendance Confirmation',
+        rsvpYes: lang === 'id' ? '✅ Pasti Hadir Sesuai Jadwal' : '✅ Confirmed Attendance',
+        rsvpNeedWA: lang === 'id' ? '💬 Butuh Tanya Admin Dulu Via WA' : '💬 Need Admin Confirmation via WA',
+        placeholderParent: lang === 'id' ? 'Contoh: Ibu Maria' : 'e.g., Mrs. Maria',
+        placeholderChild: lang === 'id' ? 'Contoh: Kenzo' : 'e.g., Kenzo',
+        placeholderAge: lang === 'id' ? 'Contoh: 3 Tahun' : 'e.g., 3 Years',
+        days: lang === 'id' ? 'Hari' : 'Days',
+        hours: lang === 'id' ? 'Jam' : 'Hours',
+        mins: lang === 'id' ? 'Menit' : 'Mins',
+        secs: lang === 'id' ? 'Detik' : 'Secs'
+      };
+
+      const desktopCtaHtml = `
+        <div class="hidden md:flex md:flex-row gap-3 mt-7">
+          <a href="#daftar-form" style="background-color: ${state.colorAccent}" class="text-slate-950 font-extrabold px-6 py-3.5 rounded-2xl text-center shadow-lg transition text-sm tracking-wide">
+            ${state.btnPrimaryText[lang] || ''}
+          </a>
+          <a href="https://wa.me/${state.whatsapp}?text=Halo%20Admin%20Sekolah%20Athalia" target="_blank" class="border border-white/30 hover:bg-white/10 text-white font-semibold px-5 py-3.5 rounded-2xl text-center flex items-center justify-center gap-2 text-sm tracking-wide">
+            <i class="fab fa-whatsapp text-emerald-400 text-lg"></i> ${state.btnWAText[lang] || ''}
+          </a>
+        </div>
+      `;
+
+      const mobileCtaHtml = `
+        <div class="flex md:hidden flex-col gap-2.5 mt-5 w-full">
+          <a href="#daftar-form" style="background-color: ${state.colorAccent}" class="w-full text-slate-950 font-extrabold px-5 py-3.5 rounded-xl text-center shadow-lg transition text-xs tracking-wide">
+            ${state.btnPrimaryText[lang] || ''}
+          </a>
+          <a href="https://wa.me/${state.whatsapp}?text=Halo%20Admin%20Sekolah%20Athalia" target="_blank" class="w-full border border-white/30 hover:bg-white/10 text-white font-semibold px-4 py-3.5 rounded-xl text-center flex items-center justify-center gap-2 text-xs tracking-wide">
+            <i class="fab fa-whatsapp text-emerald-400 text-base"></i> ${state.btnWAText[lang] || ''}
+          </a>
+        </div>
+      `;
+
+      container.innerHTML = `
+        <div class="bg-slate-50 text-slate-800 min-h-full font-jakarta">
+          
+          <div style="background-color: ${state.colorAccent}" class="text-slate-950 text-[10.5px] sm:text-xs font-bold py-1.5 px-3 text-center leading-tight tracking-wide">
+            ${state.urgencyText[lang] || ''}
+          </div>
+
+          <header style="background-color: ${state.colorPrimary}" class="text-white sticky top-0 z-30 shadow-md">
+            <div class="max-w-6xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex justify-between items-center gap-2 overflow-hidden">
+              <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                ${logoHtml}
+                <div class="min-w-0">
+                  <div class="${headingFontClass} text-xs sm:text-base leading-tight truncate mobile-title-truncate">${state.schoolName}</div>
+                  <div class="hidden sm:block text-[10px] text-teal-200 uppercase tracking-widest font-semibold truncate mobile-hide-tagline">${state.schoolTagline[lang] || ''}</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                <div class="bg-black/20 p-1 rounded-full flex border border-white/20 text-[9px] sm:text-xs">
+                  <button onclick="setPreviewLanguage('id')" class="px-2 py-0.5 rounded-full font-bold ${lang === 'id' ? 'bg-white text-slate-900 shadow' : 'text-white/80'}">🇮🇩</button>
+                  <button onclick="setPreviewLanguage('en')" class="px-2 py-0.5 rounded-full font-bold ${lang === 'en' ? 'bg-white text-slate-900 shadow' : 'text-white/80'}">🇬🇧</button>
+                </div>
+                <a href="#daftar-form" style="background-color: ${state.colorAccent}" class="hidden sm:inline-block text-slate-950 font-extrabold text-xs px-4 py-2 rounded-full shadow transition whitespace-nowrap tracking-wide mobile-hide-cta">${state.btnPrimaryText[lang] || ''}</a>
+              </div>
+            </div>
+          </header>
+
+          <section style="background-color: ${state.colorPrimary}" class="text-white py-8 sm:py-14 px-4 sm:px-6 relative overflow-hidden">
+            <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-10 items-center relative z-10 mobile-grid-1col">
+              <div>
+                <span class="inline-block bg-white/15 text-white border border-white/25 text-[10.5px] sm:text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3 sm:mb-4">
+                  ${state.heroBadge[lang] || ''}
+                </span>
+                <h1 class="${headingFontClass} text-[26px] sm:text-4xl lg:text-[46px] leading-[1.18] tracking-tight text-white">
+                  ${state.heroTitle[lang] || ''}
+                </h1>
+                <p class="mt-3 sm:mt-4 text-slate-100 text-[13px] sm:text-sm lg:text-base leading-relaxed opacity-95">
+                  ${state.heroSub[lang] || ''}
+                </p>
+                
+                ${desktopCtaHtml}
+              </div>
+
+              <div>
+                ${heroMediaHtml}
+                ${mobileCtaHtml}
+              </div>
+            </div>
+          </section>
+
+          ${(state.showCountdown || state.showQuotaBar) ? `
+          <section class="max-w-4xl mx-auto px-4 -mt-3 sm:-mt-5 relative z-20">
+            <div class="bg-white rounded-2xl shadow-xl border border-slate-100 p-4 sm:p-6 space-y-4">
+              ${state.showCountdown ? `
+              <div class="text-center">
+                <p class="text-xs sm:text-sm font-bold text-slate-700 mb-2.5 tracking-tight">${state.countdownTitle[lang] || ''}</p>
+                <div class="grid grid-cols-4 gap-2 max-w-xs mx-auto">
+                  <div class="bg-slate-900 text-white p-2 rounded-xl text-center">
+                    <span id="prev-cd-d" class="block font-bold text-base sm:text-xl text-yellow-400 font-mono">00</span>
+                    <span class="text-[9px] uppercase tracking-wider text-slate-400 block font-semibold">${labels.days}</span>
+                  </div>
+                  <div class="bg-slate-900 text-white p-2 rounded-xl text-center">
+                    <span id="prev-cd-h" class="block font-bold text-base sm:text-xl text-yellow-400 font-mono">00</span>
+                    <span class="text-[9px] uppercase tracking-wider text-slate-400 block font-semibold">${labels.hours}</span>
+                  </div>
+                  <div class="bg-slate-900 text-white p-2 rounded-xl text-center">
+                    <span id="prev-cd-m" class="block font-bold text-base sm:text-xl text-yellow-400 font-mono">00</span>
+                    <span class="text-[9px] uppercase tracking-wider text-slate-400 block font-semibold">${labels.mins}</span>
+                  </div>
+                  <div class="bg-slate-900 text-white p-2 rounded-xl text-center">
+                    <span id="prev-cd-s" class="block font-bold text-base sm:text-xl text-yellow-400 font-mono">00</span>
+                    <span class="text-[9px] uppercase tracking-wider text-slate-400 block font-semibold">${labels.secs}</span>
+                  </div>
+                </div>
+              </div>` : ''}
+
+              ${state.showQuotaBar ? `
+              <div class="space-y-1.5 pt-2 border-t border-slate-100">
+                <div class="flex justify-between items-center text-xs font-bold">
+                  <span class="text-slate-800">${state.quotaTitle[lang] || ''}</span>
+                  <span class="text-rose-600 font-extrabold">${state.remainingQuota} / ${state.totalQuota} ${lang === 'id' ? 'Kursi Tersisa' : 'Seats Left'}</span>
+                </div>
+                <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden p-0.5 border border-slate-200">
+                  <div style="width: ${quotaPercent}%" class="bg-gradient-to-r from-amber-400 to-rose-500 h-full rounded-full transition-all duration-500"></div>
+                </div>
+              </div>` : ''}
+            </div>
+          </section>` : ''}
+
+          <section class="max-w-5xl mx-auto px-4 py-8 sm:py-10">
+            <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 p-3 sm:p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 text-center mobile-grid-2col">
+              ${state.badges.map((b) => `
+                <div class="p-2 bg-slate-50 sm:bg-transparent rounded-lg sm:rounded-none border sm:border-0 border-slate-100">
+                  <span style="color: ${state.colorPrimary}" class="block ${headingFontClass} text-xs sm:text-sm md:text-base font-bold">${b.title[lang] || ''}</span>
+                  <span class="text-[10px] sm:text-xs text-slate-500 block mt-0.5 leading-tight font-medium">${b.sub[lang] || ''}</span>
+                </div>
+              `).join('')}
+            </div>
+          </section>
+
+          <section class="max-w-5xl mx-auto px-4 pb-10 sm:pb-14">
+            <div class="text-center mb-6 sm:mb-10">
+              <h2 style="color: ${state.colorPrimary}" class="${headingFontClass} text-xl sm:text-2xl lg:text-3xl tracking-tight">${state.uspSectionTitle[lang] || ''}</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mobile-grid-1col">
+              ${state.usps.map(u => `
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-start">
+                  <div class="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center text-lg mb-3 flex-shrink-0">
+                    <i class="fas ${u.icon}"></i>
+                  </div>
+                  <h3 class="${headingFontClass} text-sm sm:text-base text-slate-800 mb-1.5 font-bold">${u.title[lang] || ''}</h3>
+                  <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">${u.desc[lang] || ''}</p>
+                </div>
+              `).join('')}
+            </div>
+          </section>
+
+          <section class="bg-white py-10 sm:py-14 border-y border-slate-100">
+            <div class="max-w-5xl mx-auto px-4">
+              <h2 style="color: ${state.colorPrimary}" class="${headingFontClass} text-xl sm:text-2xl lg:text-3xl text-center mb-6 sm:mb-8 tracking-tight">${state.actSectionTitle[lang] || ''}</h2>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mobile-grid-1col">
+                ${state.activities.map(a => `
+                  <div class="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden flex flex-col sm:flex-row shadow-sm hover:shadow transition">
+                    ${a.img ? `
+                    <div class="w-full sm:w-2/5 h-40 sm:h-auto bg-slate-200 flex-shrink-0 relative overflow-hidden">
+                      <img src="${a.img}" alt="${a.title[lang] || ''}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.parentElement.style.display='none';">
+                    </div>` : ''}
+                    <div class="p-4 sm:p-5 flex-1 flex flex-col justify-center">
+                      <h3 class="${headingFontClass} text-sm sm:text-base text-slate-800 font-bold mb-1">${a.title[lang] || ''}</h3>
+                      <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">${a.desc[lang] || ''}</p>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </section>
+
+          ${state.testimonials.length > 0 ? `
+          <section class="max-w-4xl mx-auto px-4 py-10 sm:py-12">
+            <h2 style="color: ${state.colorPrimary}" class="${headingFontClass} text-xl sm:text-2xl text-center mb-6 tracking-tight">${state.testimonialSectionTitle[lang] || ''}</h2>
+            <div class="grid grid-cols-1 gap-3 sm:gap-4 mobile-grid-1col">
+              ${state.testimonials.map(t => `
+                <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm flex items-start gap-3 sm:gap-4">
+                  <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-emerald-50 text-emerald-600 flex-shrink-0 flex items-center justify-center font-bold text-xs sm:text-base">
+                    <i class="fas fa-quote-left"></i>
+                  </div>
+                  <div>
+                    <p class="text-xs sm:text-sm text-slate-600 italic leading-relaxed">"${t.quote[lang] || ''}"</p>
+                    <span class="block text-xs font-bold text-slate-800 mt-2">${t.name} <span class="font-normal text-slate-400">(${t.role[lang] || ''})</span></span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </section>` : ''}
+
+          ${state.faqs.length > 0 ? `
+          <section class="bg-slate-100 py-10 sm:py-12 border-t border-slate-200">
+            <div class="max-w-3xl mx-auto px-4">
+              <h2 style="color: ${state.colorPrimary}" class="${headingFontClass} text-xl sm:text-2xl text-center mb-6 tracking-tight">${state.faqSectionTitle[lang] || ''}</h2>
+              <div class="space-y-3">
+                ${state.faqs.map(f => `
+                  <details class="group bg-white p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm cursor-pointer">
+                    <summary class="flex justify-between items-center font-bold text-xs sm:text-sm text-slate-800 select-none">
+                      <span>${f.q[lang] || ''}</span>
+                      <span class="transition group-open:rotate-180 text-slate-400"><i class="fas fa-chevron-down"></i></span>
+                    </summary>
+                    <p class="mt-3 text-xs sm:text-sm text-slate-600 leading-relaxed border-t pt-3 border-slate-100">${f.a[lang] || ''}</p>
+                  </details>
+                `).join('')}
+              </div>
+            </div>
+          </section>` : ''}
+
+          <section id="daftar-form" class="max-w-xl mx-auto px-4 py-12 sm:py-16">
+            <div class="bg-white p-5 sm:p-8 rounded-2xl sm:rounded-3xl shadow-xl border border-slate-100">
+              <div class="text-center mb-6">
+                <h2 style="color: ${state.colorPrimary}" class="${headingFontClass} text-xl sm:text-2xl tracking-tight">${state.formTitle[lang] || ''}</h2>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1">${state.formSubtitle[lang] || ''}</p>
+              </div>
+              <form onsubmit="event.preventDefault(); alert('Ini tampilan live preview.');" class="space-y-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">${labels.parentName}</label>
+                  <input type="text" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm" placeholder="${labels.placeholderParent}">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mobile-grid-1col">
+                  <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">${labels.childName}</label>
+                    <input type="text" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm" placeholder="${labels.placeholderChild}">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">${labels.childAge}</label>
+                    <input type="text" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm" placeholder="${labels.placeholderAge}">
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">${labels.waNumber}</label>
+                  <input type="tel" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm" placeholder="087771414812">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">${labels.selectSession}</label>
+                  <select required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm bg-white">
+                    ${sessionOptions}
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">${labels.rsvpConfirm}</label>
+                  <select required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm bg-white">
+                    <option value="${labels.rsvpYes}">${labels.rsvpYes}</option>
+                    <option value="${labels.rsvpNeedWA}">${labels.rsvpNeedWA}</option>
+                  </select>
+                </div>
+                <button type="submit" style="background-color: ${state.colorAccent}" class="w-full text-slate-950 font-extrabold py-3.5 rounded-xl shadow-lg transition text-xs sm:text-sm tracking-wide">
+                  ${state.btnPrimaryText[lang] || ''}
+                </button>
+              </form>
+            </div>
+          </section>
+
+          <footer style="background-color: ${state.colorFooter || '#0f172a'}" class="text-white py-8 px-4 text-center text-xs text-slate-400">
+            <p class="${headingFontClass} text-white text-sm mb-1">${state.schoolName}</p>
+            <p class="max-w-md mx-auto mb-4">${state.footerAddress[lang] || ''}</p>
+            <p>© 2026 ${state.schoolName}. All rights reserved.</p>
+          </footer>
+
+          <a href="https://wa.me/${state.whatsapp}?text=Halo%20Admin%20Sekolah%20Athalia" target="_blank" class="fixed bottom-5 right-5 bg-emerald-500 hover:bg-emerald-600 text-white w-12 h-12 rounded-full shadow-2xl flex items-center justify-center text-2xl z-40">
+            <i class="fab fa-whatsapp"></i>
+          </a>
+        </div>
+      `;
+
+      startPreviewTimer();
+    }
+
+    function generateStandaloneHTML() {
+      const stateJSON = JSON.stringify(state);
+      return `<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${state.schoolName} - Event Landing Page</title>
+  <script src="https://cdn.tailwindcss.com"><\/script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poetsen+One&display=swap" rel="stylesheet">
+  <style>
+    .font-poetsen { font-family: 'Poetsen One', cursive, sans-serif; }
+    .font-fredoka { font-family: 'Fredoka', sans-serif; }
+    .font-montserrat { font-family: 'Montserrat', sans-serif; }
+    .font-jakarta { font-family: 'Plus Jakarta Sans', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-jakarta antialiased">
+  <div id="page-content"></div>
+
+  <script>
+    const data = ${stateJSON};
+    let currentLang = 'id';
+
+    function getYouTubeEmbedUrl(url) {
+      if (!url) return '';
+      let videoId = '';
+      if (url.indexOf('youtu.be/') !== -1) {
+        videoId = url.split('youtu.be/')[1].split('?')[0].split('&')[0];
+      } else if (url.indexOf('v=') !== -1) {
+        videoId = url.split('v=')[1].split('&')[0];
+      } else if (url.indexOf('embed/') !== -1) {
+        videoId = url.split('embed/')[1].split('?')[0];
+      }
+      return videoId ? 'https://www.youtube.com/embed/' + videoId + '?autoplay=1&mute=1&loop=1&playlist=' + videoId : url;
+    }
+
+    function getHeadingClass(fontKey) {
+      return fontKey === 'font-montserrat' ? 'font-montserrat font-bold sm:font-extrabold' : fontKey;
+    }
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      renderPage();
+      startTimer();
+    }
+
+    let timerInterval;
+    function startTimer() {
+      if(timerInterval) clearInterval(timerInterval);
+      if(!data.showCountdown || !data.countdownTarget) return;
+
+      function update() {
+        const targetTime = new Date(data.countdownTarget).getTime();
+        const now = new Date().getTime();
+        const diff = targetTime - now;
+
+        const dEl = document.getElementById('cd-d');
+        const hEl = document.getElementById('cd-h');
+        const mEl = document.getElementById('cd-m');
+        const sEl = document.getElementById('cd-s');
+
+        if(!dEl) return;
+
+        if(diff <= 0 || isNaN(diff)) {
+          dEl.innerText = "00";
+          hEl.innerText = "00";
+          mEl.innerText = "00";
+          sEl.innerText = "00";
+          return;
+        }
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+        dEl.innerText = days < 10 ? '0' + days : days;
+        hEl.innerText = hours < 10 ? '0' + hours : hours;
+        mEl.innerText = mins < 10 ? '0' + mins : mins;
+        sEl.innerText = secs < 10 ? '0' + secs : secs;
+      }
+
+      update();
+      timerInterval = setInterval(update, 1000);
+    }
+
+    function renderPage() {
+      const lang = currentLang;
+      const headingClass = getHeadingClass(data.headingFont);
+      const sessionOptions = (data.sessions[lang] || '').split(',').map(s => \`<option value="\${s.trim()}">\${s.trim()}</option>\`).join('');
+      
+      let logoHtml = \`<div style="background-color: \${data.colorAccent}" class="w-7 h-7 sm:w-9 sm:h-9 rounded-full text-slate-950 flex items-center justify-center font-bold text-xs sm:text-lg \${headingClass} flex-shrink-0">\${data.schoolName.charAt(0)}</div>\`;
+      if(data.logoType === 'image' && data.logoUrl) {
+        logoHtml = \`<img src="\${data.logoUrl}" alt="Logo" class="h-7 sm:h-9 w-auto object-contain flex-shrink-0" onerror="this.outerHTML='<div style=\\'background-color: \${data.colorAccent}\\' class=\\'w-7 h-7 sm:w-9 sm:h-9 rounded-full text-slate-950 flex items-center justify-center font-bold text-xs sm:text-lg flex-shrink-0\\'>\${data.schoolName.charAt(0)}</div>';">\`;
+      }
+
+      let heroMediaHtml = '';
+      if(data.heroMediaType === 'youtube' && data.heroYoutubeUrl) {
+        const embedUrl = getYouTubeEmbedUrl(data.heroYoutubeUrl);
+        heroMediaHtml = \`
+          <div class="relative w-full overflow-hidden rounded-2xl sm:rounded-3xl shadow-2xl border-2 sm:border-4 border-white/10 aspect-video">
+            <iframe src="\${embedUrl}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen class="absolute top-0 left-0 w-full h-full"></iframe>
+          </div>
+        \`;
+      } else if(data.heroMediaType === 'mp4' && data.heroMp4Url) {
+        heroMediaHtml = \`
+          <div class="rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border-2 sm:border-4 border-white/10 aspect-video bg-black">
+            <video src="\${data.heroMp4Url}" controls autoplay loop muted class="w-full h-full object-cover"></video>
+          </div>
+        \`;
+      } else {
+        heroMediaHtml = \`
+          <div class="rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border-2 sm:border-4 border-white/10">
+            <img src="\${data.heroImg}" alt="Poster" class="w-full h-auto max-h-[420px] object-cover">
+          </div>
+        \`;
+      }
+
+      const takenQuota = Math.max(0, data.totalQuota - data.remainingQuota);
+      const quotaPercent = Math.min(100, Math.round((takenQuota / data.totalQuota) * 100)) || 0;
+
+      const labels = {
+        parentName: lang === 'id' ? 'Nama Orang Tua / Wali' : 'Parent / Guardian Name',
+        childName: lang === 'id' ? 'Nama Anak' : 'Child Name',
+        childAge: lang === 'id' ? 'Usia Anak (1-4 Tahun)' : 'Child Age (1-4 Years)',
+        waNumber: lang === 'id' ? 'Nomor WhatsApp Aktif' : 'Active WhatsApp Number',
+        selectSession: lang === 'id' ? 'Pilih Sesi Uji Coba' : 'Select Trial Session',
+        rsvpConfirm: lang === 'id' ? 'Konfirmasi Kehadiran RSVP' : 'RSVP Attendance Confirmation',
+        rsvpYes: lang === 'id' ? '✅ Pasti Hadir Sesuai Jadwal' : '✅ Confirmed Attendance',
+        rsvpNeedWA: lang === 'id' ? '💬 Butuh Tanya Admin Dulu Via WA' : '💬 Need Admin Confirmation via WA',
+        placeholderParent: lang === 'id' ? 'Contoh: Ibu Maria' : 'e.g., Mrs. Maria',
+        placeholderChild: lang === 'id' ? 'Contoh: Kenzo' : 'e.g., Kenzo',
+        placeholderAge: lang === 'id' ? 'Contoh: 3 Tahun' : 'e.g., 3 Years',
+        days: lang === 'id' ? 'Hari' : 'Days',
+        hours: lang === 'id' ? 'Jam' : 'Hours',
+        mins: lang === 'id' ? 'Menit' : 'Mins',
+        secs: lang === 'id' ? 'Detik' : 'Secs'
+      };
+
+      const desktopCtaHtml = \`
+        <div class="hidden md:flex md:flex-row gap-3 mt-7">
+          <a href="#daftar-form" style="background-color: \${data.colorAccent}" class="text-slate-950 font-extrabold px-6 py-3.5 rounded-2xl text-center shadow-lg transition text-sm tracking-wide">
+            \${data.btnPrimaryText[lang] || ''}
+          </a>
+          <a href="https://wa.me/\${data.whatsapp}?text=Halo%20Admin%20Sekolah%20Athalia" target="_blank" class="border border-white/30 hover:bg-white/10 text-white font-semibold px-5 py-3.5 rounded-2xl text-center flex items-center justify-center gap-2 text-sm tracking-wide">
+            <i class="fab fa-whatsapp text-emerald-400 text-lg"></i> \${data.btnWAText[lang] || ''}
+          </a>
+        </div>
+      \`;
+
+      const mobileCtaHtml = \`
+        <div class="flex md:hidden flex-col gap-2.5 mt-5 w-full">
+          <a href="#daftar-form" style="background-color: \${data.colorAccent}" class="w-full text-slate-950 font-extrabold px-5 py-3.5 rounded-xl text-center shadow-lg transition text-xs tracking-wide">
+            \${data.btnPrimaryText[lang] || ''}
+          </a>
+          <a href="https://wa.me/\${data.whatsapp}?text=Halo%20Admin%20Sekolah%20Athalia" target="_blank" class="w-full border border-white/30 hover:bg-white/10 text-white font-semibold px-4 py-3.5 rounded-xl text-center flex items-center justify-center gap-2 text-xs tracking-wide">
+            <i class="fab fa-whatsapp text-emerald-400 text-base"></i> \${data.btnWAText[lang] || ''}
+          </a>
+        </div>
+      \`;
+
+      document.getElementById('page-content').innerHTML = \`
+        <div class="bg-slate-50 text-slate-800 min-h-full font-jakarta">
+          <div style="background-color: \${data.colorAccent}" class="text-slate-950 text-[10.5px] sm:text-xs font-bold py-1.5 px-3 text-center leading-tight tracking-wide">
+            \${data.urgencyText[lang] || ''}
+          </div>
+
+          <header style="background-color: \${data.colorPrimary}" class="text-white sticky top-0 z-30 shadow-md">
+            <div class="max-w-6xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex justify-between items-center gap-2 overflow-hidden">
+              <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                \${logoHtml}
+                <div class="min-w-0">
+                  <div class="\${headingClass} text-xs sm:text-base leading-tight truncate">\${data.schoolName}</div>
+                  <div class="hidden sm:block text-[10px] text-teal-200 uppercase tracking-widest font-semibold truncate">\${data.schoolTagline[lang] || ''}</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                <div class="bg-black/20 p-1 rounded-full flex border border-white/20 text-[9px] sm:text-xs">
+                  <button onclick="setLanguage('id')" class="px-2 py-0.5 rounded-full font-bold \${lang === 'id' ? 'bg-white text-slate-900 shadow' : 'text-white/80'}">🇮🇩</button>
+                  <button onclick="setLanguage('en')" class="px-2 py-0.5 rounded-full font-bold \${lang === 'en' ? 'bg-white text-slate-900 shadow' : 'text-white/80'}">🇬🇧</button>
+                </div>
+                <a href="#daftar-form" style="background-color: \${data.colorAccent}" class="hidden sm:inline-block text-slate-950 font-extrabold text-xs px-4 py-2 rounded-full shadow transition whitespace-nowrap tracking-wide">\${data.btnPrimaryText[lang] || ''}</a>
+              </div>
+            </div>
+          </header>
+
+          <section style="background-color: \${data.colorPrimary}" class="text-white py-8 sm:py-14 px-4 sm:px-6 relative overflow-hidden">
+            <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-10 items-center relative z-10">
+              <div>
+                <span class="inline-block bg-white/15 text-white border border-white/25 text-[10.5px] sm:text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3 sm:mb-4">
+                  \${data.heroBadge[lang] || ''}
+                </span>
+                <h1 class="\${headingClass} text-[26px] sm:text-4xl lg:text-[46px] leading-[1.18] tracking-tight text-white">
+                  \${data.heroTitle[lang] || ''}
+                </h1>
+                <p class="mt-3 sm:mt-4 text-slate-100 text-[13px] sm:text-sm lg:text-base leading-relaxed opacity-95">
+                  \${data.heroSub[lang] || ''}
+                </p>
+                \${desktopCtaHtml}
+              </div>
+              <div>
+                \${heroMediaHtml}
+                \${mobileCtaHtml}
+              </div>
+            </div>
+          </section>
+
+          \${(data.showCountdown || data.showQuotaBar) ? \`
+          <section class="max-w-4xl mx-auto px-4 -mt-3 sm:-mt-5 relative z-20">
+            <div class="bg-white rounded-2xl shadow-xl border border-slate-100 p-4 sm:p-6 space-y-4">
+              \${data.showCountdown ? \`
+              <div class="text-center">
+                <p class="text-xs sm:text-sm font-bold text-slate-700 mb-2.5 tracking-tight">\${data.countdownTitle[lang] || ''}</p>
+                <div class="grid grid-cols-4 gap-2 max-w-xs mx-auto">
+                  <div class="bg-slate-900 text-white p-2 rounded-xl text-center">
+                    <span id="cd-d" class="block font-bold text-base sm:text-xl text-yellow-400 font-mono">00</span>
+                    <span class="text-[9px] uppercase tracking-wider text-slate-400 block font-semibold">\${labels.days}</span>
+                  </div>
+                  <div class="bg-slate-900 text-white p-2 rounded-xl text-center">
+                    <span id="cd-h" class="block font-bold text-base sm:text-xl text-yellow-400 font-mono">00</span>
+                    <span class="text-[9px] uppercase tracking-wider text-slate-400 block font-semibold">\${labels.hours}</span>
+                  </div>
+                  <div class="bg-slate-900 text-white p-2 rounded-xl text-center">
+                    <span id="cd-m" class="block font-bold text-base sm:text-xl text-yellow-400 font-mono">00</span>
+                    <span class="text-[9px] uppercase tracking-wider text-slate-400 block font-semibold">\${labels.mins}</span>
+                  </div>
+                  <div class="bg-slate-900 text-white p-2 rounded-xl text-center">
+                    <span id="cd-s" class="block font-bold text-base sm:text-xl text-yellow-400 font-mono">00</span>
+                    <span class="text-[9px] uppercase tracking-wider text-slate-400 block font-semibold">\${labels.secs}</span>
+                  </div>
+                </div>
+              </div>\` : ''}
+
+              \${data.showQuotaBar ? \`
+              <div class="space-y-1.5 pt-2 border-t border-slate-100">
+                <div class="flex justify-between items-center text-xs font-bold">
+                  <span class="text-slate-800">\${data.quotaTitle[lang] || ''}</span>
+                  <span class="text-rose-600 font-extrabold">\${data.remainingQuota} / \${data.totalQuota} \${lang === 'id' ? 'Kursi Tersisa' : 'Seats Left'}</span>
+                </div>
+                <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden p-0.5 border border-slate-200">
+                  <div style="width: \${quotaPercent}%" class="bg-gradient-to-r from-amber-400 to-rose-500 h-full rounded-full transition-all duration-500"></div>
+                </div>
+              </div>\` : ''}
+            </div>
+          </section>\` : ''}
+
+          <section class="max-w-5xl mx-auto px-4 py-8 sm:py-10">
+            <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 p-3 sm:p-4 grid grid-cols-2 md:grid-cols-4 gap-2.5 text-center">
+              \${data.badges.map((b) => \`
+                <div class="p-2 bg-slate-50 sm:bg-transparent rounded-lg sm:rounded-none border sm:border-0 border-slate-100">
+                  <span style="color: \${data.colorPrimary}" class="block \${headingClass} text-xs sm:text-sm md:text-base font-bold">\${b.title[lang] || ''}</span>
+                  <span class="text-[10px] sm:text-xs text-slate-500 block mt-0.5 leading-tight font-medium">\${b.sub[lang] || ''}</span>
+                </div>
+              \`).join('')}
+            </div>
+          </section>
+
+          <section class="max-w-5xl mx-auto px-4 pb-10 sm:pb-14">
+            <div class="text-center mb-6 sm:mb-10">
+              <h2 style="color: \${data.colorPrimary}" class="\${headingClass} text-xl sm:text-2xl lg:text-3xl tracking-tight">\${data.uspSectionTitle[lang] || ''}</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+              \${data.usps.map(u => \`
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-start">
+                  <div class="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center text-lg mb-3 flex-shrink-0"><i class="fas \${u.icon}"></i></div>
+                  <h3 class="\${headingClass} text-sm sm:text-base text-slate-800 mb-1.5 font-bold">\${u.title[lang] || ''}</h3>
+                  <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">\${u.desc[lang] || ''}</p>
+                </div>
+              \`).join('')}
+            </div>
+          </section>
+
+          <section class="bg-white py-10 sm:py-14 border-y border-slate-100">
+            <div class="max-w-5xl mx-auto px-4">
+              <h2 style="color: \${data.colorPrimary}" class="\${headingClass} text-xl sm:text-2xl lg:text-3xl text-center mb-6 sm:mb-8 tracking-tight">\${data.actSectionTitle[lang] || ''}</h2>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                \${data.activities.map(a => \`
+                  <div class="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden flex flex-col sm:flex-row shadow-sm hover:shadow transition">
+                    \${a.img ? \`
+                    <div class="w-full sm:w-2/5 h-40 sm:h-auto bg-slate-200 flex-shrink-0 relative overflow-hidden">
+                      <img src="\${a.img}" alt="\${a.title[lang] || ''}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.parentElement.style.display='none';">
+                    </div>\` : ''}
+                    <div class="p-4 sm:p-5 flex-1 flex flex-col justify-center">
+                      <h3 class="\${headingClass} text-sm sm:text-base text-slate-800 font-bold mb-1">\${a.title[lang] || ''}</h3>
+                      <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">\${a.desc[lang] || ''}</p>
+                    </div>
+                  </div>
+                \`).join('')}
+              </div>
+            </div>
+          </section>
+
+          \${data.testimonials.length > 0 ? \`
+          <section class="max-w-4xl mx-auto px-4 py-10 sm:py-12">
+            <h2 style="color: \${data.colorPrimary}" class="\${headingClass} text-xl sm:text-2xl text-center mb-6 tracking-tight">\${data.testimonialSectionTitle[lang] || ''}</h2>
+            <div class="grid grid-cols-1 gap-3 sm:gap-4">
+              \${data.testimonials.map(t => \`
+                <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm flex items-start gap-3 sm:gap-4">
+                  <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-emerald-50 text-emerald-600 flex-shrink-0 flex items-center justify-center font-bold text-xs sm:text-base">
+                    <i class="fas fa-quote-left"></i>
+                  </div>
+                  <div>
+                    <p class="text-xs sm:text-sm text-slate-600 italic leading-relaxed">"\${t.quote[lang] || ''}"</p>
+                    <span class="block text-xs font-bold text-slate-800 mt-2">\${t.name} <span class="font-normal text-slate-400">(\${t.role[lang] || ''})</span></span>
+                  </div>
+                </div>
+              \`).join('')}
+            </div>
+          </section>\` : ''}
+
+          \${data.faqs.length > 0 ? \`
+          <section class="bg-slate-100 py-10 sm:py-12 border-t border-slate-200">
+            <div class="max-w-3xl mx-auto px-4">
+              <h2 style="color: \${data.colorPrimary}" class="\${headingClass} text-xl sm:text-2xl text-center mb-6 tracking-tight">\${data.faqSectionTitle[lang] || ''}</h2>
+              <div class="space-y-3">
+                \${data.faqs.map(f => \`
+                  <details class="group bg-white p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm cursor-pointer">
+                    <summary class="flex justify-between items-center font-bold text-xs sm:text-sm text-slate-800 select-none">
+                      <span>\${f.q[lang] || ''}</span>
+                      <span class="transition group-open:rotate-180 text-slate-400"><i class="fas fa-chevron-down"></i></span>
+                    </summary>
+                    <p class="mt-3 text-xs sm:text-sm text-slate-600 leading-relaxed border-t pt-3 border-slate-100">\${f.a[lang] || ''}</p>
+                  </details>
+                \`).join('')}
+              </div>
+            </div>
+          </section>\` : ''}
+
+          <section id="daftar-form" class="max-w-xl mx-auto px-4 py-12 sm:py-16">
+            <div class="bg-white p-5 sm:p-8 rounded-2xl sm:rounded-3xl shadow-xl border border-slate-100">
+              <div class="text-center mb-6">
+                <h2 style="color: \${data.colorPrimary}" class="\${headingClass} text-xl sm:text-2xl tracking-tight">\${data.formTitle[lang] || ''}</h2>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1">\${data.formSubtitle[lang] || ''}</p>
+              </div>
+              <form id="leadForm" class="space-y-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">\${labels.parentName}</label>
+                  <input type="text" id="parentName" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm" placeholder="\${labels.placeholderParent}">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">\${labels.childName}</label>
+                    <input type="text" id="childName" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm" placeholder="\${labels.placeholderChild}">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">\${labels.childAge}</label>
+                    <input type="text" id="childAge" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm" placeholder="\${labels.placeholderAge}">
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">\${labels.waNumber}</label>
+                  <input type="tel" id="whatsapp" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm" placeholder="087771414812">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">\${labels.selectSession}</label>
+                  <select id="selectedSession" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm bg-white">
+                    \${sessionOptions}
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">\${labels.rsvpConfirm}</label>
+                  <select id="rsvpStatus" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm bg-white">
+                    <option value="\${labels.rsvpYes}">\${labels.rsvpYes}</option>
+                    <option value="\${labels.rsvpNeedWA}">\${labels.rsvpNeedWA}</option>
+                  </select>
+                </div>
+                <button type="submit" id="btnSubmit" style="background-color: \${data.colorAccent}" class="w-full text-slate-950 font-extrabold py-3.5 rounded-xl shadow-lg transition text-xs sm:text-sm tracking-wide">
+                  \${data.btnPrimaryText[lang] || ''}
+                </button>
+              </form>
+              <div id="statusMsg" class="hidden mt-3 p-3 rounded-xl text-center text-xs font-semibold"></div>
+            </div>
+          </section>
+
+          <footer style="background-color: \${data.colorFooter || '#0f172a'}" class="text-white py-8 px-4 text-center text-xs text-slate-400">
+            <p class="\${headingClass} text-white text-sm mb-1">\${data.schoolName}</p>
+            <p class="max-w-md mx-auto mb-4">\${data.footerAddress[lang] || ''}</p>
+            <p>© 2026 \${data.schoolName}. All rights reserved.</p>
+          </footer>
+
+          <a href="https://wa.me/\${data.whatsapp}?text=Halo%20Admin%20Sekolah%20Athalia" target="_blank" class="fixed bottom-5 right-5 bg-emerald-500 hover:bg-emerald-600 text-white w-12 h-12 rounded-full shadow-2xl flex items-center justify-center text-2xl z-40">
+            <i class="fab fa-whatsapp"></i>
+          </a>
+        </div>
+      \`;
+
+      const form = document.getElementById('leadForm');
+      if(form) {
+        form.addEventListener('submit', e => {
+          e.preventDefault();
+          const btn = document.getElementById('btnSubmit');
+          const msg = document.getElementById('statusMsg');
+          btn.disabled = true;
+          btn.innerText = 'Sending...';
+
+          const payload = {
+            parentName: document.getElementById('parentName').value,
+            childName: document.getElementById('childName').value,
+            childAge: document.getElementById('childAge').value,
+            whatsapp: document.getElementById('whatsapp').value,
+            selectedSession: document.getElementById('selectedSession').value,
+            rsvpStatus: document.getElementById('rsvpStatus').value
+          };
+
+          const waText = \`Halo Admin \${data.schoolName}, pendaftaran Event:\\n- Nama Ortu: \${payload.parentName}\\n- Nama Anak: \${payload.childName} (\${payload.childAge})\\n- Sesi: \${payload.selectedSession}\\n- RSVP: \${payload.rsvpStatus}\`;
+
+          if(!data.scriptUrl) {
+            window.open(\`https://wa.me/\${data.whatsapp}?text=\${encodeURIComponent(waText)}\`, '_blank');
+            btn.disabled = false;
+            btn.innerText = data.btnPrimaryText[lang];
+            return;
+          }
+
+          fetch(data.scriptUrl, { method: 'POST', body: JSON.stringify(payload) })
+          .then(res => {
+            btn.disabled = false;
+            btn.innerText = data.btnPrimaryText[lang];
+            msg.className = "mt-3 p-3 rounded-xl text-center text-xs font-semibold bg-emerald-100 text-emerald-800";
+            msg.innerText = lang === 'id' ? "Pendaftaran Berhasil!" : "Registration Successful!";
+            form.reset();
+          })
+          .catch(err => {
+            btn.disabled = false;
+            btn.innerText = data.btnPrimaryText[lang];
+            window.open(\`https://wa.me/\${data.whatsapp}?text=\${encodeURIComponent(waText)}\`, '_blank');
+          });
+        });
+      }
+    }
+
+    renderPage();
+    startTimer();
+  <\/script>
+</body>
+</html>`;
+    }
+
+    function openExportModal() {
+      const modal = document.getElementById('exportModal');
+      const textarea = document.getElementById('exportCodeTextarea');
+      textarea.value = generateStandaloneHTML();
+      modal.classList.remove('hidden');
+    }
+
+    function closeExportModal() {
+      document.getElementById('exportModal').classList.add('hidden');
+    }
+
+    function copyGeneratedHTML() {
+      const textarea = document.getElementById('exportCodeTextarea');
+      textarea.select();
+      document.execCommand('copy');
+      alert('Kode HTML berhasil disalin ke clipboard!');
+    }
+
+    window.onload = function() {
+      loadFromLocalStorage();
+      populateInputsFromState();
+      renderEditorLists();
+      renderPreview();
+    };
+  </script>
+</body>
+</html>
