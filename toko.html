@@ -8,61 +8,59 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
-    <!-- Pustaka SheetJS & QRCode -->
+    <!-- Pustaka SheetJS (Excel Parser) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    
     <!-- Pustaka Midtrans Snap JS (Production) -->
     <script type="text/javascript" src="https://app.midtrans.com/snap/snap.js" data-client-key="Mid-client-DUMMY"></script>
 
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; }
+        body { font-family: 'Inter', sans-serif; background-color: #0F172A; }
     </style>
 </head>
-<body class="text-slate-800 min-h-screen pb-12">
+<body class="text-slate-100 min-h-screen pb-12">
 
     <!-- HEADER DASHBOARD -->
-    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-30">
-        <div class="max-w-5xl mx-auto px-4 py-3.5 flex items-center justify-between">
+    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-30 shadow-xl">
+        <div class="max-w-6xl mx-auto px-4 py-3.5 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-teal-500 flex items-center justify-center font-black text-xl text-slate-950">
+                <div class="w-10 h-10 rounded-xl bg-teal-500 flex items-center justify-center font-black text-xl text-slate-950 shadow-lg shadow-teal-500/20">
                     <i class="fa-solid fa-store"></i>
                 </div>
                 <div>
-                    <h1 class="font-extrabold text-base leading-tight">Dashboard Pemilik Toko</h1>
-                    <p class="text-xs text-teal-300" id="headerStoreName">Mitra Bangunan Network</p>
+                    <h1 class="font-extrabold text-base leading-tight text-white">Dashboard Pemilik Toko</h1>
+                    <p class="text-xs text-teal-400 font-semibold" id="headerStoreName">Mitra Bangunan Network</p>
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <button onclick="openConfigModal()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 font-semibold">
+                <button onclick="openConfigModal()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-xl border border-slate-700 font-semibold transition">
                     <i class="fa-solid fa-gear"></i> Set API
                 </button>
-                <button id="btnLogout" onclick="logout()" class="hidden text-xs bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30 px-3 py-1.5 rounded-xl font-bold">
+                <button id="btnLogout" onclick="logout()" class="hidden text-xs bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 px-3 py-1.5 rounded-xl font-bold transition">
                     <i class="fa-solid fa-right-from-bracket"></i> Keluar
                 </button>
             </div>
         </div>
     </header>
 
-    <main class="max-w-5xl mx-auto px-4 mt-6 space-y-6">
+    <main class="max-w-6xl mx-auto px-4 mt-6 space-y-6">
 
         <!-- LOGIN FORM SECTION -->
-        <section id="loginSection" class="max-w-md mx-auto bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <section id="loginSection" class="max-w-md mx-auto bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-2xl space-y-4">
             <div class="text-center space-y-1">
-                <h2 class="text-lg font-black text-slate-900">Masuk Dashboard Toko</h2>
-                <p class="text-xs text-slate-500 font-medium">Masukkan ID Toko / Cabang dan PIN Kasir untuk mengelola katalog & laporan</p>
+                <h2 class="text-xl font-black text-white">Masuk Dashboard Toko</h2>
+                <p class="text-xs text-slate-400">Masukkan ID Toko / Cabang dan PIN Kasir untuk mengelola katalog & laporan</p>
             </div>
 
-            <div class="space-y-3">
+            <div class="space-y-4 pt-2">
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">ID Toko Mitra / Cabang</label>
-                    <input type="text" id="loginStoreId" placeholder="Contoh: TOKO-001-JKT" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs font-bold uppercase focus:bg-white focus:border-teal-600 focus:outline-none">
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">ID Toko Mitra / Cabang</label>
+                    <input type="text" id="loginStoreId" placeholder="Contoh: majujayamakmur-001-jkt" class="w-full bg-slate-900 border border-slate-600 rounded-xl px-3 py-2.5 text-xs text-white uppercase font-mono focus:border-teal-500 focus:outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">PIN Kasir Toko</label>
-                    <input type="text" id="loginPin" inputmode="numeric" autocomplete="off" placeholder="Masukkan 4-digit PIN" maxlength="6" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs font-bold focus:bg-white focus:border-teal-600 focus:outline-none" style="-webkit-text-security: disc;">
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">PIN Kasir Toko</label>
+                    <input type="password" id="loginPin" placeholder="Masukkan 4-digit PIN" maxlength="6" class="w-full bg-slate-900 border border-slate-600 rounded-xl px-3 py-2.5 text-xs text-white tracking-widest focus:border-teal-500 focus:outline-none">
                 </div>
-                <button onclick="loginStore()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-xs py-3 rounded-xl shadow transition flex items-center justify-center gap-2">
+                <button onclick="loginStore()" id="btnLoginSubmit" class="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-black py-3 rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-xs uppercase tracking-wider">
                     <i class="fa-solid fa-right-to-bracket"></i> MASUK KE DASHBOARD
                 </button>
             </div>
@@ -71,75 +69,114 @@
         <!-- DASHBOARD CONTENT SECTION -->
         <div id="dashboardContent" class="hidden space-y-6">
 
-            <!-- KPI STATS CARDS -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
-                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wide block">Total Omzet Belanja QR</span>
-                    <strong id="kpiOmzet" class="text-2xl font-black text-slate-900">Rp 0</strong>
-                    <p id="kpiTrxCount" class="text-[11px] font-semibold text-teal-600 pt-1">0 Transaksi Selesai</p>
-                </div>
-
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
-                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wide block">Komisi Tunai Diserahkan</span>
-                    <strong id="kpiKomisiTukang" class="text-2xl font-black text-emerald-600">Rp 0</strong>
-                    <p class="text-[11px] font-semibold text-slate-400 pt-1">Diterima Tukang / Diskon Nota</p>
-                </div>
-
-                <div class="bg-slate-900 text-white p-5 rounded-2xl border border-slate-800 shadow-md space-y-1 relative overflow-hidden">
-                    <div class="flex justify-between items-start">
-                        <span class="text-xs font-bold text-amber-400 uppercase tracking-wide block">Komisi Platform Terutang</span>
-                        <span id="kpiStatusBadge" class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold px-2 py-0.5 rounded-full">Lancar</span>
+            <!-- BANNER PERINGATAN LIMIT SETORAN (RP 500.000) -->
+            <div id="limitWarningBanner" class="hidden bg-rose-950/80 border-2 border-rose-500 text-rose-200 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-xl">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-triangle-exclamation text-2xl text-rose-400"></i>
+                    <div>
+                        <strong class="text-sm font-bold block">LIMIT SETORAN KOMISI PLATFORM TERLAMPAUI (≥ Rp 500.000)</strong>
+                        <p class="text-xs text-rose-300">Layanan verifikasi transaksi QR di kasir.html ditangguhkan sampai setoran dilunasi.</p>
                     </div>
-                    <strong id="kpiKomisiCreator" class="text-2xl font-black text-amber-400 block pt-1">Rp 0</strong>
-                    <div class="pt-2">
+                </div>
+                <button onclick="payQrisSettlement()" class="bg-rose-500 hover:bg-rose-400 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl shadow transition">
+                    Pelunasan QRIS Setoran
+                </button>
+            </div>
+
+            <!-- KPI STATS CARDS -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-slate-800 border border-slate-700 p-4 rounded-2xl shadow-sm space-y-1">
+                    <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Total Omzet Belanja QR</span>
+                    <strong id="kpiOmzet" class="text-xl font-black text-white block mt-1">Rp 0</strong>
+                    <p id="kpiTrxCount" class="text-[10px] font-semibold text-teal-400 pt-0.5">0 Transaksi Selesai</p>
+                </div>
+
+                <div class="bg-slate-800 border border-slate-700 p-4 rounded-2xl shadow-sm space-y-1">
+                    <span class="text-[11px] font-semibold text-teal-400 uppercase tracking-wider block">Komisi Tukang / Diskon (1%)</span>
+                    <strong id="kpiKomisiTukang" class="text-xl font-black text-teal-400 block mt-1">Rp 0</strong>
+                    <p class="text-[10px] font-semibold text-slate-400 pt-0.5">Diterima Tukang / Dipotong Nota</p>
+                </div>
+
+                <div class="bg-slate-800 border border-slate-700 p-4 rounded-2xl shadow-sm space-y-1">
+                    <span class="text-[11px] font-semibold text-blue-400 uppercase tracking-wider block">Bonus Staf Kasir (0.2%)</span>
+                    <strong id="kpiBonusKasir" class="text-xl font-black text-blue-400 block mt-1">Rp 0</strong>
+                    <p class="text-[10px] font-semibold text-slate-400 pt-0.5">Hak Insentif Operasional Kasir</p>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-700 p-4 rounded-2xl shadow-md space-y-1 relative overflow-hidden">
+                    <div class="flex justify-between items-start">
+                        <span class="text-[11px] font-bold text-amber-400 uppercase tracking-wider block">Setoran Terutang (Platform)</span>
+                        <span id="kpiStatusBadge" class="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold px-2 py-0.5 rounded-full">Lancar</span>
+                    </div>
+                    <strong id="kpiKomisiCreator" class="text-xl font-black text-amber-400 block mt-1">Rp 0</strong>
+                    <div class="pt-1.5">
                         <button onclick="payQrisSettlement()" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs px-3 py-1.5 rounded-xl transition inline-flex items-center gap-1.5 shadow">
-                            <i class="fa-solid fa-credit-card"></i> Bayar Setoran Komisi
+                            <i class="fa-solid fa-credit-card"></i> Bayar Setoran
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- MODUL KELOLA KATALOG HARGA MATERIAL TOKO -->
-            <section class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
-                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                    <div>
-                        <h3 class="font-extrabold text-slate-900 text-sm sm:text-base flex items-center gap-2">
-                            <i class="fa-solid fa-boxes-packing text-teal-600"></i> Kelola Katalog & Harga Material Cabang
-                        </h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Unggah berkas Excel (.xlsx/.xls) atau CSV 8-kolom untuk memperbarui harga satuan harian toko.</p>
+            <!-- RINCIAN ALOKASI SETORAN PLATFORM 1% -->
+            <section class="bg-slate-800/80 border border-slate-700 rounded-2xl p-5 space-y-3 shadow-xl">
+                <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-calculator text-teal-400"></i> Transparansi Pembagian Setoran Platform (1% Total Omzet)
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-700/60 space-y-1">
+                        <span class="text-slate-400 font-semibold block">1. Hak Net Platform Creator (0.8%):</span>
+                        <strong id="breakdownCreator" class="text-sm font-bold text-white block">Rp 0</strong>
+                        <p class="text-[10px] text-slate-500 leading-relaxed">Ditransfer ke rekening pengembang aplikasi untuk biaya pemeliharaan server.</p>
                     </div>
-                    <a href="Template_Katalog_53_Standard_Dan_Custom_Mitra_Bangunan.xlsx" download class="text-xs bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold px-3 py-2 rounded-xl border border-teal-200 transition inline-flex items-center gap-1.5 shadow-sm">
-                        <i class="fa-solid fa-file-excel text-emerald-600"></i> Unduh Template Excel Lengkap
+                    <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-700/60 space-y-1">
+                        <span class="text-slate-400 font-semibold block">2. Alokasi Bonus Staf Kasir Toko (0.2%):</span>
+                        <strong id="breakdownKasir" class="text-sm font-bold text-blue-400 block">Rp 0</strong>
+                        <p class="text-[10px] text-slate-500 leading-relaxed">Diserahkan tunai / dimasukkan ke amplop bonus staf kasir toko Anda saat rekap bulanan.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- KELOLA KATALOG HARGA MATERIAL TOKO (8-KOLOM) -->
+            <section class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-xl space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-700 pb-3">
+                    <div>
+                        <h3 class="font-bold text-white text-sm sm:text-base flex items-center gap-2">
+                            <i class="fa-solid fa-boxes-packing text-teal-400"></i> Kelola Katalog & Harga Material Cabang
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Unggah berkas Excel (.xlsx/.xls) atau CSV 8-kolom untuk memperbarui harga satuan harian toko.</p>
+                    </div>
+                    <a href="Template_Katalog_53_Standard_Dan_Custom_Mitra_Bangunan.xlsx" download class="text-xs bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 font-bold px-3 py-2 rounded-xl border border-teal-500/30 transition inline-flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-excel text-emerald-400"></i> Unduh Template Excel Lengkap
                     </a>
                 </div>
 
-                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-900 flex items-start gap-3">
-                    <i class="fa-solid fa-circle-info text-amber-600 text-lg mt-0.5 shrink-0"></i>
+                <div class="bg-slate-900/60 border border-slate-700 rounded-xl p-3.5 text-xs text-slate-300 flex items-start gap-3">
+                    <i class="fa-solid fa-circle-info text-teal-400 text-base mt-0.5 shrink-0"></i>
                     <div class="space-y-1">
-                        <p class="font-bold text-amber-950">Catatan Pengisian Katalog 8-Kolom:</p>
-                        <p class="text-amber-800 leading-relaxed">
-                            Pastikan file mencakup header: <strong>StoreID, Kode_Material, Kategori, Tipe_Item, Nama_Material, Spesifikasi_Merk, Satuan, Harga_Satuan_Toko</strong>. Kode Standard digunakan untuk kalkulator otomatis.
+                        <p class="font-bold text-white">Format Header Excel 8-Kolom Wajib:</p>
+                        <p class="text-slate-400 leading-relaxed font-mono text-[11px]">
+                            StoreID | Kode_Material | Kategori | Tipe_Item | Nama_Material | Spesifikasi_Merk | Satuan | Harga_Satuan_Toko
                         </p>
                     </div>
                 </div>
 
-                <div class="border-2 border-dashed border-slate-300 hover:border-teal-500 rounded-2xl p-6 text-center bg-slate-50 hover:bg-teal-50/30 transition cursor-pointer" onclick="document.getElementById('fileCatalogInput').click()">
-                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-teal-600 mb-2"></i>
-                    <p class="text-xs font-bold text-slate-700">Klik untuk memilih file Excel (.xlsx / .xls) atau CSV</p>
+                <div class="border-2 border-dashed border-slate-700 hover:border-teal-500 rounded-2xl p-6 text-center bg-slate-900/40 hover:bg-slate-900/80 transition cursor-pointer" onclick="document.getElementById('fileCatalogInput').click()">
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-teal-400 mb-2"></i>
+                    <p class="text-xs font-bold text-slate-200">Klik untuk memilih file Excel (.xlsx / .xls) atau CSV</p>
                     <p class="text-[11px] text-slate-400 mt-1">Sistem otomatis menyelaraskan data dengan StoreID cabang yang aktif</p>
                     <input type="file" id="fileCatalogInput" accept=".csv, .xlsx, .xls" class="hidden" onchange="handleCatalogFileUpload(event)">
                 </div>
 
-                <div id="catalogPreviewBox" class="hidden space-y-3 pt-3 border-t border-slate-100">
+                <div id="catalogPreviewBox" class="hidden space-y-3 pt-3 border-t border-slate-700">
                     <div class="flex flex-wrap items-center justify-between gap-2">
-                        <span class="text-xs font-bold text-slate-700" id="previewCountText">Preview Data Material (0 Item)</span>
-                        <button onclick="saveCatalogToServer()" id="btnSaveCatalog" class="bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold px-4 py-2 rounded-xl shadow transition inline-flex items-center gap-1.5">
+                        <span class="text-xs font-bold text-slate-300" id="previewCountText">Preview Data Material (0 Item)</span>
+                        <button onclick="saveCatalogToServer()" id="btnSaveCatalog" class="bg-teal-500 hover:bg-teal-400 text-slate-950 text-xs font-black px-4 py-2 rounded-xl shadow transition inline-flex items-center gap-1.5">
                             <i class="fa-solid fa-floppy-disk"></i> Simpan Katalog ke Server
                         </button>
                     </div>
-                    <div class="max-h-72 overflow-y-auto border border-slate-200 rounded-xl">
+                    <div class="max-h-72 overflow-y-auto border border-slate-700 rounded-xl bg-slate-900/60">
                         <table class="w-full text-left text-xs whitespace-nowrap">
-                            <thead class="bg-slate-100 font-bold text-slate-700 sticky top-0 shadow-sm">
+                            <thead class="bg-slate-900 font-bold text-slate-400 sticky top-0 shadow-sm border-b border-slate-700">
                                 <tr>
                                     <th class="p-2.5">StoreID</th>
                                     <th class="p-2.5">Kode Material</th>
@@ -151,23 +188,23 @@
                                     <th class="p-2.5 text-right">Harga Toko (Rp)</th>
                                 </tr>
                             </thead>
-                            <tbody id="catalogPreviewBody" class="divide-y divide-slate-100"></tbody>
+                            <tbody id="catalogPreviewBody" class="divide-y divide-slate-800 text-slate-300"></tbody>
                         </table>
                     </div>
                 </div>
             </section>
 
-            <!-- KARTU EDUKASI PEMBAYARAN KOMISI PLATFORM -->
-            <section class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-5 border border-slate-700 shadow-sm space-y-4">
+            <!-- METODE PEMBAYARAN SETORAN & KONFIRMASI -->
+            <section class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-5 border border-slate-700 shadow-xl space-y-4">
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-700/80 pb-4">
                     <div class="space-y-1">
                         <h3 class="text-sm font-black text-teal-400 uppercase tracking-wider flex items-center gap-2">
-                            <i class="fa-solid fa-credit-card"></i> Pembayaran Setoran Komisi Platform
+                            <i class="fa-solid fa-credit-card"></i> Metode Pembayaran Setoran Komisi Platform
                         </h3>
-                        <p class="text-xs text-slate-300 font-medium">Lakukan pelunasan komisi terutang via QRIS / E-Wallet / Bank Transfer sebelum mencapai limit Rp 500.000.</p>
+                        <p class="text-xs text-slate-300 font-medium">Lakukan pelunasan komisi terutang via Transfer Bank / QRIS sebelum mencapai limit Rp 500.000.</p>
                     </div>
-                    <a id="btnConfirmPayment" href="#" target="_blank" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-xs px-4 py-2.5 rounded-xl shadow transition inline-flex items-center gap-2">
-                        <i class="fa-brands fa-whatsapp text-sm"></i> Bantuan WA Admin
+                    <a id="btnConfirmPayment" href="#" target="_blank" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs px-4 py-2.5 rounded-xl shadow transition inline-flex items-center gap-2">
+                        <i class="fa-brands fa-whatsapp text-sm"></i> Konfirmasi WA Admin
                     </a>
                 </div>
 
@@ -179,38 +216,40 @@
                     </div>
                     <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700 space-y-1">
                         <span class="text-slate-400 font-semibold block">Sistem Pembayaran Otomatis Midtrans:</span>
-                        <p class="text-slate-300 font-medium">Pembayaran via Snap Popup terverifikasi otomatis oleh Webhook server dalam hitungan detik untuk membuka gembok kasir toko.</p>
+                        <p class="text-slate-300 font-medium">Pembayaran via Snap Popup terverifikasi otomatis oleh Webhook server dalam hitungan detik untuk membuka limit kasir toko.</p>
                     </div>
                 </div>
             </section>
 
-            <!-- RIWAYAT TRANSAKSI TOKO -->
-            <section class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+            <!-- RIWAYAT TRANSAKSI TOKO & FOTO STRUK -->
+            <section class="bg-slate-800 rounded-2xl p-5 border border-slate-700 shadow-xl space-y-4">
                 <div class="flex items-center justify-between">
-                    <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-receipt text-teal-600"></i> Riwayat Transaksi Toko
+                    <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                        <i class="fa-solid fa-receipt text-teal-400"></i> Riwayat Transaksi QR Toko
                     </h3>
-                    <span class="text-xs text-slate-500 font-semibold" id="trxSummaryCount">0 Total Transaksi</span>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs text-slate-400 font-semibold" id="trxSummaryCount">0 Total Transaksi</span>
+                        <button onclick="reloadDashboard()" class="text-xs text-teal-400 hover:text-teal-300 font-semibold flex items-center gap-1">
+                            <i class="fa-solid fa-arrows-rotate"></i> Refresh
+                        </button>
+                    </div>
                 </div>
 
-                <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                <div class="overflow-x-auto border border-slate-700 rounded-xl bg-slate-900/40">
                     <table class="w-full text-left text-xs whitespace-nowrap">
-                        <thead class="bg-slate-100 font-bold text-slate-700">
+                        <thead class="bg-slate-900 font-bold text-slate-400 border-b border-slate-700">
                             <tr>
-                                <th class="p-3">ID Transaksi</th>
-                                <th class="p-3">Tanggal</th>
-                                <th class="p-3">No. Struk / Ref</th>
+                                <th class="p-3">ID Transaksi / Waktu</th>
                                 <th class="p-3">Pelanggan</th>
                                 <th class="p-3 text-right">Total Belanja</th>
-                                <th class="p-3 text-center">Mode Insentif</th>
-                                <th class="p-3 text-right">Komisi Tukang</th>
-                                <th class="p-3 text-right">Komisi Platform</th>
-                                <th class="p-3 text-center">Status Kasir</th>
-                                <th class="p-3">Kasir</th>
+                                <th class="p-3 text-right">Komisi Tukang (1%)</th>
+                                <th class="p-3 text-right">Bonus Kasir (0.2%)</th>
+                                <th class="p-3 text-center">Status</th>
+                                <th class="p-3 text-center">Kasir & Struk</th>
+                                <th class="p-3 text-center">Bukti Foto Struk</th>
                             </tr>
                         </thead>
-                        <tbody id="tableTrxBody" class="divide-y divide-slate-100">
-                        </tbody>
+                        <tbody id="tableTrxBody" class="divide-y divide-slate-800 text-slate-300 font-medium"></tbody>
                     </table>
                 </div>
             </section>
@@ -219,14 +258,14 @@
 
     </main>
 
-    <!-- CONFIG MODAL -->
-    <div id="modalConfig" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-2xl p-5 shadow-2xl space-y-4">
-            <h3 class="font-extrabold text-base text-slate-900">Set API Web App (GAS)</h3>
-            <input type="text" id="cfgGasUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-semibold focus:outline-none">
+    <!-- CONFIG API MODAL -->
+    <div id="modalConfig" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl p-5 shadow-2xl space-y-4">
+            <h3 class="font-bold text-base text-white">Set API Web App (GAS)</h3>
+            <input type="text" id="cfgGasUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-900 border border-slate-600 rounded-xl p-2.5 text-xs font-mono text-white focus:outline-none focus:border-teal-500">
             <div class="flex justify-end gap-2">
-                <button onclick="closeModal('modalConfig')" class="bg-slate-200 font-bold px-3 py-2 rounded-xl text-xs">Batal</button>
-                <button onclick="saveConfigUrl()" class="bg-teal-600 text-white font-bold px-4 py-2 rounded-xl text-xs">Simpan</button>
+                <button onclick="closeModal('modalConfig')" class="bg-slate-700 text-slate-300 font-bold px-3 py-2 rounded-xl text-xs">Batal</button>
+                <button onclick="saveConfigUrl()" class="bg-teal-500 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs">Simpan</button>
             </div>
         </div>
     </div>
@@ -237,152 +276,164 @@
 
         let parsedCatalogData = [];
         let currentActiveStoreId = '';
+        let currentActivePin = '';
 
         window.addEventListener('DOMContentLoaded', () => {
-            const sessionData = localStorage.getItem('mb_toko_session');
-            if (sessionData) {
-                try {
-                    const session = JSON.parse(sessionData);
-                    document.getElementById('loginStoreId').value = session.storeId || '';
-                    document.getElementById('loginPin').value = session.pin || '';
-                    
-                    const cachedData = localStorage.getItem(`mb_toko_cache_${session.storeId}`);
-                    if (cachedData) {
-                        renderDashboard(JSON.parse(cachedData));
-                    }
-                    
-                    fetchDashboardBackground(session.storeId, session.pin);
-                } catch(e) {}
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryStore = urlParams.get('storeId') || urlParams.get('store') || urlParams.get('s');
+            
+            if (queryStore) {
+                document.getElementById('loginStoreId').value = queryStore.trim().toLowerCase();
+            }
+
+            const savedStore = localStorage.getItem('MB_STORE_ID');
+            const savedPin = localStorage.getItem('MB_STORE_PIN');
+
+            if (savedStore && savedPin) {
+                document.getElementById('loginStoreId').value = savedStore;
+                document.getElementById('loginPin').value = savedPin;
+                executeLogin(savedStore, savedPin);
             }
         });
 
-        async function loginStore() {
-            const storeId = document.getElementById('loginStoreId').value.trim().toUpperCase();
+        function loginStore() {
+            const storeId = document.getElementById('loginStoreId').value.trim().toLowerCase();
             const pin = document.getElementById('loginPin').value.trim();
 
             if (!storeId || !pin) return alert('ID Toko dan PIN wajib diisi!');
-
-            const cachedData = localStorage.getItem(`mb_toko_cache_${storeId}`);
-            if (cachedData) {
-                renderDashboard(JSON.parse(cachedData));
-            }
-
-            await fetchDashboardBackground(storeId, pin, true);
+            executeLogin(storeId, pin);
         }
 
-        async function fetchDashboardBackground(storeId, pin, isManualLogin = false) {
-            if (!GAS_WEB_APP_URL) {
-                if (isManualLogin) alert('API Web App belum diatur! Klik tombol "Set API" di kanan atas.');
-                return;
-            }
+        async function executeLogin(storeId, pin) {
+            const btn = document.getElementById('btnLoginSubmit');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> MEMERIKSA HAK AKSES...`;
 
             try {
-                const res = await fetch(`${GAS_WEB_APP_URL}?action=getStoreDashboard&storeId=${storeId}&pin=${pin}`);
+                const res = await fetch(`${GAS_WEB_APP_URL}?action=getStoreDashboard&storeId=${encodeURIComponent(storeId)}&pin=${encodeURIComponent(pin)}`);
                 const data = await res.json();
 
                 if (!data.success) {
-                    if (isManualLogin) alert('Gagal Masuk: ' + data.message);
+                    alert("Gagal Masuk: " + data.message);
                     return;
                 }
 
                 currentActiveStoreId = storeId;
-                localStorage.setItem('mb_toko_session', JSON.stringify({ storeId, pin }));
-                localStorage.setItem(`mb_toko_cache_${storeId}`, JSON.stringify(data));
+                currentActivePin = pin;
+                localStorage.setItem('MB_STORE_ID', storeId);
+                localStorage.setItem('MB_STORE_PIN', pin);
 
                 renderDashboard(data);
 
-            } catch(e) {
-                if (isManualLogin && !localStorage.getItem(`mb_toko_cache_${storeId}`)) {
-                    alert('Terjadi kesalahan koneksi server: ' + e.toString());
-                }
+            } catch (err) {
+                alert("Kesalahan Koneksi Server: " + err.toString());
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> Masuk Ke Dashboard`;
             }
         }
 
         function renderDashboard(data) {
-            currentActiveStoreId = data.store.id;
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('dashboardContent').classList.remove('hidden');
             document.getElementById('btnLogout').classList.remove('hidden');
 
-            document.getElementById('headerStoreName').innerText = `${data.store.nama} (${data.store.id})`;
-            document.getElementById('kpiOmzet').innerText = `Rp ${Number(data.kpi.totalOmzet || 0).toLocaleString('id-ID')}`;
-            document.getElementById('kpiTrxCount').innerText = `${data.kpi.totalLunasCount || 0} Transaksi Selesai`;
-            document.getElementById('kpiKomisiTukang').innerText = `Rp ${Number(data.kpi.totalKomisiTukang || 0).toLocaleString('id-ID')}`;
-            document.getElementById('kpiKomisiCreator').innerText = `Rp ${Number(data.kpi.totalKomisiCreator || 0).toLocaleString('id-ID')}`;
+            const kpi = data.kpi || {};
+            const storeNama = (data.store && data.store.nama) ? data.store.nama : currentActiveStoreId.toUpperCase();
+            
+            document.getElementById('headerStoreName').innerText = `${storeNama} (${currentActiveStoreId})`;
+            document.getElementById('kpiOmzet').innerText = "Rp " + (kpi.totalOmzet || 0).toLocaleString('id-ID');
+            document.getElementById('kpiTrxCount').innerText = `${kpi.totalLunasCount || 0} Transaksi Selesai`;
+            document.getElementById('kpiKomisiTukang').innerText = "Rp " + (kpi.totalKomisiTukang || 0).toLocaleString('id-ID');
+            document.getElementById('kpiBonusKasir').innerText = "Rp " + (kpi.totalBonusKasir || 0).toLocaleString('id-ID');
+            
+            const terutang = kpi.totalTerutangPlatform || 0;
+            document.getElementById('kpiKomisiCreator').innerText = "Rp " + terutang.toLocaleString('id-ID');
 
-            const totalCreator = Number(data.kpi.totalKomisiCreator || 0);
+            // Breakdown Calculations
+            const netCreator = Math.round(terutang * 0.8);
+            const bonusKasirAllocated = Math.round(terutang * 0.2);
+            document.getElementById('breakdownCreator').innerText = "Rp " + netCreator.toLocaleString('id-ID');
+            document.getElementById('breakdownKasir').innerText = "Rp " + bonusKasirAllocated.toLocaleString('id-ID');
+
+            // Limit Badge Check
             const statusBadge = document.getElementById('kpiStatusBadge');
+            const limitBanner = document.getElementById('limitWarningBanner');
 
-            if (totalCreator >= 500000) {
-                statusBadge.className = "text-[10px] bg-red-500/20 text-red-300 border border-red-500/30 font-bold px-2 py-0.5 rounded-full";
+            if (kpi.limitWarning) {
+                statusBadge.className = "text-[9px] bg-rose-500/20 text-rose-300 border border-rose-500/30 font-bold px-2 py-0.5 rounded-full";
                 statusBadge.innerText = "Wajib Setor";
-            } else if (totalCreator >= 300000) {
-                statusBadge.className = "text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold px-2 py-0.5 rounded-full";
+                limitBanner.classList.remove('hidden');
+            } else if (terutang >= 300000) {
+                statusBadge.className = "text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold px-2 py-0.5 rounded-full";
                 statusBadge.innerText = "Mendekati Limit";
+                limitBanner.classList.add('hidden');
             } else {
-                statusBadge.className = "text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold px-2 py-0.5 rounded-full";
+                statusBadge.className = "text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold px-2 py-0.5 rounded-full";
                 statusBadge.innerText = "Lancar";
+                limitBanner.classList.add('hidden');
             }
 
+            // WA Admin Dynamic URL
             const adminPhone = "6282113866890";
             const textWa = `*BANTUAN SETORAN KOMISI PLATFORM MITRA BANGUNAN*\n\n` +
                            `Halo Admin,\n` +
-                           `Saya pemilik toko: *${data.store.nama}* (${data.store.id})\n` +
-                           `Ingin menanyakan status setoran komisi terutang sebesar: *Rp ${totalCreator.toLocaleString('id-ID')}*.`;
+                           `Saya pemilik toko: *${storeNama}* (${currentActiveStoreId})\n` +
+                           `Ingin mengonfirmasi setoran komisi platform terutang sebesar: *Rp ${terutang.toLocaleString('id-ID')}*.`;
             
             document.getElementById('btnConfirmPayment').href = `https://api.whatsapp.com/send?phone=${adminPhone}&text=${encodeURIComponent(textWa)}`;
 
+            // Render Transactions Table
             const tbody = document.getElementById('tableTrxBody');
-            tbody.innerHTML = '';
-
             const transactions = data.transactions || [];
             document.getElementById('trxSummaryCount').innerText = `${transactions.length} Total Transaksi`;
 
             if (transactions.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="10" class="p-6 text-center text-slate-400 font-semibold">Belum ada riwayat transaksi.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-500 font-medium">Belum ada riwayat transaksi QR di toko ini.</td></tr>`;
                 return;
             }
 
-            transactions.forEach(trx => {
-                const isVerified = (String(trx.status).toUpperCase() === 'SELESAI' || String(trx.status).toUpperCase() === 'LUNAS');
-                
-                const statusKasirBadge = isVerified
-                    ? `<span class="bg-teal-100 text-teal-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-teal-200"><i class="fa-solid fa-check"></i> SELESAI (LUNAS)</span>`
-                    : `<span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-amber-200">PENDING</span>`;
+            tbody.innerHTML = transactions.map(trx => {
+                const isDone = (String(trx.status).toUpperCase() === 'SELESAI' || String(trx.status).toUpperCase() === 'LUNAS');
+                const fotoBtn = (trx.fotoStrukUrl && trx.fotoStrukUrl.length > 10) 
+                    ? `<a href="${trx.fotoStrukUrl}" target="_blank" class="bg-slate-700 hover:bg-slate-600 text-teal-300 px-2.5 py-1 rounded-lg border border-slate-600 text-[10px] inline-flex items-center gap-1 transition"><i class="fa-solid fa-image"></i> Lihat Foto</a>`
+                    : `<span class="text-slate-600 text-[10px]">-</span>`;
 
-                const modeText = (trx.modeIncentive === 'CASHBACK_TUKANG' || trx.modeIncentive === 'KOMISI_TUKANG') ? 'Komisi Tukang' : 'Diskon Nota';
-
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="p-3 font-bold text-teal-700">${trx.id}</td>
-                        <td class="p-3 text-slate-500 font-medium">${trx.date || '-'}</td>
-                        <td class="p-3 font-bold text-slate-700">${trx.strukNo || '-'}</td>
-                        <td class="p-3 font-semibold text-slate-800">${trx.custName || 'Umum'}</td>
-                        <td class="p-3 text-right font-bold text-slate-900">Rp ${Number(trx.grandTotal || 0).toLocaleString('id-ID')}</td>
-                        <td class="p-3 text-center font-bold text-[10px] text-slate-600">${modeText}</td>
-                        <td class="p-3 text-right font-bold text-emerald-600">Rp ${Number(trx.nominalInsentif || 0).toLocaleString('id-ID')}</td>
-                        <td class="p-3 text-right font-bold text-amber-600">
-                            Rp ${Number(trx.komisiCreator || 0).toLocaleString('id-ID')}
+                return `
+                    <tr class="hover:bg-slate-900/40 transition">
+                        <td class="p-3">
+                            <strong class="text-teal-400 font-mono block">${trx.id}</strong>
+                            <span class="text-[10px] text-slate-500 block">${trx.date || '-'}</span>
                         </td>
-                        <td class="p-3 text-center">${statusKasirBadge}</td>
-                        <td class="p-3 font-medium text-slate-500">${trx.cashierName || '-'}</td>
+                        <td class="p-3 font-semibold text-white">${trx.custName || 'Umum'}</td>
+                        <td class="p-3 text-right font-bold text-white">Rp ${Number(trx.grandTotal || 0).toLocaleString('id-ID')}</td>
+                        <td class="p-3 text-right text-teal-400">Rp ${Number(trx.nominalInsentif || 0).toLocaleString('id-ID')}</td>
+                        <td class="p-3 text-right text-blue-400">Rp ${Number(trx.bonusKasir || 0).toLocaleString('id-ID')}</td>
+                        <td class="p-3 text-center">
+                            <span class="${isDone ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border-amber-500/30'} text-[10px] font-bold px-2 py-0.5 rounded-full border">
+                                ${trx.status}
+                            </span>
+                        </td>
+                        <td class="p-3 text-center text-[11px]">
+                            <span class="text-white block font-semibold">${trx.cashierName || '-'}</span>
+                            <span class="text-slate-400 block font-mono text-[10px]">${trx.strukNo || '-'}</span>
+                        </td>
+                        <td class="p-3 text-center">${fotoBtn}</td>
                     </tr>
                 `;
-            });
+            }).join('');
         }
 
-        /* LOGIKA PARSER SHEETJS 8-KOLOM & UPLOAD KATALOG HARGA TOKO */
+        /* LOGIKA EXCEL SHEETJS PARSER & KATALOG HARGA TOKO */
         function handleCatalogFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
 
             const reader = new FileReader();
-
             reader.onload = function(e) {
                 try {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
-                    
                     const firstSheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[firstSheetName];
                     const jsonRows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
@@ -414,7 +465,6 @@
                     alert("Gagal membaca berkas Excel/CSV: " + err.toString());
                 }
             };
-
             reader.readAsArrayBuffer(file);
         }
 
@@ -429,19 +479,19 @@
             items.forEach(item => {
                 const isStd = item.tipe === 'STANDARD_53' || item.kode.startsWith('STD-');
                 const badgeTipe = isStd
-                    ? `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-200">STANDARD_53</span>`
-                    : `<span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-amber-200">CUSTOM_TOKO</span>`;
+                    ? `<span class="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">STANDARD_53</span>`
+                    : `<span class="bg-amber-500/20 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-500/30">CUSTOM_TOKO</span>`;
 
                 tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="p-2.5 font-bold text-teal-700">${item.storeId || currentActiveStoreId}</td>
-                        <td class="p-2.5 font-mono font-bold text-slate-700">${item.kode || '-'}</td>
-                        <td class="p-2.5 text-slate-600 font-medium">${item.kategori || '-'}</td>
+                    <tr class="hover:bg-slate-900/40 transition">
+                        <td class="p-2.5 font-bold text-teal-400">${item.storeId || currentActiveStoreId}</td>
+                        <td class="p-2.5 font-mono font-bold text-slate-300">${item.kode || '-'}</td>
+                        <td class="p-2.5 text-slate-400 font-medium">${item.kategori || '-'}</td>
                         <td class="p-2.5 text-center">${badgeTipe}</td>
-                        <td class="p-2.5 font-bold text-slate-800">${item.nama}</td>
-                        <td class="p-2.5 text-slate-500">${item.spek || '-'}</td>
-                        <td class="p-2.5 text-center text-slate-600 font-medium">${item.satuan}</td>
-                        <td class="p-2.5 text-right font-extrabold text-teal-700">Rp ${item.harga.toLocaleString('id-ID')}</td>
+                        <td class="p-2.5 font-bold text-white">${item.nama}</td>
+                        <td class="p-2.5 text-slate-400">${item.spek || '-'}</td>
+                        <td class="p-2.5 text-center text-slate-400 font-medium">${item.satuan}</td>
+                        <td class="p-2.5 text-right font-black text-teal-400">Rp ${item.harga.toLocaleString('id-ID')}</td>
                     </tr>
                 `;
             });
@@ -451,21 +501,14 @@
 
         async function saveCatalogToServer() {
             if (parsedCatalogData.length === 0) return alert("Tidak ada data material untuk disimpan!");
-            if (!GAS_WEB_APP_URL) return alert("API Web App URL belum diatur!");
-
-            const sessionData = localStorage.getItem('mb_toko_session');
-            if (!sessionData) return alert("Sesi login toko kadaluarsa. Silakan login kembali!");
             
-            const session = JSON.parse(sessionData);
-            const storeId = session.storeId;
-
             const btn = document.getElementById('btnSaveCatalog');
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan ke Server...';
 
             const payload = {
                 action: 'updateStoreCatalog',
-                storeId: storeId,
+                storeId: currentActiveStoreId,
                 items: parsedCatalogData
             };
 
@@ -492,7 +535,7 @@
             }
         }
 
-        /* LOGIKA PEMBAYARAN SETORAN VIA MIDTRANS SNAP POPUP */
+        /* LOGIKA MIDTRANS SNAP SETORAN POPUP */
         async function payQrisSettlement() {
             if (!currentActiveStoreId) return alert("Sesi toko tidak aktif. Silakan login ulang!");
 
@@ -514,22 +557,18 @@
 
                 const data = await res.json();
                 if (data.success && data.token) {
-                    // Tampilkan Pop-Up Pembayaran Midtrans Snap
                     if (window.snap) {
                         window.snap.pay(data.token, {
                             onSuccess: function(result){
                                 alert("Pembayaran Berhasil! Limit toko dibuka kembali.");
-                                location.reload();
+                                reloadDashboard();
                             },
                             onPending: function(result){
                                 alert("Menunggu Pembayaran Diselesaikan...");
-                                location.reload();
+                                reloadDashboard();
                             },
                             onError: function(result){
                                 alert("Pembayaran Gagal!");
-                            },
-                            onClose: function(){
-                                console.log('Pop-up pembayaran ditutup oleh pengguna.');
                             }
                         });
                     } else if (data.redirect_url) {
@@ -543,8 +582,15 @@
             }
         }
 
+        function reloadDashboard() {
+            if (currentActiveStoreId && currentActivePin) {
+                executeLogin(currentActiveStoreId, currentActivePin);
+            }
+        }
+
         function logout() {
-            localStorage.removeItem('mb_toko_session');
+            localStorage.removeItem('MB_STORE_ID');
+            localStorage.removeItem('MB_STORE_PIN');
             location.reload();
         }
 
@@ -560,12 +606,7 @@
             GAS_WEB_APP_URL = document.getElementById('cfgGasUrl').value.trim();
             localStorage.setItem('mb_gas_url', GAS_WEB_APP_URL);
             closeModal('modalConfig');
-            
-            const sessionData = localStorage.getItem('mb_toko_session');
-            if (sessionData) {
-                const session = JSON.parse(sessionData);
-                fetchDashboardBackground(session.storeId, session.pin);
-            }
+            reloadDashboard();
         }
     </script>
 </body>
