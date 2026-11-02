@@ -1,0 +1,26 @@
+<!-- KANAN HEADER: KASIR AKTIF, BONUS SHIFT & REKAP WA -->
+<div class="flex items-center gap-2.5">
+    
+    <!-- INDIKATOR KASIR AKTIF SHIFT -->
+    <div class="bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-sm">
+        <i class="fa-solid fa-user-check text-teal-400 text-sm"></i>
+        <div class="text-left">
+            <span class="text-[9px] text-slate-400 block font-semibold leading-tight">Kasir Bertugas:</span>
+            <strong id="activeCashierName" class="text-xs text-white font-bold block">Kardi</strong>
+        </div>
+        <button onclick="changeActiveCashier()" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-teal-300 font-bold px-2 py-1 rounded-lg ml-1 transition border border-slate-600">
+            Ganti
+        </button>
+    </div>
+
+    <!-- BONUS INSENTIF SHIFT INI -->
+    <div class="bg-blue-950/80 border border-blue-500/40 px-3 py-1.5 rounded-xl text-right shadow-sm">
+        <span class="text-[9px] text-blue-300 block font-bold leading-tight uppercase tracking-wider">Bonus Shift Ini</span>
+        <strong id="shiftBonusText" class="text-xs text-blue-400 font-black block">Rp 107.212</strong>
+    </div>
+
+    <!-- TOMBOL REKAP SHIFT WA -->
+    <button onclick="sendShiftWaReport()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-3.5 py-2 rounded-xl transition inline-flex items-center gap-1.5 shadow-lg">
+        <i class="fa-brands fa-whatsapp text-sm"></i> Kirim Rekap WA
+    </button>
+</div>
