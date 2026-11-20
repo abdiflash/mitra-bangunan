@@ -138,7 +138,7 @@
                         <p class="text-[11px] text-slate-500">Sudah dipotong / dibayar kasir</p>
                     </div>
 
-                    <!-- Kartu 3: Saldo Bonus Kasir Belum Ditransfer -->
+                    <!-- Kartu 3: Saldo Bonus Kasir Belum Terverifikasi Diterima -->
                     <div class="bg-slate-900 border border-blue-500/30 p-4 rounded-2xl space-y-1">
                         <div class="flex items-center justify-between gap-1">
                             <span class="text-[10px] sm:text-[11px] font-bold text-blue-400 uppercase tracking-wider block">Bonus Kasir (0.2%)</span>
@@ -146,7 +146,7 @@
                         </div>
                         <strong id="kpiBonusKasir" class="text-lg sm:text-xl font-black text-blue-400 block">Rp 0</strong>
                         <button onclick="switchTab('kasir')" class="text-[11px] font-bold text-blue-300 hover:underline inline-flex items-center gap-1">
-                            Transfer ke Kasir →
+                            Cairkan & Verifikasi →
                         </button>
                     </div>
 
@@ -256,7 +256,7 @@
                             <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 flex items-center justify-between">
                                 <div>
                                     <span class="text-slate-400 block">Alokasi Bonus Kasir Toko (0.2% Omzet Bulan Ini)</span>
-                                    <span class="text-[10px] text-slate-500">Dipegang toko untuk ditransfer langsung ke kasir</span>
+                                    <span class="text-[10px] text-slate-500">Dipegang toko untuk dicairkan & diverifikasi kasir</span>
                                 </div>
                                 <strong id="breakdownKasir" class="text-sm font-black text-blue-400">Rp 0</strong>
                             </div>
@@ -310,11 +310,22 @@
                 </section>
 
                 <!-- ============================================================== -->
-                <!-- URUSAN 3: DOMPET BONUS KASIR (TRANSFER & RESET 0), AKUN & SHIFT-->
+                <!-- URUSAN 3: DOMPET BONUS KASIR (VERIFIKASI KASIR), AKUN & SHIFT  -->
                 <!-- ============================================================== -->
                 <section id="tab-kasir" class="tab-panel hidden space-y-5">
                     
-                    <!-- Bagian A: Dompet Bonus Kasir (Bisa Ditransfer Kapan Saja -> Reset Rp 0) -->
+                    <!-- Banner Toast Notifikasi Sukses -->
+                    <div id="kasirToastBanner" class="hidden bg-emerald-950/90 border border-emerald-500 text-emerald-100 px-4 py-3 rounded-2xl flex items-center justify-between gap-2 text-xs shadow-lg">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-shield-check text-emerald-400 text-base"></i>
+                            <span id="kasirToastText" class="font-semibold">Bonus berhasil diverifikasi kasir!</span>
+                        </div>
+                        <button onclick="document.getElementById('kasirToastBanner').classList.add('hidden')" class="text-emerald-300 hover:text-white">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <!-- Bagian A: Dompet Bonus Kasir dengan Verifikasi Penerimaan Kasir -->
                     <div class="bg-slate-900 border border-blue-500/30 rounded-2xl p-5 shadow-xl space-y-4">
                         <div class="flex flex-wrap items-start justify-between gap-2 border-b border-slate-800 pb-3.5">
                             <div>
@@ -322,7 +333,7 @@
                                     <i class="fa-solid fa-money-bill-transfer text-blue-400"></i> Dompet Bonus Kasir (Terpisah dari Gaji)
                                 </h2>
                                 <p class="text-xs text-slate-400 mt-0.5">
-                                    Transfer komisi 0,2% ke kasir kapan saja (harian/mingguan/bulanan). Setelah ditransfer, klik <strong class="text-slate-200">Tandai Sudah Ditransfer</strong> agar saldo kasir kembali <strong class="text-emerald-400">Rp 0</strong>.
+                                    Cairkan bonus 0,2% kapan saja. Wajib disertai <strong class="text-emerald-400">verifikasi PIN pribadi kasir</strong> (langsung di toko) atau <strong class="text-amber-300">konfirmasi terima dari kasir</strong> (jika transfer jarak jauh) sebelum saldo kembali <strong class="text-white">Rp 0</strong>.
                                 </p>
                             </div>
                             <span class="text-[11px] font-semibold bg-blue-500/15 text-blue-300 border border-blue-500/30 px-3 py-1 rounded-full shrink-0">
@@ -335,11 +346,11 @@
                             <p class="text-slate-500 text-xs col-span-full">Memuat saldo bonus kasir...</p>
                         </div>
 
-                        <!-- Riwayat Pencairan Bonus Kasir (Audit Trail) -->
+                        <!-- Riwayat Pencairan & Verifikasi Bonus Kasir -->
                         <div class="pt-3 border-t border-slate-800/80 space-y-2.5">
                             <div class="flex items-center justify-between">
                                 <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                                    <i class="fa-solid fa-clock-rotate-left text-emerald-400"></i> Riwayat Transfer Bonus ke Kasir (Sudah Lunas)
+                                    <i class="fa-solid fa-clock-rotate-left text-emerald-400"></i> Riwayat Pencairan & Status Verifikasi Kasir
                                 </span>
                                 <span id="payoutHistoryCount" class="text-[11px] text-slate-500 font-mono">0 Pencairan</span>
                             </div>
@@ -348,15 +359,15 @@
                                 <table class="w-full text-left text-xs whitespace-nowrap">
                                     <thead class="bg-slate-950 font-bold text-slate-400 border-b border-slate-800">
                                         <tr>
-                                            <th class="p-3">Waktu Transfer</th>
+                                            <th class="p-3">Waktu Cair</th>
                                             <th class="p-3">Nama Kasir</th>
-                                            <th class="p-3">Cakupan Transaksi</th>
-                                            <th class="p-3">Metode & Catatan</th>
-                                            <th class="p-3 text-right">Nominal Ditransfer</th>
+                                            <th class="p-3">Metode & Cakupan</th>
+                                            <th class="p-3">Verifikasi Penerimaan Kasir</th>
+                                            <th class="p-3 text-right">Nominal</th>
                                         </tr>
                                     </thead>
                                     <tbody id="payoutHistoryBody" class="divide-y divide-slate-800 text-slate-300">
-                                        <tr><td colspan="5" class="p-4 text-center text-slate-500">Belum ada riwayat transfer bonus ke kasir.</td></tr>
+                                        <tr><td colspan="5" class="p-4 text-center text-slate-500">Belum ada riwayat pencairan bonus ke kasir.</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -364,12 +375,12 @@
                     </div>
 
                     <!-- Bagian B: Kelola Akun, PIN & Rekening Kasir -->
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+                    <div id="cashierAccountsSection" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
                         <div>
                             <h3 class="font-extrabold text-sm sm:text-base text-white flex items-center gap-2">
-                                <i class="fa-solid fa-user-lock text-emerald-400"></i> Daftar Akun, PIN & Rekening Staf Kasir
+                                <i class="fa-solid fa-user-lock text-emerald-400"></i> Daftar Akun, PIN Pribadi & Rekening Staf Kasir
                             </h3>
-                            <p class="text-xs text-slate-400 mt-0.5">Simpan PIN login shift beserta nomor rekening / e-wallet kasir agar transfer bonus lebih cepat.</p>
+                            <p class="text-xs text-slate-400 mt-0.5">PIN pribadi ini digunakan kasir untuk absen shift sekaligus <strong>tanda tangan verifikasi terima bonus</strong>.</p>
                         </div>
 
                         <!-- Form Tambah Kasir -->
@@ -379,7 +390,7 @@
                                 <input type="text" id="newCashierName" placeholder="Contoh: Ratih / Kardi" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none">
                             </div>
                             <div>
-                                <label class="block text-[11px] font-semibold text-slate-300 mb-1">Buat PIN Pribadi (4–6 Angka)</label>
+                                <label class="block text-[11px] font-semibold text-slate-300 mb-1">PIN Pribadi Kasir (4–6 Angka)</label>
                                 <input type="text" id="newCashierPin" maxlength="6" inputmode="numeric" placeholder="Contoh: 4821" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-emerald-300 font-mono font-bold tracking-widest focus:border-emerald-500 focus:outline-none">
                             </div>
                             <div>
@@ -517,13 +528,13 @@
     </footer>
 
     <!-- ================================================================== -->
-    <!-- MODAL KONFIRMASI TRANSFER BONUS KASIR (RESET SALDO KE RP 0)        -->
+    <!-- MODAL 1: PENCAIRAN & VERIFIKASI PENERIMAAN BONUS OLEH KASIR        -->
     <!-- ================================================================== -->
     <div id="modalPayoutCashier" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-700 w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4">
+        <div class="bg-slate-900 border border-slate-700 w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
             <div class="flex items-start justify-between gap-2 border-b border-slate-800 pb-3">
                 <div>
-                    <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider block">Konfirmasi Pencairan Bonus Kasir</span>
+                    <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider block">Serah Terima & Verifikasi Bonus Kasir</span>
                     <h3 class="font-black text-base text-white mt-0.5" id="modalPayoutName">Nama Kasir</h3>
                 </div>
                 <button onclick="closeModal('modalPayoutCashier')" class="text-slate-400 hover:text-white text-sm p-1">
@@ -532,9 +543,9 @@
             </div>
 
             <!-- Box Nominal & Rekening -->
-            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-2.5">
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-3.5 space-y-2">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs text-slate-400">Nominal Bonus Ditransfer</span>
+                    <span class="text-xs text-slate-400">Nominal Bonus</span>
                     <strong class="text-xl font-black text-blue-400" id="modalPayoutAmount">Rp 0</strong>
                 </div>
                 <div class="flex items-center justify-between text-xs border-t border-slate-800/80 pt-2">
@@ -555,28 +566,113 @@
             <!-- Form Metode & Catatan -->
             <div class="space-y-3 text-xs">
                 <div>
-                    <label class="block font-semibold text-slate-300 mb-1">Metode Pencairan ke Kasir</label>
-                    <select id="modalPayoutMethod" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:border-blue-500 focus:outline-none">
+                    <label class="block font-semibold text-slate-300 mb-1">1. Metode Pemberian Bonus</label>
+                    <select id="modalPayoutMethod" onchange="onPayoutMethodChange()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:border-blue-500 focus:outline-none">
+                        <option value="Tunai Langsung dari Laci Kas">Tunai Langsung dari Laci Kas</option>
                         <option value="Transfer Bank">Transfer Bank (m-Banking / ATM)</option>
                         <option value="E-Wallet (DANA / GoPay / OVO)">E-Wallet (DANA / GoPay / OVO)</option>
-                        <option value="Tunai Langsung dari Laci Kas">Tunai Langsung dari Laci Kas</option>
                     </select>
                 </div>
+
+                <!-- Pilihan Mode Verifikasi Kasir -->
+                <div>
+                    <label class="block font-semibold text-slate-300 mb-1.5">2. Bukti Verifikasi Kasir Menerima Uang</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" id="btnModeDirectPin" onclick="setVerificationMode('DIRECT_PIN')" class="p-2.5 rounded-xl border text-left transition bg-emerald-500/15 border-emerald-500 text-white">
+                            <span class="text-[11px] font-extrabold block text-emerald-300">
+                                <i class="fa-solid fa-key mr-1"></i> PIN Kasir Sekarang
+                            </span>
+                            <span class="text-[10px] text-slate-300 block mt-0.5">Kasir ada di toko & ketik PIN</span>
+                        </button>
+                        <button type="button" id="btnModeRemoteWait" onclick="setVerificationMode('REMOTE_WAIT')" class="p-2.5 rounded-xl border text-left transition bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700">
+                            <span class="text-[11px] font-extrabold block text-amber-300">
+                                <i class="fa-solid fa-clock mr-1"></i> Konfirmasi Nanti
+                            </span>
+                            <span class="text-[10px] text-slate-400 block mt-0.5">Transfer dari luar toko</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Panel Mode A: Input PIN Pribadi Kasir -->
+                <div id="panelVerifyDirectPin" class="bg-emerald-950/35 border border-emerald-500/30 rounded-xl p-3.5 space-y-2.5">
+                    <p class="text-[11px] text-emerald-200 leading-relaxed">
+                        Serahkan uang/bukti transfer kepada <strong id="pinHelperCashierName" class="text-white">Kasir</strong>, lalu minta ia memasukkan <strong>PIN Pribadinya</strong> sebagai tanda terima sah:
+                    </p>
+
+                    <!-- Peringatan jika kasir belum punya akun PIN terdaftar -->
+                    <div id="unregisteredCashierBox" class="hidden bg-amber-500/15 border border-amber-500/35 rounded-lg p-2.5 text-[11px] text-amber-200 space-y-2">
+                        <p>Akun & PIN untuk kasir ini belum didaftarkan di tabel staf kasir.</p>
+                        <button type="button" onclick="jumpToRegisterCashier()" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold px-2.5 py-1 rounded-lg text-[10px] transition">
+                            + Buatkan PIN Kasir Ini Sekarang
+                        </button>
+                    </div>
+
+                    <div id="pinInputWrapper">
+                        <input type="password" id="modalCashierVerifyPin" inputmode="numeric" maxlength="6" onkeypress="if(event.key==='Enter') confirmCashierPayout()" placeholder="Ketik PIN Pribadi Kasir (4–6 angka)" class="w-full bg-slate-950 border border-emerald-500/40 rounded-xl px-3.5 py-2.5 text-sm text-center font-mono font-black text-emerald-300 tracking-[0.35em] focus:border-emerald-400 focus:outline-none">
+                        <p id="modalPinError" class="hidden text-[11px] font-bold text-rose-400 mt-1.5 text-center"></p>
+                    </div>
+                </div>
+
+                <!-- Panel Mode B: Transfer Jarak Jauh (Menunggu Konfirmasi Kasir) -->
+                <div id="panelVerifyRemoteWait" class="hidden bg-amber-950/30 border border-amber-500/30 rounded-xl p-3.5 space-y-2">
+                    <p class="text-[11px] text-amber-200 leading-relaxed">
+                        Bonus dicatat sebagai <strong>Menunggu Konfirmasi Kasir</strong>. Saldo belum dianggap lunas penuh sampai kasir mengonfirmasi penerimaan (via PIN saat di toko atau dari aplikasi kasir).
+                    </p>
+                </div>
+
                 <div>
                     <label class="block font-semibold text-slate-300 mb-1">Catatan (Opsional)</label>
-                    <input type="text" id="modalPayoutNote" placeholder="Contoh: Transfer via m-BCA siang ini" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:border-blue-500 focus:outline-none">
+                    <input type="text" id="modalPayoutNote" placeholder="Contoh: Tunai dari laci kas sore ini" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:border-blue-500 focus:outline-none">
                 </div>
-            </div>
-
-            <div class="bg-emerald-500/10 border border-emerald-500/25 rounded-xl p-3 text-[11px] text-emerald-200 flex items-start gap-2">
-                <i class="fa-solid fa-circle-info text-emerald-400 mt-0.5"></i>
-                <span>Setelah dikonfirmasi, saldo bonus kasir ini otomatis kembali menjadi <strong>Rp 0</strong> dan masuk ke riwayat pencairan.</span>
             </div>
 
             <div class="flex justify-end gap-2 pt-1">
                 <button onclick="closeModal('modalPayoutCashier')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-4 py-2.5 rounded-xl text-xs transition">Batal</button>
-                <button onclick="confirmCashierPayout()" id="btnConfirmPayout" class="bg-blue-500 hover:bg-blue-400 text-slate-950 font-black px-4 py-2.5 rounded-xl text-xs shadow-lg transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-check-double"></i> Tandai Sudah Ditransfer (Reset Rp 0)
+                <button onclick="confirmCashierPayout()" id="btnConfirmPayout" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-4 py-2.5 rounded-xl text-xs shadow-lg transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-shield-check"></i> Verifikasi PIN & Reset Rp 0
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- MODAL 2: VERIFIKASI PIN UNTUK PENCAIRAN YANG MASIH MENUNGGU KASIR  -->
+    <!-- ================================================================== -->
+    <div id="modalVerifyPendingPayout" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 w-full max-w-sm rounded-2xl p-5 shadow-2xl space-y-4">
+            <div class="flex items-start justify-between gap-2 border-b border-slate-800 pb-3">
+                <div>
+                    <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">Konfirmasi Penerimaan Bonus</span>
+                    <h3 class="font-black text-base text-white mt-0.5" id="verifyPendingTitle">Kasir</h3>
+                </div>
+                <button onclick="closeModal('modalVerifyPendingPayout')" class="text-slate-400 hover:text-white text-sm p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-xs space-y-1.5">
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Nominal Ditransfer</span>
+                    <strong class="text-blue-400 font-black" id="verifyPendingAmount">Rp 0</strong>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Waktu & Metode</span>
+                    <span class="text-slate-200 font-semibold" id="verifyPendingMeta">-</span>
+                </div>
+            </div>
+
+            <div class="space-y-2 text-xs">
+                <p class="text-slate-300 leading-relaxed">
+                    Minta <strong id="verifyPendingCashierName" class="text-white">Kasir</strong> memasukkan <strong>PIN Pribadinya</strong> untuk mengonfirmasi bahwa dana bonus sudah masuk/diterima:
+                </p>
+                <input type="password" id="verifyPendingPinInput" inputmode="numeric" maxlength="6" onkeypress="if(event.key==='Enter') submitPendingPinVerification()" placeholder="Ketik PIN Pribadi Kasir" class="w-full bg-slate-950 border border-emerald-500/40 rounded-xl px-3.5 py-2.5 text-sm text-center font-mono font-black text-emerald-300 tracking-[0.35em] focus:border-emerald-400 focus:outline-none">
+                <p id="verifyPendingError" class="hidden text-[11px] font-bold text-rose-400 text-center"></p>
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <button onclick="closeModal('modalVerifyPendingPayout')" class="bg-slate-800 text-slate-300 font-bold px-3.5 py-2 rounded-xl text-xs">Batal</button>
+                <button onclick="submitPendingPinVerification()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-4 py-2 rounded-xl text-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-check-double"></i> Konfirmasi Terima (Rp 0)
                 </button>
             </div>
         </div>
@@ -619,8 +715,10 @@
         let currentActivePin = '';
         let currentTerutangPlatform = 0;
 
-        // State sementara untuk modal pencairan bonus & edit rekening
+        // State sementara modal
         let pendingPayoutTarget = null;
+        let currentVerificationMode = 'DIRECT_PIN';
+        let verifyingPendingPayoutId = null;
         let editingBankCashierName = '';
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -646,7 +744,7 @@
         });
 
         /* ---------------------------------------------------------------------- */
-        /* PENYIMPANAN LOKAL & SINKRONISASI RIWAYAT PENCAIRAN BONUS + REKENING    */
+        /* PENYIMPANAN LOKAL & SINKRONISASI RIWAYAT PENCAIRAN + STATUS VERIFIKASI */
         /* ---------------------------------------------------------------------- */
         function getLocalPayouts() {
             try {
@@ -654,18 +752,47 @@
             } catch (e) { return []; }
         }
 
+        function setLocalPayouts(list) {
+            localStorage.setItem(`MB_PAYOUTS_${currentActiveStoreId}`, JSON.stringify(list));
+        }
+
         function saveLocalPayout(record) {
             const list = getLocalPayouts();
             list.unshift(record);
-            localStorage.setItem(`MB_PAYOUTS_${currentActiveStoreId}`, JSON.stringify(list));
+            setLocalPayouts(list);
+        }
+
+        function markLocalPayoutVerified(payoutId, verifiedAtStr) {
+            const list = getLocalPayouts();
+            const updated = list.map(item => {
+                if (item.payoutId === payoutId) {
+                    return { ...item, status: 'TERVERIFIKASI', verifiedAt: verifiedAtStr };
+                }
+                return item;
+            });
+            setLocalPayouts(updated);
+
+            serverCashierPayouts = (serverCashierPayouts || []).map(item => {
+                if (item.payoutId === payoutId) {
+                    return { ...item, status: 'TERVERIFIKASI', verifiedAt: verifiedAtStr };
+                }
+                return item;
+            });
         }
 
         function getMergedPayouts() {
             const localList = getLocalPayouts();
             const merged = [...(serverCashierPayouts || [])];
-            const existingIds = new Set(merged.map(p => p.payoutId));
+            const indexById = {};
+            merged.forEach((p, idx) => { indexById[p.payoutId] = idx; });
+
             localList.forEach(lp => {
-                if (!existingIds.has(lp.payoutId)) {
+                if (indexById[lp.payoutId] !== undefined) {
+                    // Jika lokal sudah terverifikasi sementara server belum refresh, pertahankan status terverifikasi
+                    if (lp.status === 'TERVERIFIKASI') {
+                        merged[indexById[lp.payoutId]] = { ...merged[indexById[lp.payoutId]], ...lp };
+                    }
+                } else {
                     merged.push(lp);
                 }
             });
@@ -689,6 +816,24 @@
             const map = getCashierBankMap();
             map[name.trim()] = bankText.trim();
             localStorage.setItem(`MB_CASHIER_BANKS_${currentActiveStoreId}`, JSON.stringify(map));
+        }
+
+        function findRegisteredCashier(name) {
+            const target = String(name || '').trim().toLowerCase();
+            return (allLoadedCashiers || []).find(c => String(c.namaKasir || '').trim().toLowerCase() === target) || null;
+        }
+
+        function formatNowIndonesian() {
+            const now = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            return `${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()}, ${pad(now.getHours())}.${pad(now.getMinutes())}`;
+        }
+
+        function showKasirToast(message) {
+            const banner = document.getElementById('kasirToastBanner');
+            const textEl = document.getElementById('kasirToastText');
+            textEl.innerText = message;
+            banner.classList.remove('hidden');
         }
 
         /* ---------------------------------------------------------------------- */
@@ -904,7 +1049,7 @@
         }
 
         /* ---------------------------------------------------------------------- */
-        /* URUSAN 3A: DOMPET BONUS KASIR (ON-DEMAND PAYOUT & RESET KE RP 0)       */
+        /* URUSAN 3A: DOMPET BONUS KASIR DENGAN VERIFIKASI PENERIMAAN KASIR       */
         /* ---------------------------------------------------------------------- */
         function renderCashierBonusWallet(transactions) {
             const container = document.getElementById('cashierBonusContainer');
@@ -913,17 +1058,24 @@
             const payouts = getMergedPayouts();
             const bankMap = getCashierBankMap();
 
-            // Kumpulkan ID transaksi yang sudah dicairkan & total nominal yang sudah dicairkan per kasir
-            const paidTrxIds = new Set();
-            const paidAmountByCashier = {};
+            // Pisahkan transaksi yang sudah TERVERIFIKASI diterima kasir vs yang masih MENUNGGU KONFIRMASI kasir
+            const verifiedTrxIds = new Set();
+            const pendingTrxIds = new Set();
+            const pendingPayoutByCashier = {};
+
             payouts.forEach(p => {
-                (p.trxIds || []).forEach(id => paidTrxIds.add(id));
+                const isVerified = (p.status === 'TERVERIFIKASI' || !p.status);
                 const cName = (p.namaKasir || '').trim();
-                paidAmountByCashier[cName] = (paidAmountByCashier[cName] || 0) + Number(p.nominal || 0);
+                (p.trxIds || []).forEach(id => {
+                    if (isVerified) verifiedTrxIds.add(id);
+                    else pendingTrxIds.add(id);
+                });
+                if (!isVerified) {
+                    pendingPayoutByCashier[cName] = p;
+                }
             });
 
             const summary = {};
-            // Inisialisasi semua kasir terdaftar agar tetap terlihat meskipun saldonya Rp 0
             (allLoadedCashiers || []).forEach(c => {
                 const name = (c.namaKasir || '').trim();
                 if (name) {
@@ -943,8 +1095,7 @@
                     }
                     summary[baseName].totalEarned += bonus;
 
-                    // Cek apakah transaksi ini belum pernah dicairkan
-                    if (!paidTrxIds.has(trx.id)) {
+                    if (!verifiedTrxIds.has(trx.id) && !pendingTrxIds.has(trx.id)) {
                         summary[baseName].unpaidCount += 1;
                         summary[baseName].unpaidBonus += bonus;
                         summary[baseName].unpaidTrxIds.push(trx.id);
@@ -952,29 +1103,24 @@
                 }
             });
 
-            // Jika backend sudah menandai status bonus terbayar tanpa mengirimkan trxIds
-            Object.keys(summary).forEach(name => {
-                const s = summary[name];
-                if (s.unpaidTrxIds.length === 0 && paidAmountByCashier[name]) {
-                    s.unpaidBonus = Math.max(0, s.totalEarned - paidAmountByCashier[name]);
-                }
+            const cashierKeys = Object.keys(summary);
+            let totalUnverifiedAllCashiers = 0;
+            cashierKeys.forEach(k => {
+                const pend = pendingPayoutByCashier[k];
+                totalUnverifiedAllCashiers += Math.round(summary[k].unpaidBonus) + (pend ? Number(pend.nominal || 0) : 0);
             });
 
-            const cashierKeys = Object.keys(summary);
-            let totalUnpaidAllCashiers = 0;
-            cashierKeys.forEach(k => { totalUnpaidAllCashiers += Math.round(summary[k].unpaidBonus); });
-
-            // Update KPI Card 3 agar sinkron dengan saldo yang belum ditransfer
-            document.getElementById('kpiBonusKasir').innerText = "Rp " + totalUnpaidAllCashiers.toLocaleString('id-ID');
+            // Update KPI Card 3
+            document.getElementById('kpiBonusKasir').innerText = "Rp " + totalUnverifiedAllCashiers.toLocaleString('id-ID');
             const kpiBadge = document.getElementById('kpiBonusBadge');
             const navDot = document.getElementById('badgeBonusAlert');
-            if (totalUnpaidAllCashiers > 0) {
+            if (totalUnverifiedAllCashiers > 0) {
                 kpiBadge.className = "text-[9px] bg-blue-500/20 text-blue-300 border border-blue-500/30 font-bold px-2 py-0.5 rounded-full";
-                kpiBadge.innerText = "Siap Cair";
+                kpiBadge.innerText = "Belum Lunas";
                 navDot.classList.remove('hidden');
             } else {
                 kpiBadge.className = "text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold px-2 py-0.5 rounded-full";
-                kpiBadge.innerText = "Rp 0 Lunas";
+                kpiBadge.innerText = "Rp 0 Terverifikasi";
                 navDot.classList.add('hidden');
             }
 
@@ -988,6 +1134,8 @@
                 const nominal = Math.round(item.unpaidBonus);
                 const bankInfo = bankMap[name] || '';
                 const hasBalance = nominal > 0;
+                const pendingObj = pendingPayoutByCashier[name];
+                const encName = encodeURIComponent(name);
 
                 const bankLine = bankInfo
                     ? `<div class="flex items-center gap-1.5 text-[11px] text-slate-300 mt-1">
@@ -995,37 +1143,61 @@
                            <span class="font-mono">${bankInfo}</span>
                            <button onclick="copyTextValue('${bankInfo.replace(/'/g, "\\'")}', this)" class="text-[10px] text-teal-400 hover:underline font-semibold ml-1">Salin</button>
                        </div>`
-                    : `<button onclick="openEditBankModal('${name.replace(/'/g, "\\'")}')" class="text-[11px] text-slate-500 hover:text-teal-300 mt-1 inline-flex items-center gap-1 transition">
+                    : `<button onclick="openEditBankModal(decodeURIComponent('${encName}'))" class="text-[11px] text-slate-500 hover:text-teal-300 mt-1 inline-flex items-center gap-1 transition">
                            <i class="fa-solid fa-plus text-[9px]"></i> Tambah No. Rekening / E-Wallet
                        </button>`;
 
+                // Banner status jika ada pencairan jarak jauh yang sedang menunggu konfirmasi kasir
+                let pendingBannerHtml = '';
+                if (pendingObj) {
+                    const waText = encodeURIComponent(`Halo ${name}, bonus QR sebesar *Rp ${Number(pendingObj.nominal).toLocaleString('id-ID')}* sudah ditransfer via ${pendingObj.metode}. Mohon konfirmasi penerimaan di aplikasi Kasir atau masukkan PIN saat di toko ya.`);
+                    pendingBannerHtml = `
+                        <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                            <div class="text-amber-200">
+                                <strong class="block text-amber-300"><i class="fa-solid fa-hourglass-half mr-1"></i> Menunggu Konfirmasi ${name}</strong>
+                                <span>Rp ${Number(pendingObj.nominal).toLocaleString('id-ID')} (${pendingObj.metode})</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-600/80 hover:bg-emerald-500 text-white font-bold px-2.5 py-1.5 rounded-lg text-[10px] transition">
+                                    <i class="fa-brands fa-whatsapp"></i> Ingatkan
+                                </a>
+                                <button onclick="openVerifyPendingModal('${pendingObj.payoutId}')" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-2.5 py-1.5 rounded-lg text-[10px] transition">
+                                    Verifikasi PIN
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+
                 const actionButton = hasBalance
-                    ? `<button onclick="openPayoutModal('${name.replace(/'/g, "\\'")}', ${nominal}, ${item.unpaidCount}, '${item.unpaidTrxIds.join(',')}')" class="w-full sm:w-auto bg-blue-500 hover:bg-blue-400 text-slate-950 font-black text-[11px] px-3.5 py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5">
-                           <i class="fa-solid fa-paper-plane"></i> Tandai Sudah Ditransfer
+                    ? `<button onclick="openPayoutModal(decodeURIComponent('${encName}'), ${nominal}, ${item.unpaidCount}, '${item.unpaidTrxIds.join(',')}')" class="w-full sm:w-auto bg-blue-500 hover:bg-blue-400 text-slate-950 font-black text-[11px] px-3.5 py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5">
+                           <i class="fa-solid fa-hand-holding-dollar"></i> Cairkan & Verifikasi Kasir
                        </button>`
-                    : `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 px-3 py-1.5 rounded-xl">
-                           <i class="fa-solid fa-circle-check"></i> Saldo Rp 0 (Sudah Lunas)
+                    : `<span class="inline-flex items-center gap-1 text-[11px] font-bold ${pendingObj ? 'text-amber-300 bg-amber-500/10 border-amber-500/25' : 'text-emerald-400 bg-emerald-500/10 border-emerald-500/25'} border px-3 py-1.5 rounded-xl">
+                           <i class="fa-solid ${pendingObj ? 'fa-clock' : 'fa-shield-check'}"></i> ${pendingObj ? 'Menunggu Kasir' : 'Saldo Rp 0 (Terverifikasi)'}
                        </span>`;
 
                 return `
-                    <div class="bg-slate-950/80 border ${hasBalance ? 'border-blue-500/35' : 'border-slate-800'} p-4 rounded-xl flex flex-col justify-between gap-3">
+                    <div class="bg-slate-950/80 border ${hasBalance ? 'border-blue-500/35' : (pendingObj ? 'border-amber-500/35' : 'border-slate-800')} p-4 rounded-xl flex flex-col justify-between gap-3">
                         <div class="flex items-start justify-between gap-2">
                             <div>
                                 <strong class="text-white font-extrabold text-sm flex items-center gap-1.5">
                                     <i class="fa-solid fa-user-check ${hasBalance ? 'text-blue-400' : 'text-emerald-400'} text-xs"></i> ${name}
                                 </strong>
                                 <span class="text-[11px] text-slate-400 block mt-0.5">
-                                    ${hasBalance ? `${item.unpaidCount} Transaksi belum dicairkan` : 'Semua bonus sudah ditransfer'}
+                                    ${hasBalance ? `${item.unpaidCount} Transaksi belum dicairkan` : (pendingObj ? 'Dana dikirim, menunggu konfirmasi terima' : 'Semua bonus sudah diterima kasir')}
                                 </span>
                                 ${bankLine}
                             </div>
                             <div class="text-right shrink-0">
-                                <span class="text-[10px] uppercase tracking-wider text-slate-500 block">Saldo Bonus</span>
+                                <span class="text-[10px] uppercase tracking-wider text-slate-500 block">Saldo Belum Cair</span>
                                 <strong class="${hasBalance ? 'text-blue-400' : 'text-slate-400'} font-black text-base sm:text-lg block">
                                     Rp ${nominal.toLocaleString('id-ID')}
                                 </strong>
                             </div>
                         </div>
+
+                        ${pendingBannerHtml}
 
                         <div class="pt-2.5 border-t border-slate-800/80 flex items-center justify-between gap-2">
                             <span class="text-[10px] text-slate-500">Total bulan ini: Rp ${Math.round(item.totalEarned).toLocaleString('id-ID')}</span>
@@ -1048,9 +1220,12 @@
             };
 
             document.getElementById('modalPayoutName').innerText = cashierName;
+            document.getElementById('pinHelperCashierName').innerText = cashierName;
             document.getElementById('modalPayoutAmount').innerText = "Rp " + nominal.toLocaleString('id-ID');
             document.getElementById('modalPayoutTrxCount').innerText = `${trxCount} Transaksi QR`;
             document.getElementById('modalPayoutNote').value = '';
+            document.getElementById('modalCashierVerifyPin').value = '';
+            document.getElementById('modalPinError').classList.add('hidden');
 
             const bankEl = document.getElementById('modalPayoutBank');
             const copyBtn = document.getElementById('btnModalCopyBank');
@@ -1064,7 +1239,65 @@
                 copyBtn.classList.add('hidden');
             }
 
+            // Cek apakah kasir sudah punya PIN terdaftar di tabel akun kasir
+            const regCashier = findRegisteredCashier(cashierName);
+            const unregBox = document.getElementById('unregisteredCashierBox');
+            const pinWrapper = document.getElementById('pinInputWrapper');
+            if (!regCashier || !regCashier.pin) {
+                unregBox.classList.remove('hidden');
+                pinWrapper.classList.add('hidden');
+            } else {
+                unregBox.classList.add('hidden');
+                pinWrapper.classList.remove('hidden');
+            }
+
+            document.getElementById('modalPayoutMethod').value = 'Tunai Langsung dari Laci Kas';
+            setVerificationMode('DIRECT_PIN');
             openModal('modalPayoutCashier');
+        }
+
+        function onPayoutMethodChange() {
+            const method = document.getElementById('modalPayoutMethod').value;
+            // Jika pemilik memilih Transfer Bank / E-Wallet, sarankan mode jarak jauh jika kasir tidak di sampingnya, namun tetap bebas dipilih
+            if (method === 'Tunai Langsung dari Laci Kas') {
+                setVerificationMode('DIRECT_PIN');
+            }
+        }
+
+        function setVerificationMode(mode) {
+            currentVerificationMode = mode;
+            const btnDirect = document.getElementById('btnModeDirectPin');
+            const btnRemote = document.getElementById('btnModeRemoteWait');
+            const panelDirect = document.getElementById('panelVerifyDirectPin');
+            const panelRemote = document.getElementById('panelVerifyRemoteWait');
+            const submitBtn = document.getElementById('btnConfirmPayout');
+
+            if (mode === 'DIRECT_PIN') {
+                btnDirect.className = "p-2.5 rounded-xl border text-left transition bg-emerald-500/15 border-emerald-500 text-white";
+                btnRemote.className = "p-2.5 rounded-xl border text-left transition bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700";
+                panelDirect.classList.remove('hidden');
+                panelRemote.classList.add('hidden');
+                submitBtn.className = "bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-4 py-2.5 rounded-xl text-xs shadow-lg transition flex items-center gap-1.5";
+                submitBtn.innerHTML = `<i class="fa-solid fa-shield-check"></i> Verifikasi PIN & Reset Rp 0`;
+            } else {
+                btnRemote.className = "p-2.5 rounded-xl border text-left transition bg-amber-500/15 border-amber-500 text-white";
+                btnDirect.className = "p-2.5 rounded-xl border text-left transition bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700";
+                panelRemote.classList.remove('hidden');
+                panelDirect.classList.add('hidden');
+                submitBtn.className = "bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-4 py-2.5 rounded-xl text-xs shadow-lg transition flex items-center gap-1.5";
+                submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Catat & Minta Konfirmasi Kasir`;
+            }
+        }
+
+        function jumpToRegisterCashier() {
+            const name = pendingPayoutTarget ? pendingPayoutTarget.namaKasir : '';
+            closeModal('modalPayoutCashier');
+            const sec = document.getElementById('cashierAccountsSection');
+            if (sec) sec.scrollIntoView({ behavior: 'smooth' });
+            const nameInput = document.getElementById('newCashierName');
+            const pinInput = document.getElementById('newCashierPin');
+            if (nameInput) nameInput.value = name;
+            if (pinInput) pinInput.focus();
         }
 
         function copyModalBank() {
@@ -1078,15 +1311,44 @@
 
             const metode = document.getElementById('modalPayoutMethod').value;
             const catatan = document.getElementById('modalPayoutNote').value.trim();
-            const btn = document.getElementById('btnConfirmPayout');
+            const errEl = document.getElementById('modalPinError');
+            errEl.classList.add('hidden');
 
+            let payoutStatus = 'TERVERIFIKASI';
+            let verifiedAtStr = formatNowIndonesian();
+
+            if (currentVerificationMode === 'DIRECT_PIN') {
+                const regCashier = findRegisteredCashier(pendingPayoutTarget.namaKasir);
+                if (!regCashier || !regCashier.pin) {
+                    alert(`Akun & PIN untuk ${pendingPayoutTarget.namaKasir} belum terdaftar. Silakan buatkan PIN kasir terlebih dahulu atau pilih mode "Konfirmasi Nanti".`);
+                    return;
+                }
+
+                const enteredPin = document.getElementById('modalCashierVerifyPin').value.trim();
+                if (!enteredPin) {
+                    errEl.innerText = "Minta kasir memasukkan PIN pribadinya terlebih dahulu.";
+                    errEl.classList.remove('hidden');
+                    document.getElementById('modalCashierVerifyPin').focus();
+                    return;
+                }
+
+                if (enteredPin !== String(regCashier.pin).trim()) {
+                    errEl.innerText = "❌ PIN Kasir tidak cocok! Pastikan kasir memasukkan PIN pribadinya sendiri.";
+                    errEl.classList.remove('hidden');
+                    document.getElementById('modalCashierVerifyPin').value = '';
+                    document.getElementById('modalCashierVerifyPin').focus();
+                    return;
+                }
+            } else {
+                payoutStatus = 'MENUNGGU_KASIR';
+                verifiedAtStr = '';
+            }
+
+            const btn = document.getElementById('btnConfirmPayout');
             btn.disabled = true;
             btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Memproses...`;
 
-            const now = new Date();
-            const pad = n => String(n).padStart(2, '0');
-            const waktuStr = `${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()}, ${pad(now.getHours())}.${pad(now.getMinutes())}`;
-
+            const waktuStr = formatNowIndonesian();
             const payoutRecord = {
                 payoutId: 'PAY-' + Date.now(),
                 waktu: waktuStr,
@@ -1095,11 +1357,12 @@
                 trxCount: pendingPayoutTarget.trxCount,
                 trxIds: pendingPayoutTarget.trxIds,
                 metode: metode,
-                catatan: catatan || '-'
+                catatan: catatan || '-',
+                status: payoutStatus,
+                verifiedAt: verifiedAtStr
             };
 
             try {
-                // Kirim ke backend Google Apps Script (jika endpoint sudah mendukung action payoutCashierBonus)
                 await fetch(GAS_WEB_APP_URL, {
                     method: 'POST',
                     body: JSON.stringify({
@@ -1110,16 +1373,85 @@
                     })
                 }).catch(() => null);
 
-                // Simpan catatan pencairan agar saldo langsung reset ke Rp 0
                 saveLocalPayout(payoutRecord);
                 closeModal('modalPayoutCashier');
                 refreshCashierWalletAndAccounts();
 
+                if (payoutStatus === 'TERVERIFIKASI') {
+                    showKasirToast(`Bonus Rp ${payoutRecord.nominal.toLocaleString('id-ID')} untuk ${payoutRecord.namaKasir} telah diverifikasi dengan PIN Kasir. Saldo kembali Rp 0.`);
+                } else {
+                    showKasirToast(`Transfer Rp ${payoutRecord.nominal.toLocaleString('id-ID')} ke ${payoutRecord.namaKasir} dicatat. Menunggu konfirmasi penerimaan dari kasir.`);
+                }
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = `<i class="fa-solid fa-check-double"></i> Tandai Sudah Ditransfer (Reset Rp 0)`;
+                setVerificationMode(currentVerificationMode);
                 pendingPayoutTarget = null;
             }
+        }
+
+        /* ---------------------------------------------------------------------- */
+        /* VERIFIKASI PIN UNTUK PENCAIRAN YANG MASIH MENUNGGU KONFIRMASI KASIR    */
+        /* ---------------------------------------------------------------------- */
+        function openVerifyPendingModal(payoutId) {
+            const payouts = getMergedPayouts();
+            const target = payouts.find(p => p.payoutId === payoutId);
+            if (!target) return;
+
+            verifyingPendingPayoutId = payoutId;
+            document.getElementById('verifyPendingTitle').innerText = target.namaKasir;
+            document.getElementById('verifyPendingCashierName').innerText = target.namaKasir;
+            document.getElementById('verifyPendingAmount').innerText = "Rp " + Number(target.nominal || 0).toLocaleString('id-ID');
+            document.getElementById('verifyPendingMeta').innerText = `${target.waktu} • ${target.metode}`;
+            document.getElementById('verifyPendingPinInput').value = '';
+            document.getElementById('verifyPendingError').classList.add('hidden');
+
+            openModal('modalVerifyPendingPayout');
+            setTimeout(() => document.getElementById('verifyPendingPinInput').focus(), 100);
+        }
+
+        async function submitPendingPinVerification() {
+            if (!verifyingPendingPayoutId) return;
+            const payouts = getMergedPayouts();
+            const target = payouts.find(p => p.payoutId === verifyingPendingPayoutId);
+            if (!target) return;
+
+            const errEl = document.getElementById('verifyPendingError');
+            errEl.classList.add('hidden');
+
+            const regCashier = findRegisteredCashier(target.namaKasir);
+            if (!regCashier || !regCashier.pin) {
+                errEl.innerText = `Akun & PIN untuk ${target.namaKasir} belum terdaftar di tabel akun kasir.`;
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            const enteredPin = document.getElementById('verifyPendingPinInput').value.trim();
+            if (enteredPin !== String(regCashier.pin).trim()) {
+                errEl.innerText = "❌ PIN Kasir salah! Minta kasir memasukkan PIN pribadinya sendiri.";
+                errEl.classList.remove('hidden');
+                document.getElementById('verifyPendingPinInput').value = '';
+                document.getElementById('verifyPendingPinInput').focus();
+                return;
+            }
+
+            const verifiedAtStr = formatNowIndonesian();
+
+            await fetch(GAS_WEB_APP_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'verifyCashierPayout',
+                    storeId: currentActiveStoreId,
+                    payoutId: verifyingPendingPayoutId,
+                    namaKasir: target.namaKasir,
+                    verifiedAt: verifiedAtStr
+                })
+            }).catch(() => null);
+
+            markLocalPayoutVerified(verifyingPendingPayoutId, verifiedAtStr);
+            closeModal('modalVerifyPendingPayout');
+            refreshCashierWalletAndAccounts();
+            showKasirToast(`Penerimaan bonus Rp ${Number(target.nominal).toLocaleString('id-ID')} oleh ${target.namaKasir} telah terverifikasi PIN! Saldo kembali Rp 0.`);
+            verifyingPendingPayoutId = null;
         }
 
         function renderPayoutHistory() {
@@ -1130,22 +1462,39 @@
             countLabel.innerText = `${payouts.length} Pencairan`;
 
             if (!payouts || payouts.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">Belum ada riwayat transfer bonus ke kasir.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">Belum ada riwayat pencairan bonus ke kasir.</td></tr>`;
                 return;
             }
 
-            tbody.innerHTML = payouts.map(p => `
-                <tr class="hover:bg-slate-900/50 transition">
-                    <td class="p-3 text-slate-300 font-mono text-[11px]">${p.waktu || '-'}</td>
-                    <td class="p-3 font-bold text-white">${p.namaKasir}</td>
-                    <td class="p-3 text-slate-400">${p.trxCount || 1} Transaksi QR</td>
-                    <td class="p-3">
-                        <span class="text-slate-200 font-semibold">${p.metode || 'Transfer'}</span>
-                        ${p.catatan && p.catatan !== '-' ? `<span class="text-slate-500 block text-[10px]">${p.catatan}</span>` : ''}
-                    </td>
-                    <td class="p-3 text-right font-black text-emerald-400">Rp ${Number(p.nominal || 0).toLocaleString('id-ID')}</td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = payouts.map(p => {
+                const isVerified = (p.status === 'TERVERIFIKASI' || !p.status);
+                const statusCell = isVerified
+                    ? `<span class="inline-flex items-center gap-1 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                           <i class="fa-solid fa-shield-check"></i> Terverifikasi PIN Kasir
+                       </span>
+                       ${p.verifiedAt ? `<span class="block text-[10px] text-slate-500 mt-0.5 font-mono">${p.verifiedAt}</span>` : ''}`
+                    : `<div class="flex items-center gap-2">
+                           <span class="inline-flex items-center gap-1 bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                               <i class="fa-solid fa-clock"></i> Menunggu Konfirmasi Kasir
+                           </span>
+                           <button onclick="openVerifyPendingModal('${p.payoutId}')" class="text-[10px] bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-2 py-0.5 rounded transition">
+                               Verifikasi PIN
+                           </button>
+                       </div>`;
+
+                return `
+                    <tr class="hover:bg-slate-900/50 transition">
+                        <td class="p-3 text-slate-300 font-mono text-[11px]">${p.waktu || '-'}</td>
+                        <td class="p-3 font-bold text-white">${p.namaKasir}</td>
+                        <td class="p-3">
+                            <span class="text-slate-200 font-semibold">${p.metode || 'Transfer'}</span>
+                            <span class="text-slate-500 block text-[10px]">${p.trxCount || 1} Transaksi QR${p.catatan && p.catatan !== '-' ? ' • ' + p.catatan : ''}</span>
+                        </td>
+                        <td class="p-3">${statusCell}</td>
+                        <td class="p-3 text-right font-black ${isVerified ? 'text-emerald-400' : 'text-amber-300'}">Rp ${Number(p.nominal || 0).toLocaleString('id-ID')}</td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         /* ---------------------------------------------------------------------- */
@@ -1162,10 +1511,11 @@
 
             tbody.innerHTML = cashiers.map(c => {
                 const isActive = c.status === 'AKTIF';
+                const encName = encodeURIComponent(c.namaKasir.trim());
                 const savedBank = bankMap[c.namaKasir.trim()] || '';
                 const bankCell = savedBank
-                    ? `<span class="font-mono text-slate-200">${savedBank}</span> <button onclick="openEditBankModal('${c.namaKasir.replace(/'/g, "\\'")}')" class="text-[10px] text-teal-400 hover:underline ml-1">Ubah</button>`
-                    : `<button onclick="openEditBankModal('${c.namaKasir.replace(/'/g, "\\'")}')" class="text-[11px] text-slate-400 hover:text-teal-300 underline">+ Isi Rekening</button>`;
+                    ? `<span class="font-mono text-slate-200">${savedBank}</span> <button onclick="openEditBankModal(decodeURIComponent('${encName}'))" class="text-[10px] text-teal-400 hover:underline ml-1">Ubah</button>`
+                    : `<button onclick="openEditBankModal(decodeURIComponent('${encName}'))" class="text-[11px] text-slate-400 hover:text-teal-300 underline">+ Isi Rekening</button>`;
 
                 return `
                     <tr class="hover:bg-slate-900/50 transition">
