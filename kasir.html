@@ -11,7 +11,7 @@
 
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0F172A; }
-        .success-flash { background-color: #059669 !important; }
+        .mirror-cam { transform: scaleX(-1); }
     </style>
 </head>
 <body id="mainBody" class="text-slate-100 min-h-screen pb-12 transition-colors duration-300">
@@ -25,21 +25,24 @@
                 </div>
                 <div>
                     <h1 class="font-extrabold text-sm sm:text-base text-white leading-tight">Terminal Kasir Safe-Guard</h1>
-                    <p class="text-[11px] text-emerald-400 font-semibold" id="activeStoreHeader">TB. Maju Jaya Makmur</p>
+                    <p class="text-[11px] text-emerald-400 font-semibold" id="activeStoreHeader">Memuat Cabang Toko...</p>
                 </div>
             </div>
 
             <!-- AKSI SHIFT KASIR & LIVE COUNTER BONUS -->
             <div class="flex items-center gap-2 flex-wrap">
-                <!-- INDIKATOR KASIR AKTIF SHIFT -->
-                <div class="bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-sm">
-                    <i class="fa-solid fa-user-check text-emerald-400 text-xs"></i>
-                    <div class="text-left">
-                        <span class="text-[9px] text-slate-400 block font-semibold leading-tight">Kasir Shift:</span>
-                        <strong id="activeCashierName" class="text-xs text-white font-bold block">Kardi</strong>
+                <!-- INDIKATOR KASIR AKTIF SHIFT (TERVERIFIKASI PIN + SELFIE) -->
+                <div class="bg-slate-800/90 border border-emerald-500/40 px-3 py-1.5 rounded-xl flex items-center gap-2.5 shadow-sm">
+                    <div id="headerSelfieWrap" class="w-7 h-7 rounded-full bg-slate-700 border border-emerald-400 overflow-hidden flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-user-lock text-slate-400 text-xs" id="headerSelfieIcon"></i>
+                        <img id="headerSelfieImg" src="" alt="Selfie" class="w-full h-full object-cover hidden">
                     </div>
-                    <button onclick="changeActiveCashier()" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-emerald-300 font-bold px-2 py-0.5 rounded-lg ml-1 transition border border-slate-600">
-                        Ganti
+                    <div class="text-left">
+                        <span class="text-[9px] text-emerald-400 block font-bold leading-tight uppercase tracking-wider">Kasir Terverifikasi</span>
+                        <strong id="activeCashierName" class="text-xs text-white font-black block">-- Belum Login --</strong>
+                    </div>
+                    <button onclick="openShiftLoginModal()" class="text-[10px] bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-bold px-2.5 py-1 rounded-lg ml-1 transition border border-emerald-500/40">
+                        <i class="fa-solid fa-camera-rotate"></i> Ganti Shift
                     </button>
                 </div>
 
@@ -59,142 +62,248 @@
 
     <main class="max-w-4xl mx-auto px-4 mt-4 space-y-4">
 
-        <!-- BANNER ALERTA BLOKIR KASIR JIKA LIMIT TERLAMPAUI -->
-        <div id="kasirBlockBanner" class="hidden bg-rose-950/90 border-2 border-rose-500 text-rose-200 p-4 rounded-2xl flex items-center gap-3 shadow-2xl">
-            <i class="fa-solid fa-triangle-exclamation text-3xl text-rose-400 shrink-0"></i>
-            <div>
-                <strong class="text-sm font-bold text-white block">LAYANAN VERIFIKASI KASIR DITANGGUHKAN (DIBLOKIR)</strong>
-                <p class="text-xs text-rose-300 mt-0.5">Setoran komisi terutang platform telah melampaui limit Rp 500.000. Minta Pemilik Toko untuk melunasi setoran via Midtrans di <code class="bg-rose-900/60 px-1.5 py-0.5 rounded text-rose-200 font-mono">toko.html</code> agar limit terbuka kembali.</p>
+        <!-- LAYAR KUNCI JIKA KASIR BELUM ABSENSI PIN + SELFIE -->
+        <div id="shiftLockGate" class="bg-slate-800 border-2 border-amber-500/60 rounded-2xl p-6 text-center space-y-4 shadow-2xl">
+            <div class="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center text-3xl mx-auto">
+                <i class="fa-solid fa-user-shield"></i>
             </div>
+            <div class="space-y-1 max-w-md mx-auto">
+                <h2 class="text-base sm:text-lg font-black text-white">Terminal Kasir Terkunci (Wajib Absensi Shift)</h2>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    Untuk mencegah penyalahgunaan akun & manipulasi bonus kasir, setiap kasir yang bertugas wajib memilih nama akun, memasukkan <strong>PIN Pribadi</strong>, dan mengambil <strong>Selfie Live Kamera</strong>.
+                </p>
+            </div>
+            <button onclick="openShiftLoginModal()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-6 py-3 rounded-xl shadow-lg transition inline-flex items-center gap-2 uppercase tracking-wider">
+                <i class="fa-solid fa-camera"></i> Login PIN & Selfie Absensi Shift
+            </button>
         </div>
 
-        <!-- CAMERA SCANNER & INPUT MANUAL -->
-        <section class="bg-slate-800/90 rounded-2xl p-4 sm:p-5 border border-slate-700 text-center space-y-4 shadow-2xl">
-            <h2 class="font-bold text-slate-200 text-xs sm:text-sm flex items-center justify-center gap-2">
-                <i class="fa-solid fa-qrcode text-emerald-400"></i> Pindai / Scan QR Invoice Pelanggan
-            </h2>
+        <!-- AREA OPERASIONAL UTAMA (MUNCUL SETELAH LOGIN SHIFT SAH) -->
+        <div id="terminalOperationalArea" class="hidden space-y-4">
 
-            <div id="readerBox" class="max-w-sm mx-auto overflow-hidden rounded-2xl border-2 border-dashed border-slate-600 bg-slate-950 p-2 min-h-[200px] flex flex-col justify-center items-center">
-                <div id="reader" class="w-full"></div>
+            <!-- BANNER INFO SESI SHIFT AKTIF -->
+            <div class="bg-emerald-950/50 border border-emerald-500/30 px-4 py-2.5 rounded-xl flex flex-wrap items-center justify-between gap-2 text-xs">
+                <div class="flex items-center gap-2 text-emerald-300">
+                    <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                    <span>Sesi Aktif: <strong id="bannerCashierName" class="text-white">-</strong> | Absen Masuk: <span id="bannerLoginTime" class="font-mono">-</span></span>
+                </div>
+                <span id="bannerLogId" class="text-[10px] font-mono bg-slate-900 text-slate-300 px-2 py-0.5 rounded border border-slate-700">LOG-000000</span>
             </div>
 
-            <div class="flex justify-center gap-2">
-                <button id="btnStartScan" onclick="startScanner()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-lg transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-camera"></i> Buka Kamera HP/PC
-                </button>
-                <button id="btnStopScan" onclick="stopScanner()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-xs px-4 py-2.5 rounded-xl hidden transition">
-                    Matikan Kamera
-                </button>
+            <!-- BANNER ALERTA BLOKIR KASIR JIKA LIMIT TERLAMPAUI -->
+            <div id="kasirBlockBanner" class="hidden bg-rose-950/90 border-2 border-rose-500 text-rose-200 p-4 rounded-2xl flex items-center gap-3 shadow-2xl">
+                <i class="fa-solid fa-triangle-exclamation text-3xl text-rose-400 shrink-0"></i>
+                <div>
+                    <strong class="text-sm font-bold text-white block">LAYANAN VERIFIKASI KASIR DITANGGUHKAN (DIBLOKIR)</strong>
+                    <p class="text-xs text-rose-300 mt-0.5">Setoran komisi terutang platform telah melampaui limit Rp 500.000. Minta Pemilik Toko untuk melunasi setoran via Midtrans di <code class="bg-rose-900/60 px-1.5 py-0.5 rounded text-rose-200 font-mono">toko.html</code> agar limit terbuka kembali.</p>
+                </div>
             </div>
 
-            <!-- Manual Input Hardware Barcode Scanner -->
-            <div class="pt-3 border-t border-slate-700/60 max-w-sm mx-auto">
-                <div class="flex gap-2">
-                    <input type="text" id="manualTrxId" onkeypress="handleEnterKey(event)" placeholder="Ketik / USB Scan ID (Contoh: MB-656709)" class="w-full bg-slate-900 border border-slate-600 rounded-xl p-2.5 text-xs font-mono font-bold text-emerald-400 focus:border-emerald-500 focus:outline-none">
-                    <button id="btnCariManual" onclick="lookupManualTrx()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center justify-center gap-1">
-                        <i class="fa-solid fa-magnifying-glass"></i> Cari
+            <!-- CAMERA SCANNER & INPUT MANUAL -->
+            <section class="bg-slate-800/90 rounded-2xl p-4 sm:p-5 border border-slate-700 text-center space-y-4 shadow-2xl">
+                <h2 class="font-bold text-slate-200 text-xs sm:text-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-qrcode text-emerald-400"></i> Pindai / Scan QR Invoice Pelanggan
+                </h2>
+
+                <div id="readerBox" class="max-w-sm mx-auto overflow-hidden rounded-2xl border-2 border-dashed border-slate-600 bg-slate-950 p-2 min-h-[200px] flex flex-col justify-center items-center">
+                    <div id="reader" class="w-full"></div>
+                </div>
+
+                <div class="flex justify-center gap-2">
+                    <button id="btnStartScan" onclick="startScanner()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-lg transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-camera"></i> Buka Kamera HP/PC
+                    </button>
+                    <button id="btnStopScan" onclick="stopScanner()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-xs px-4 py-2.5 rounded-xl hidden transition">
+                        Matikan Kamera
                     </button>
                 </div>
-            </div>
-        </section>
 
-        <!-- VERIFICATION CARD SECTION -->
-        <section id="resultSection" class="hidden bg-slate-800 rounded-2xl p-4 sm:p-6 border border-slate-700 space-y-4 shadow-2xl">
-            <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-                <div>
-                    <span id="resTrxId" class="text-xs font-mono font-extrabold text-emerald-400 block">MB-000000</span>
-                    <h3 id="resCustName" class="text-base font-bold text-white">Pelanggan: Umum</h3>
-                </div>
-                <span id="resStatusBadge" class="bg-amber-500/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full border border-amber-500/30">PENDING</span>
-            </div>
-
-            <!-- INSTRUCTION CARD -->
-            <div id="cashierInstructionCard" class="p-4 rounded-xl border space-y-1">
-                <strong id="instructionTitle" class="text-xs font-bold uppercase flex items-center gap-2"></strong>
-                <p id="instructionText" class="text-xs font-medium leading-relaxed"></p>
-            </div>
-
-            <!-- ITEM BREAKDOWN TABLE -->
-            <div class="border border-slate-700 rounded-xl overflow-hidden bg-slate-900/50">
-                <table class="w-full text-left text-xs">
-                    <thead class="bg-slate-900 text-slate-400 border-b border-slate-700">
-                        <tr>
-                            <th class="p-2.5">Material</th>
-                            <th class="p-2.5 text-center">Qty</th>
-                            <th class="p-2.5 text-right">Harga</th>
-                            <th class="p-2.5 text-right">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody id="resTableBody" class="divide-y divide-slate-800 text-slate-300"></tbody>
-                </table>
-            </div>
-
-            <!-- FORM OTENTIKASI & UPLOAD FOTO STRUK -->
-            <div id="cashierAuthBox" class="bg-slate-900/80 p-4 rounded-xl border border-slate-700 space-y-3">
-                <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wide flex items-center gap-1.5">
-                    <i class="fa-solid fa-lock text-emerald-400"></i> Akuntabilitas Kasir & Bukti Fisik
-                </h4>
-                
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-[11px] font-semibold text-slate-400 mb-1">Nama Kasir Bertugas <span class="text-rose-400">*</span></label>
-                        <input type="text" id="inputCashierName" placeholder="Nama Kasir (Contoh: Budi)" class="w-full bg-slate-800 border border-slate-600 rounded-lg p-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold text-slate-400 mb-1">No. Struk Fisik Toko <span class="text-rose-400">*</span></label>
-                        <input type="text" id="inputStrukNo" placeholder="Contoh: STR-20261102-01" class="w-full bg-slate-800 border border-slate-600 rounded-lg p-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none font-mono">
-                    </div>
-                </div>
-
-                <!-- AMBIL FOTO STRUK FISIK (KAMERA HP/LAPTOP) -->
-                <div class="pt-2 border-t border-slate-800">
-                    <label class="block text-[11px] font-semibold text-slate-400 mb-1">Foto Struk / Nota Fisik Belanja <span class="text-rose-400">*Wajib Bukti Foto</span></label>
-                    <div class="flex items-center gap-3">
-                        <input type="file" id="inputFotoStruk" accept="image/*" capture="environment" class="hidden" onchange="handleImageCapture(event)">
-                        <button type="button" onclick="document.getElementById('inputFotoStruk').click()" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 text-xs px-3 py-2 rounded-lg font-medium flex items-center gap-2">
-                            <i class="fa-solid fa-camera text-emerald-400"></i> <span id="btnFotoLabel">Ambil Foto Struk</span>
+                <!-- Manual Input Hardware Barcode Scanner -->
+                <div class="pt-3 border-t border-slate-700/60 max-w-sm mx-auto">
+                    <div class="flex gap-2">
+                        <input type="text" id="manualTrxId" onkeypress="handleEnterKey(event)" placeholder="Ketik / USB Scan ID (Contoh: MB-656709)" class="w-full bg-slate-900 border border-slate-600 rounded-xl p-2.5 text-xs font-mono font-bold text-emerald-400 focus:border-emerald-500 focus:outline-none">
+                        <button id="btnCariManual" onclick="lookupManualTrx()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-magnifying-glass"></i> Cari
                         </button>
-                        <div id="previewContainer" class="hidden relative w-12 h-12 rounded-lg border border-emerald-500 overflow-hidden">
-                            <img id="imgPreview" class="w-full h-full object-cover">
+                    </div>
+                </div>
+            </section>
+
+            <!-- VERIFICATION CARD SECTION -->
+            <section id="resultSection" class="hidden bg-slate-800 rounded-2xl p-4 sm:p-6 border border-slate-700 space-y-4 shadow-2xl">
+                <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                    <div>
+                        <span id="resTrxId" class="text-xs font-mono font-extrabold text-emerald-400 block">MB-000000</span>
+                        <h3 id="resCustName" class="text-base font-bold text-white">Pelanggan: Umum</h3>
+                    </div>
+                    <span id="resStatusBadge" class="bg-amber-500/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full border border-amber-500/30">PENDING</span>
+                </div>
+
+                <!-- INSTRUCTION CARD -->
+                <div id="cashierInstructionCard" class="p-4 rounded-xl border space-y-1">
+                    <strong id="instructionTitle" class="text-xs font-bold uppercase flex items-center gap-2"></strong>
+                    <p id="instructionText" class="text-xs font-medium leading-relaxed"></p>
+                </div>
+
+                <!-- ITEM BREAKDOWN TABLE -->
+                <div class="border border-slate-700 rounded-xl overflow-hidden bg-slate-900/50">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-900 text-slate-400 border-b border-slate-700">
+                            <tr>
+                                <th class="p-2.5">Material</th>
+                                <th class="p-2.5 text-center">Qty</th>
+                                <th class="p-2.5 text-right">Harga</th>
+                                <th class="p-2.5 text-right">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resTableBody" class="divide-y divide-slate-800 text-slate-300"></tbody>
+                    </table>
+                </div>
+
+                <!-- FORM OTENTIKASI & UPLOAD FOTO STRUK -->
+                <div id="cashierAuthBox" class="bg-slate-900/80 p-4 rounded-xl border border-slate-700 space-y-3">
+                    <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wide flex items-center gap-1.5">
+                        <i class="fa-solid fa-lock text-emerald-400"></i> Akuntabilitas Kasir & Bukti Fisik
+                    </h4>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Kasir Verifikator (Terkunci PIN & Selfie)</label>
+                            <div class="w-full bg-slate-950 border border-emerald-500/40 rounded-lg p-2.5 text-xs text-emerald-300 font-bold flex items-center justify-between">
+                                <span id="lockedCashierDisplay">--</span>
+                                <span class="text-[9px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-mono">VERIFIED</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-400 mb-1">No. Struk Fisik Toko <span class="text-rose-400">*</span></label>
+                            <input type="text" id="inputStrukNo" placeholder="Contoh: STR-20261102-01" class="w-full bg-slate-800 border border-slate-600 rounded-lg p-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none font-mono">
+                        </div>
+                    </div>
+
+                    <!-- AMBIL FOTO STRUK FISIK (KAMERA HP/LAPTOP) -->
+                    <div class="pt-2 border-t border-slate-800 space-y-2">
+                        <label class="block text-[11px] font-semibold text-slate-400">
+                            Foto Struk / Nota Fisik Belanja <span class="text-rose-400">*Wajib Paraf Kasir di Struk Sebelum Difoto</span>
+                        </label>
+                        <div class="flex items-center gap-3">
+                            <input type="file" id="inputFotoStruk" accept="image/*" capture="environment" class="hidden" onchange="handleImageCapture(event)">
+                            <button type="button" onclick="document.getElementById('inputFotoStruk').click()" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 text-xs px-3 py-2 rounded-lg font-medium flex items-center gap-2">
+                                <i class="fa-solid fa-camera text-emerald-400"></i> <span id="btnFotoLabel">Ambil Foto Struk (Sudah Diparaf)</span>
+                            </button>
+                            <div id="previewContainer" class="hidden relative w-12 h-12 rounded-lg border border-emerald-500 overflow-hidden">
+                                <img id="imgPreview" class="w-full h-full object-cover">
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- ACTION BAR -->
-            <div class="bg-slate-900 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3 border border-slate-700">
-                <div>
-                    <span class="text-[11px] text-slate-400 font-medium block">Total Pembayaran Kasir:</span>
-                    <strong id="resFinalTotal" class="text-xl font-black text-emerald-400">Rp 0</strong>
+                <!-- ACTION BAR -->
+                <div class="bg-slate-900 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3 border border-slate-700">
+                    <div>
+                        <span class="text-[11px] text-slate-400 font-medium block">Total Pembayaran Kasir:</span>
+                        <strong id="resFinalTotal" class="text-xl font-black text-emerald-400">Rp 0</strong>
+                    </div>
+                    <div id="actionBarButtons" class="flex items-center gap-2">
+                        <button id="btnVerify" onclick="verifyTrx()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-5 py-3 rounded-xl shadow-lg transition flex items-center gap-2">
+                            <i class="fa-solid fa-circle-check text-base"></i> SELESAIKAN TRANSAKSI
+                        </button>
+                    </div>
                 </div>
-                <div id="actionBarButtons" class="flex items-center gap-2">
-                    <button id="btnVerify" onclick="verifyTrx()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-5 py-3 rounded-xl shadow-lg transition flex items-center gap-2">
-                        <i class="fa-solid fa-circle-check text-base"></i> SELESAIKAN TRANSAKSI
-                    </button>
-                </div>
-            </div>
-        </section>
+            </section>
 
+        </div>
     </main>
+
+    <!-- MODAL LOGIN PIN PRIBADI + SELFIE ABSENSI SHIFT KASIR -->
+    <div id="modalShiftLogin" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden my-auto">
+            <div class="bg-slate-900 px-5 py-4 border-b border-slate-700 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-user-lock text-emerald-400 text-lg"></i>
+                    <div>
+                        <h3 class="font-black text-sm text-white">Absensi & Ganti Shift Kasir</h3>
+                        <p class="text-[10px] text-slate-400">Wajib PIN Pribadi + Foto Selfie Wajah Real-Time</p>
+                    </div>
+                </div>
+                <button id="btnCloseShiftModal" onclick="closeShiftLoginModal()" class="text-slate-400 hover:text-white text-xl font-bold hidden">&times;</button>
+            </div>
+
+            <div class="p-5 space-y-4">
+                <!-- PILIH NAMA KASIR -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">1. Pilih Akun Kasir Bertugas</label>
+                    <select id="selectShiftCashier" class="w-full bg-slate-900 border border-slate-600 rounded-xl p-2.5 text-xs font-bold text-white focus:border-emerald-500 focus:outline-none">
+                        <option value="">-- Memuat Daftar Kasir... --</option>
+                    </select>
+                </div>
+
+                <!-- INPUT PIN PRIBADI -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">2. PIN Pribadi Kasir (4–6 Digit)</label>
+                    <input type="password" id="inputShiftPin" maxlength="6" inputmode="numeric" placeholder="••••" class="w-full bg-slate-900 border border-slate-600 rounded-xl p-2.5 text-sm text-white tracking-widest font-mono focus:border-emerald-500 focus:outline-none">
+                </div>
+
+                <!-- KAMERA SELFIE REAL-TIME (ANTI UPLOAD GALERI) -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-bold text-slate-300">3. Selfie Absensi Wajah (Live Kamera)</label>
+                        <span class="text-[10px] text-amber-400 font-semibold"><i class="fa-solid fa-shield-halved"></i> Anti-Fake</span>
+                    </div>
+
+                    <div class="relative w-full aspect-video bg-slate-950 rounded-xl border-2 border-dashed border-slate-600 overflow-hidden flex items-center justify-center">
+                        <video id="selfieVideo" autoplay playsinline muted class="w-full h-full object-cover mirror-cam hidden"></video>
+                        <img id="selfieSnapshotPreview" src="" alt="Hasil Selfie" class="w-full h-full object-cover hidden">
+                        <div id="selfiePlaceholder" class="text-center p-4 space-y-1">
+                            <i class="fa-solid fa-camera text-2xl text-slate-500"></i>
+                            <p class="text-[11px] text-slate-400">Klik tombol di bawah untuk mengaktifkan kamera depan</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button type="button" id="btnOpenSelfieCam" onclick="startSelfieCamera()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-video"></i> Aktifkan Kamera
+                        </button>
+                        <button type="button" id="btnCaptureSelfie" onclick="captureSelfieFrame()" class="flex-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs py-2.5 rounded-xl transition hidden flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-camera"></i> Jepret Selfie
+                        </button>
+                        <button type="button" id="btnRetakeSelfie" onclick="retakeSelfie()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-amber-300 font-bold text-xs py-2.5 rounded-xl transition hidden flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-rotate-right"></i> Foto Ulang
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TOMBOL SUBMIT LOGIN SHIFT -->
+                <button type="button" id="btnSubmitShiftLogin" onclick="submitShiftLogin()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 uppercase tracking-wider">
+                    <i class="fa-solid fa-right-to-bracket"></i> Verifikasi PIN & Buka Shift
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script>
         const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxsQQMYsvWk6R3AkPhkEURDsxFaEyUnqwFyCv500uPYvK0Y0RhPvaHXgw5OcvYeH_tC/exec";
-        
+
         let html5QrcodeScanner = null;
+        let selfieMediaStream = null;
+        let capturedSelfieBase64 = "";
+
         let currentLoadedTrx = null;
         let compressedBase64Image = "";
         let terminalToken = "";
         let isStoreBlocked = false;
+        let activeStoreId = "";
+        let activeStoreName = "";
 
-        // STATE KASIR SHIFT AKTIF & AKUMULASI LAPORAN SHIFT
-        let currentCashier = localStorage.getItem('MB_ACTIVE_CASHIER') || 'Kardi';
+        // STATE SESI SHIFT TERAUTENTIKASI
+        let activeShiftSession = null; // { shiftToken, logId, kasirId, namaKasir, selfieUrl, loginTime, storeId }
         let shiftTrxCount = 0;
         let shiftTotalOmzet = 0;
         let accumulatedKasirBonus = 0;
 
-        window.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('DOMContentLoaded', async () => {
             initTerminalToken();
-            updateCashierUI();
+            await resolveStoreContext();
+            restoreShiftSession();
         });
 
         function initTerminalToken() {
@@ -206,40 +315,282 @@
             terminalToken = token;
         }
 
-        function updateCashierUI() {
-            const cashierLabel = document.getElementById('activeCashierName');
-            if (cashierLabel) cashierLabel.innerText = currentCashier;
-            
-            const nameEl = document.getElementById('inputCashierName');
-            if (nameEl) nameEl.value = currentCashier;
+        async function resolveStoreContext() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const rawStore = urlParams.get('s') || urlParams.get('storeId') || urlParams.get('store') || localStorage.getItem('MB_KASIR_STORE_ID') || '';
+            activeStoreId = rawStore.trim().toLowerCase();
+
+            if (!activeStoreId) {
+                document.getElementById('activeStoreHeader').innerText = "Cabang Belum Dipilih (?s=id_toko)";
+                alert("⚠️ Link kasir tidak memiliki kode cabang (?s=...). Pastikan membuka link resmi cabang toko Anda!");
+                return;
+            }
+
+            localStorage.setItem('MB_KASIR_STORE_ID', activeStoreId);
+
+            try {
+                const res = await fetch(`${GAS_WEB_APP_URL}?action=getStores`);
+                const data = await res.json();
+                if (data.success && Array.isArray(data.stores)) {
+                    const found = data.stores.find(s => s.id.toLowerCase() === activeStoreId);
+                    if (found) {
+                        activeStoreName = found.name;
+                        document.getElementById('activeStoreHeader').innerText = `${found.name} (${activeStoreId})`;
+                        return;
+                    }
+                }
+            } catch (e) { console.log("Fallback nama toko:", e); }
+
+            activeStoreName = activeStoreId.toUpperCase();
+            document.getElementById('activeStoreHeader').innerText = activeStoreName;
         }
 
-        // RESET OTOMATIS SAAT GANTI KASIR SHIFT
-        function changeActiveCashier() {
-            const inputName = prompt("Masukkan Nama Staf Kasir yang Bertugas Shift Ini:", currentCashier);
-            if (inputName && inputName.trim() !== "") {
-                currentCashier = inputName.trim();
-                localStorage.setItem('MB_ACTIVE_CASHIER', currentCashier);
-                
-                // RESET SEMUA STATISTIK SHIFT KASIR SEBELUMNYA KE 0
-                shiftTrxCount = 0;
-                shiftTotalOmzet = 0;
-                accumulatedKasirBonus = 0;
-                
-                updateCashierUI();
-                document.getElementById('kasirBonusCounter').innerText = "Rp 0";
+        function restoreShiftSession() {
+            try {
+                const saved = JSON.parse(localStorage.getItem('MB_SHIFT_SESSION') || 'null');
+                if (saved && saved.storeId === activeStoreId && saved.shiftToken) {
+                    activeShiftSession = saved;
+                    applyAuthenticatedShiftUI();
+                    return;
+                }
+            } catch (e) {}
+            lockTerminalUI();
+        }
 
-                alert(`✅ Sesi Kasir Aktif Diperbarui: ${currentCashier}\nAkumulasi bonus shift di-reset ke Rp 0.`);
+        function lockTerminalUI() {
+            document.getElementById('shiftLockGate').classList.remove('hidden');
+            document.getElementById('terminalOperationalArea').classList.add('hidden');
+            document.getElementById('activeCashierName').innerText = "-- Belum Login --";
+            document.getElementById('headerSelfieImg').classList.add('hidden');
+            document.getElementById('headerSelfieIcon').classList.remove('hidden');
+        }
+
+        function applyAuthenticatedShiftUI() {
+            if (!activeShiftSession) return lockTerminalUI();
+
+            document.getElementById('shiftLockGate').classList.add('hidden');
+            document.getElementById('terminalOperationalArea').classList.remove('hidden');
+
+            document.getElementById('activeCashierName').innerText = activeShiftSession.namaKasir;
+            document.getElementById('bannerCashierName').innerText = activeShiftSession.namaKasir;
+            document.getElementById('bannerLoginTime').innerText = activeShiftSession.loginTime || '-';
+            document.getElementById('bannerLogId').innerText = activeShiftSession.logId || 'VERIFIED';
+            document.getElementById('lockedCashierDisplay').innerText = `${activeShiftSession.namaKasir} (${activeShiftSession.logId})`;
+
+            if (activeShiftSession.selfieThumb) {
+                const img = document.getElementById('headerSelfieImg');
+                img.src = activeShiftSession.selfieThumb;
+                img.classList.remove('hidden');
+                document.getElementById('headerSelfieIcon').classList.add('hidden');
             }
         }
 
+        // ----------------------------------------------------------------------
+        // MODAL LOGIN PIN PRIBADI + LIVE SELFIE ABSENSI SHIFT
+        // ----------------------------------------------------------------------
+        async function openShiftLoginModal() {
+            if (!activeStoreId) {
+                return alert("Kode cabang toko (?s=...) tidak ditemukan di URL!");
+            }
+
+            stopScanner();
+            capturedSelfieBase64 = "";
+            document.getElementById('inputShiftPin').value = "";
+            document.getElementById('selfieSnapshotPreview').classList.add('hidden');
+            document.getElementById('selfieVideo').classList.add('hidden');
+            document.getElementById('selfiePlaceholder').classList.remove('hidden');
+            document.getElementById('btnOpenSelfieCam').classList.remove('hidden');
+            document.getElementById('btnCaptureSelfie').classList.add('hidden');
+            document.getElementById('btnRetakeSelfie').classList.add('hidden');
+
+            // Tampilkan tombol close hanya jika sudah ada sesi aktif sebelumnya
+            if (activeShiftSession) {
+                document.getElementById('btnCloseShiftModal').classList.remove('hidden');
+            } else {
+                document.getElementById('btnCloseShiftModal').classList.add('hidden');
+            }
+
+            document.getElementById('modalShiftLogin').classList.remove('hidden');
+            await loadCashierDropdown();
+        }
+
+        function closeShiftLoginModal() {
+            stopSelfieCamera();
+            document.getElementById('modalShiftLogin').classList.add('hidden');
+        }
+
+        async function loadCashierDropdown() {
+            const select = document.getElementById('selectShiftCashier');
+            select.innerHTML = `<option value="">-- Memuat Daftar Kasir... --</option>`;
+
+            try {
+                const res = await fetch(`${GAS_WEB_APP_URL}?action=getStoreCashiers&storeId=${encodeURIComponent(activeStoreId)}`);
+                const data = await res.json();
+
+                if (data.success && Array.isArray(data.cashiers) && data.cashiers.length > 0) {
+                    select.innerHTML = `<option value="">-- Pilih Nama Anda --</option>` +
+                        data.cashiers.map(c => `<option value="${c.kasirId}">${c.namaKasir}</option>`).join('');
+                } else {
+                    select.innerHTML = `<option value="">-- Belum Ada Akun Kasir Terdaftar --</option>`;
+                    alert("⚠️ Pemilik Toko belum mendaftarkan akun kasir di dashboard toko.html! Minta Owner menambahkan Nama & PIN Kasir terlebih dahulu.");
+                }
+            } catch (err) {
+                select.innerHTML = `<option value="">-- Gagal Memuat Daftar Kasir --</option>`;
+                alert("Gagal memuat daftar kasir: " + err.toString());
+            }
+        }
+
+        async function startSelfieCamera() {
+            try {
+                selfieMediaStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
+                    audio: false
+                });
+                const video = document.getElementById('selfieVideo');
+                video.srcObject = selfieMediaStream;
+                video.classList.remove('hidden');
+                document.getElementById('selfiePlaceholder').classList.add('hidden');
+                document.getElementById('selfieSnapshotPreview').classList.add('hidden');
+
+                document.getElementById('btnOpenSelfieCam').classList.add('hidden');
+                document.getElementById('btnCaptureSelfie').classList.remove('hidden');
+                document.getElementById('btnRetakeSelfie').classList.add('hidden');
+            } catch (err) {
+                alert("❌ Kamera depan tidak dapat diakses! Pastikan izin kamera browser diizinkan (Allow).\nDetail: " + err.message);
+            }
+        }
+
+        function stopSelfieCamera() {
+            if (selfieMediaStream) {
+                selfieMediaStream.getTracks().forEach(track => track.stop());
+                selfieMediaStream = null;
+            }
+        }
+
+        function captureSelfieFrame() {
+            const video = document.getElementById('selfieVideo');
+            if (!video || !video.videoWidth) {
+                return alert("Kamera belum siap, tunggu 1 detik lalu coba lagi.");
+            }
+
+            const canvas = document.createElement('canvas');
+            const targetWidth = 480;
+            const scale = targetWidth / video.videoWidth;
+            canvas.width = targetWidth;
+            canvas.height = Math.round(video.videoHeight * scale);
+
+            const ctx = canvas.getContext('2d');
+            // Mirror horizontal agar natural seperti cermin
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Watermark timestamp anti-manipulasi di sudut bawah foto selfie
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.fillStyle = "rgba(15, 23, 42, 0.75)";
+            ctx.fillRect(0, canvas.height - 26, canvas.width, 26);
+            ctx.fillStyle = "#34D399";
+            ctx.font = "bold 11px monospace";
+            const stamp = `ABSEN SHIFT | ${activeStoreId.toUpperCase()} | ${new Date().toLocaleString('id-ID')}`;
+            ctx.fillText(stamp, 8, canvas.height - 9);
+
+            capturedSelfieBase64 = canvas.toDataURL('image/jpeg', 0.65);
+
+            stopSelfieCamera();
+            video.classList.add('hidden');
+
+            const previewImg = document.getElementById('selfieSnapshotPreview');
+            previewImg.src = capturedSelfieBase64;
+            previewImg.classList.remove('hidden');
+
+            document.getElementById('btnCaptureSelfie').classList.add('hidden');
+            document.getElementById('btnRetakeSelfie').classList.remove('hidden');
+        }
+
+        function retakeSelfie() {
+            capturedSelfieBase64 = "";
+            startSelfieCamera();
+        }
+
+        async function submitShiftLogin() {
+            const kasirId = document.getElementById('selectShiftCashier').value.trim();
+            const pin = document.getElementById('inputShiftPin').value.trim();
+
+            if (!kasirId) return alert("Pilih nama kasir Anda terlebih dahulu!");
+            if (!pin || pin.length < 4) return alert("Masukkan PIN pribadi Anda (minimal 4 digit)!");
+            if (!capturedSelfieBase64) return alert("Wajib mengambil Foto Selfie wajah langsung dari kamera sebelum membuka shift!");
+
+            const btn = document.getElementById('btnSubmitShiftLogin');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> MEMVERIFIKASI PIN & SELFIE...`;
+
+            const prevCashierName = activeShiftSession ? activeShiftSession.namaKasir : "Belum Ada (Buka Shift)";
+
+            try {
+                const res = await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'cashierShiftLogin',
+                        storeId: activeStoreId,
+                        kasirId: kasirId,
+                        pin: pin,
+                        prevCashier: prevCashierName,
+                        terminalToken: terminalToken,
+                        selfieBase64: capturedSelfieBase64
+                    })
+                });
+                const data = await res.json();
+
+                if (!data.success) {
+                    alert("❌ GAGAL LOGIN SHIFT:\n" + data.message);
+                    return;
+                }
+
+                // Reset statistik shift sebelumnya ke 0 untuk kasir baru
+                shiftTrxCount = 0;
+                shiftTotalOmzet = 0;
+                accumulatedKasirBonus = 0;
+                document.getElementById('kasirBonusCounter').innerText = "Rp 0";
+                resetKasirUI();
+
+                activeShiftSession = {
+                    storeId: activeStoreId,
+                    shiftToken: data.shiftToken,
+                    logId: data.logId,
+                    kasirId: data.kasirId,
+                    namaKasir: data.namaKasir,
+                    selfieUrl: data.selfieUrl,
+                    selfieThumb: capturedSelfieBase64,
+                    loginTime: data.loginTime
+                };
+
+                localStorage.setItem('MB_SHIFT_SESSION', JSON.stringify(activeShiftSession));
+                applyAuthenticatedShiftUI();
+                closeShiftLoginModal();
+
+                alert(`✅ ABSENSI SHIFT BERHASIL!\nKasir Bertugas: ${data.namaKasir}\nID Log Audit: ${data.logId}\nFoto selfie & waktu pergantian shift telah tercatat di server.`);
+
+            } catch (err) {
+                alert("Kesalahan koneksi server: " + err.toString());
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> Verifikasi PIN & Buka Shift`;
+            }
+        }
+
+        // ----------------------------------------------------------------------
+        // REKAP SHIFT WHATSAPP
+        // ----------------------------------------------------------------------
         function sendShiftWaReport() {
+            if (!activeShiftSession) return openShiftLoginModal();
+
             const ownerPhone = "6282113866890";
-            const storeName = document.getElementById('activeStoreHeader')?.innerText || "TB. Maju Jaya Makmur";
+            const storeName = activeStoreName || "Toko Bangunan Mitra";
             const dateStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
             const textWa = `*REKAP SHIFT KASIR MITRA BANGUNAN*\n` +
-                           `Nama Kasir : *${currentCashier}*\n` +
+                           `Nama Kasir : *${activeShiftSession.namaKasir}*\n` +
+                           `ID Log     : ${activeShiftSession.logId}\n` +
                            `Toko       : ${storeName}\n` +
                            `Tanggal    : ${dateStr}\n\n` +
                            `Total Transaksi Verified : *${shiftTrxCount} Transaksi*\n` +
@@ -250,6 +601,9 @@
             window.open(`https://api.whatsapp.com/send?phone=${ownerPhone}&text=${encodeURIComponent(textWa)}`, '_blank');
         }
 
+        // ----------------------------------------------------------------------
+        // SCANNER QR & VERIFIKASI TRANSAKSI
+        // ----------------------------------------------------------------------
         function handleImageCapture(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -284,6 +638,7 @@
         }
 
         function startScanner() {
+            if (!activeShiftSession) return openShiftLoginModal();
             document.getElementById('btnStartScan').classList.add('hidden');
             document.getElementById('btnStopScan').classList.remove('hidden');
             html5QrcodeScanner = new Html5Qrcode("reader");
@@ -299,7 +654,7 @@
                 html5QrcodeScanner.stop().then(() => {
                     document.getElementById('btnStartScan').classList.remove('hidden');
                     document.getElementById('btnStopScan').classList.add('hidden');
-                });
+                }).catch(() => {});
             }
         }
 
@@ -319,6 +674,7 @@
         }
 
         function lookupManualTrx() {
+            if (!activeShiftSession) return openShiftLoginModal();
             const val = document.getElementById('manualTrxId').value.trim().toUpperCase();
             if (!val) return alert('Masukkan ID Transaksi!');
             fetchTrxDetails(val);
@@ -330,12 +686,12 @@
             btnCari.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
 
             try {
-                const res = await fetch(`${GAS_WEB_APP_URL}?action=getTransaction&id=${trxId}`);
+                const res = await fetch(`${GAS_WEB_APP_URL}?action=getTransaction&id=${encodeURIComponent(trxId)}&storeId=${encodeURIComponent(activeStoreId)}`);
                 const data = await res.json();
                 if (data.success && data.trx) {
                     renderTrxDetails(data.trx, !!data.limitWarning);
                 } else {
-                    alert('Transaksi tidak ditemukan!');
+                    alert(data.message || 'Transaksi tidak ditemukan!');
                 }
             } catch(e) {
                 alert('Gagal terhubung ke server: ' + e.toString());
@@ -385,7 +741,7 @@
                 card.className = "p-4 rounded-xl border bg-rose-950/90 border-rose-500 text-rose-200 space-y-1";
                 title.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-rose-400 text-base"></i> KASIR DIBLOKIR: SETORAN PLATFORM TERLAMPAUI`;
                 text.innerHTML = `Setoran komisi platform terutang telah melampaui limit Rp 500.000.<br><strong class="text-white">Layanan verifikasi ditangguhkan. Minta Pemilik Toko melunasi setoran via Midtrans di toko.html.</strong>`;
-                
+
                 document.getElementById('resFinalTotal').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
 
                 authBox.classList.add('hidden');
@@ -400,8 +756,8 @@
             if (isDone) {
                 card.className = "p-4 rounded-xl border bg-emerald-950/40 border-emerald-500/40 text-emerald-200 space-y-1.5";
                 title.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> TRANSAKSI SELESAI (VERIFIED)`;
-                
-                const komisiDetail = isCashback 
+
+                const komisiDetail = isCashback
                     ? `💵 <strong>Komisi Tunai Tukang (1%): Rp ${inc.toLocaleString('id-ID')}</strong> (Telah Diserahkan Tunai ke Tukang)`
                     : `🏷️ <strong>Diskon Nota (1%): Rp ${inc.toLocaleString('id-ID')}</strong> (Telah Dipotongkan di Nota Belanja)`;
 
@@ -431,7 +787,9 @@
                 }
 
                 authBox.classList.remove('hidden');
-                updateCashierUI();
+                if (activeShiftSession) {
+                    document.getElementById('lockedCashierDisplay').innerText = `${activeShiftSession.namaKasir} (${activeShiftSession.logId})`;
+                }
                 actionBarButtons.innerHTML = `
                     <button id="btnVerify" onclick="verifyTrx()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-5 py-3 rounded-xl shadow-lg transition flex items-center gap-2">
                         <i class="fa-solid fa-circle-check text-base"></i> SELESAIKAN TRANSAKSI
@@ -451,18 +809,18 @@
         }
 
         async function verifyTrx() {
+            if (!activeShiftSession || !activeShiftSession.shiftToken) {
+                alert("⚠️ Sesi kasir tidak valid! Silakan login PIN & Selfie terlebih dahulu.");
+                return openShiftLoginModal();
+            }
             if (!currentLoadedTrx) return;
             if (isStoreBlocked) return alert("❌ TRANSAKSI DIBLOKIR!\nSetoran komisi platform toko melampaui Rp 500.000. Minta pemilik toko untuk melunasi setoran.");
 
-            const nameEl = document.getElementById('inputCashierName');
             const strukEl = document.getElementById('inputStrukNo');
-
-            const cashierName = nameEl ? nameEl.value.trim() : '';
             const strukNo = strukEl ? strukEl.value.trim() : '';
 
-            if (!cashierName) return alert('Nama Kasir wajib diisi!');
             if (!strukNo) return alert('Nomor Struk Fisik Toko wajib diisi!');
-            if (!compressedBase64Image) return alert('Wajib mengambil Foto Struk Fisik Belanja!');
+            if (!compressedBase64Image) return alert('Wajib mengambil Foto Struk Fisik Belanja (yang sudah diparaf kasir)!');
 
             const btn = document.getElementById('btnVerify');
             btn.disabled = true;
@@ -471,8 +829,8 @@
             const payload = {
                 action: 'verifyTransaction',
                 trxId: currentLoadedTrx.id,
-                storeId: currentLoadedTrx.storeId,
-                cashierName: cashierName,
+                storeId: activeStoreId,
+                shiftToken: activeShiftSession.shiftToken,
                 strukNo: strukNo,
                 fotoStrukBase64: compressedBase64Image,
                 terminalToken: terminalToken
@@ -492,7 +850,7 @@
 
                 const grandTotal = Number(currentLoadedTrx.grandTotal || 0);
                 const bonusAmt = grandTotal * 0.002;
-                
+
                 accumulatedKasirBonus += bonusAmt;
                 shiftTrxCount += 1;
                 shiftTotalOmzet += grandTotal;
@@ -501,14 +859,14 @@
 
                 const inc = Number(currentLoadedTrx.incentiveVal) || Math.round(grandTotal * 0.01);
                 const isCashback = (currentLoadedTrx.modeIncentive === 'CASHBACK_TUKANG' || currentLoadedTrx.modeIncentive === 'KOMISI_TUKANG');
-                const komisiMsg = isCashback 
+                const komisiMsg = isCashback
                     ? `Serahkan Komisi Tunai 1%: Rp ${inc.toLocaleString('id-ID')} ke Tukang`
                     : `Diskon Nota 1%: Rp ${inc.toLocaleString('id-ID')} (Sudah Dipotong Nota)`;
 
-                alert(`✅ VERIFIKASI SELESAI!\n• ${komisiMsg}\n• Bonus Kasir (+0.2%): Rp ${Math.round(bonusAmt).toLocaleString('id-ID')}\n• Bukti Foto Terunggah ke Google Drive.`);
+                alert(`✅ VERIFIKASI SELESAI!\n• Kasir Tercatat: ${res.cashierName}\n• ${komisiMsg}\n• Bonus Kasir (+0.2%): Rp ${Math.round(bonusAmt).toLocaleString('id-ID')}\n• Bukti Foto Struk Terunggah ke Google Drive.`);
 
                 currentLoadedTrx.status = 'SELESAI';
-                currentLoadedTrx.cashierName = cashierName;
+                currentLoadedTrx.cashierName = res.cashierName;
                 currentLoadedTrx.strukNo = strukNo;
                 renderTrxDetails(currentLoadedTrx, false);
 
@@ -529,7 +887,7 @@
             const subtotal = Number(currentLoadedTrx.grandTotal || 0);
             const inc = Number(currentLoadedTrx.incentiveVal) || Math.round(subtotal * 0.01);
             const isCashback = (currentLoadedTrx.modeIncentive === 'CASHBACK_TUKANG' || currentLoadedTrx.modeIncentive === 'KOMISI_TUKANG');
-            
+
             const komisiDetail = isCashback
                 ? `• Mode: CASHBACK TUNAI TUKANG (1%)\n• Nominal Komisi: *Rp ${inc.toLocaleString('id-ID')}*\n• Status: *TELAH DISERAHKAN TUNAI OLEH KASIR*`
                 : `• Mode: DISKON NOTA BELANJA (1%)\n• Nominal Diskon: *Rp ${inc.toLocaleString('id-ID')}*\n• Status: *TELAH DIPOTONGKAN DI NOTA*`;
