@@ -48,7 +48,7 @@
         <section id="loginSection" class="max-w-md mx-auto bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-2xl space-y-4">
             <div class="text-center space-y-1">
                 <h2 class="text-xl font-black text-white">Masuk Dashboard Toko</h2>
-                <p class="text-xs text-slate-400">Masukkan ID Toko / Cabang dan PIN Kasir untuk mengelola katalog & laporan</p>
+                <p class="text-xs text-slate-400">Masukkan ID Toko / Cabang dan PIN Pemilik Toko untuk mengelola kasir, katalog & laporan</p>
             </div>
 
             <div class="space-y-4 pt-2">
@@ -57,8 +57,8 @@
                     <input type="text" id="loginStoreId" placeholder="Contoh: majujayamakmur-001-jkt" class="w-full bg-slate-900 border border-slate-600 rounded-xl px-3 py-2.5 text-xs text-white uppercase font-mono focus:border-teal-500 focus:outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">PIN Kasir Toko</label>
-                    <input type="password" id="loginPin" placeholder="Masukkan 4-digit PIN" maxlength="6" class="w-full bg-slate-900 border border-slate-600 rounded-xl px-3 py-2.5 text-xs text-white tracking-widest focus:border-teal-500 focus:outline-none">
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">PIN Pemilik Toko</label>
+                    <input type="password" id="loginPin" placeholder="Masukkan 4–6 digit PIN Toko" maxlength="6" class="w-full bg-slate-900 border border-slate-600 rounded-xl px-3 py-2.5 text-xs text-white tracking-widest focus:border-teal-500 focus:outline-none">
                 </div>
                 <button onclick="loginStore()" id="btnLoginSubmit" class="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-black py-3 rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-xs uppercase tracking-wider">
                     <i class="fa-solid fa-right-to-bracket"></i> MASUK KE DASHBOARD
@@ -89,7 +89,7 @@
                     <i class="fa-solid fa-calendar-days text-teal-400 text-lg"></i>
                     <div>
                         <h2 class="text-xs font-bold text-white uppercase tracking-wider">Periode Laporan Bulanan</h2>
-                        <p class="text-[10px] text-slate-400">KPI Omzet dan Gajian Kasir menyaring data per bulan (Otomatis dari Rp 0 tiap awal bulan)</p>
+                        <p class="text-[10px] text-slate-400">KPI Omzet, Log Shift, dan Gajian Kasir menyaring data per bulan (Otomatis dari Rp 0 tiap awal bulan)</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
@@ -148,6 +148,82 @@
                     </div>
                 </div>
             </div>
+
+            <!-- MANAJEMEN AKUN & PIN PRIBADI STAF KASIR (ANTI-CURANG) -->
+            <section class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-xl space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700 pb-3">
+                    <div>
+                        <h3 class="font-bold text-white text-sm sm:text-base flex items-center gap-2">
+                            <i class="fa-solid fa-user-shield text-emerald-400"></i> Kelola Akun & PIN Pribadi Staf Kasir
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Setiap staf kasir wajib memiliki akun dan PIN pribadi terpisah untuk login & selfie absensi shift di <code class="text-teal-300">kasir.html</code>.</p>
+                    </div>
+                </div>
+
+                <!-- Form Tambah Kasir Baru -->
+                <div class="bg-slate-900/70 border border-slate-700 p-4 rounded-xl grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-300 mb-1">Nama Lengkap Staf Kasir</label>
+                        <input type="text" id="newCashierName" placeholder="Contoh: Kardi / Sari" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-300 mb-1">PIN Pribadi Kasir (4–6 Digit Angka)</label>
+                        <input type="text" id="newCashierPin" maxlength="6" inputmode="numeric" placeholder="Contoh: 4821" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-xs text-emerald-300 font-mono font-bold tracking-widest focus:border-emerald-500 focus:outline-none">
+                    </div>
+                    <button onclick="addNewCashier()" id="btnAddCashier" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs py-2.5 px-4 rounded-xl shadow transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-user-plus"></i> Tambah Akun Kasir
+                    </button>
+                </div>
+
+                <!-- Tabel Daftar Kasir -->
+                <div class="overflow-x-auto border border-slate-700 rounded-xl bg-slate-900/40">
+                    <table class="w-full text-left text-xs whitespace-nowrap">
+                        <thead class="bg-slate-900 font-bold text-slate-400 border-b border-slate-700">
+                            <tr>
+                                <th class="p-3">ID Kasir</th>
+                                <th class="p-3">Nama Staf Kasir</th>
+                                <th class="p-3 text-center">PIN Pribadi</th>
+                                <th class="p-3 text-center">Status Akun</th>
+                                <th class="p-3 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cashierAccountsBody" class="divide-y divide-slate-800 text-slate-300">
+                            <tr><td colspan="5" class="p-4 text-center text-slate-500">Memuat daftar akun kasir...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- AUDIT LOG PERGANTIAN SHIFT & BUKTI FOTO SELFIE KASIR -->
+            <section class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-xl space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700 pb-3">
+                    <div>
+                        <h3 class="font-bold text-white text-sm sm:text-base flex items-center gap-2">
+                            <i class="fa-solid fa-camera-retro text-amber-400"></i> Audit Log Pergantian Shift & Foto Selfie Absensi
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Rekam jejak autentik siapa yang bertugas dan foto wajah real-time saat membuka/mengganti shift kasir.</p>
+                    </div>
+                    <span class="text-[11px] text-slate-400 font-mono" id="shiftLogCount">0 Log Shift</span>
+                </div>
+
+                <div class="overflow-x-auto border border-slate-700 rounded-xl bg-slate-900/40">
+                    <table class="w-full text-left text-xs whitespace-nowrap">
+                        <thead class="bg-slate-900 font-bold text-slate-400 border-b border-slate-700">
+                            <tr>
+                                <th class="p-3">ID Log / Waktu</th>
+                                <th class="p-3">Kasir Sebelumnya</th>
+                                <th class="p-3">Kasir Masuk (Bertugas)</th>
+                                <th class="p-3">Keterangan Shift</th>
+                                <th class="p-3 text-center">ID Perangkat</th>
+                                <th class="p-3 text-center">Bukti Foto Selfie</th>
+                            </tr>
+                        </thead>
+                        <tbody id="shiftLogsBody" class="divide-y divide-slate-800 text-slate-300">
+                            <tr><td colspan="6" class="p-4 text-center text-slate-500">Memuat log pergantian shift...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
             <!-- RINCIAN ALOKASI SETORAN PLATFORM 1% & REKAP GAJIAN KASIR BULANAN -->
             <section class="bg-slate-800/80 border border-slate-700 rounded-2xl p-5 space-y-4 shadow-xl">
@@ -380,7 +456,7 @@
             const storeId = document.getElementById('loginStoreId').value.trim().toLowerCase();
             const pin = document.getElementById('loginPin').value.trim();
 
-            if (!storeId || !pin) return alert('ID Toko dan PIN wajib diisi!');
+            if (!storeId || !pin) return alert('ID Toko dan PIN Pemilik Toko wajib diisi!');
             executeLogin(storeId, pin);
         }
 
@@ -444,13 +520,11 @@
             currentTerutangPlatform = terutang;
             document.getElementById('kpiKomisiCreator').innerText = "Rp " + terutang.toLocaleString('id-ID');
 
-            // Breakdown Calculations
             const netCreator = Math.round((kpi.totalBonusKasir ? (kpi.totalOmzet * 0.008) : (terutang * 0.8)));
             const bonusKasirAllocated = (kpi.totalBonusKasir || Math.round(terutang * 0.2));
             document.getElementById('breakdownCreator').innerText = "Rp " + Math.round(netCreator).toLocaleString('id-ID');
             document.getElementById('breakdownKasir').innerText = "Rp " + Math.round(bonusKasirAllocated).toLocaleString('id-ID');
 
-            // Limit Badge Check
             const statusBadge = document.getElementById('kpiStatusBadge');
             const limitBanner = document.getElementById('limitWarningBanner');
 
@@ -468,7 +542,6 @@
                 limitBanner.classList.add('hidden');
             }
 
-            // WA Admin Dynamic URL (Khusus Klaim Transfer Manual BCA)
             const adminPhone = "6282113866890";
             const textWa = `*KONFIRMASI TRANSFER MANUAL BCA (SETORAN PLATFORM MITRA BANGUNAN)*\n\n` +
                            `Halo Admin,\n` +
@@ -477,6 +550,10 @@
                            `Mohon dibantu verifikasi dan update status setoran di sistem (Bukti transfer terlampir).`;
             
             document.getElementById('btnConfirmPayment').href = `https://api.whatsapp.com/send?phone=${adminPhone}&text=${encodeURIComponent(textWa)}`;
+
+            // Render Daftar Akun Kasir & Log Pergantian Shift
+            renderCashierAccounts(data.cashiers || []);
+            renderShiftLogs(data.shiftLogs || []);
 
             // Render Transactions Table & Hitung Rekap Bonus Per Kasir Bulanan
             const tbody = document.getElementById('tableTrxBody');
@@ -521,6 +598,139 @@
             }).join('');
         }
 
+        /* ---------------------------------------------------------------------- */
+        /* KELOLA AKUN & PIN PRIBADI KASIR                                        */
+        /* ---------------------------------------------------------------------- */
+        function renderCashierAccounts(cashiers) {
+            const tbody = document.getElementById('cashierAccountsBody');
+            if (!cashiers || cashiers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-amber-400 font-medium">Belum ada akun staf kasir terdaftar. Tambahkan kasir di form di atas agar terminal kasir bisa digunakan.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = cashiers.map(c => {
+                const isActive = c.status === 'AKTIF';
+                return `
+                    <tr class="hover:bg-slate-900/40 transition">
+                        <td class="p-3 font-mono text-teal-400 font-bold">${c.kasirId}</td>
+                        <td class="p-3 font-bold text-white">${c.namaKasir}</td>
+                        <td class="p-3 text-center font-mono font-bold text-emerald-300 tracking-widest">${c.pin}</td>
+                        <td class="p-3 text-center">
+                            <span class="${isActive ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/20 text-rose-300 border-rose-500/30'} text-[10px] font-bold px-2.5 py-0.5 rounded-full border">
+                                ${c.status}
+                            </span>
+                        </td>
+                        <td class="p-3 text-center space-x-1.5">
+                            <button onclick="manageCashierAction('toggle', '${c.kasirId}')" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-slate-200 px-2.5 py-1 rounded-lg font-bold transition">
+                                ${isActive ? 'Nonaktifkan' : 'Aktifkan'}
+                            </button>
+                            <button onclick="manageCashierAction('delete', '${c.kasirId}')" class="text-[10px] bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 px-2.5 py-1 rounded-lg font-bold transition">
+                                Hapus
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function addNewCashier() {
+            const nama = document.getElementById('newCashierName').value.trim();
+            const pin = document.getElementById('newCashierPin').value.trim();
+
+            if (!nama) return alert("Nama staf kasir wajib diisi!");
+            if (!pin || pin.length < 4) return alert("PIN pribadi kasir wajib minimal 4 digit angka!");
+
+            const btn = document.getElementById('btnAddCashier');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...`;
+
+            try {
+                const res = await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'manageCashier',
+                        subAction: 'add',
+                        storeId: currentActiveStoreId,
+                        ownerPin: currentActivePin,
+                        namaKasir: nama,
+                        pinKasir: pin
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('newCashierName').value = '';
+                    document.getElementById('newCashierPin').value = '';
+                    alert("✅ " + data.message);
+                    reloadDashboard();
+                } else {
+                    alert("Gagal: " + data.message);
+                }
+            } catch (err) {
+                alert("Kesalahan koneksi: " + err.toString());
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-user-plus"></i> Tambah Akun Kasir`;
+            }
+        }
+
+        async function manageCashierAction(subAction, kasirId) {
+            if (subAction === 'delete' && !confirm("Yakin ingin menghapus akun kasir ini?")) return;
+
+            try {
+                const res = await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'manageCashier',
+                        subAction: subAction,
+                        storeId: currentActiveStoreId,
+                        ownerPin: currentActivePin,
+                        kasirId: kasirId
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    reloadDashboard();
+                } else {
+                    alert("Gagal: " + data.message);
+                }
+            } catch (err) {
+                alert("Kesalahan koneksi: " + err.toString());
+            }
+        }
+
+        /* ---------------------------------------------------------------------- */
+        /* AUDIT LOG PERGANTIAN SHIFT & FOTO SELFIE                               */
+        /* ---------------------------------------------------------------------- */
+        function renderShiftLogs(logs) {
+            const tbody = document.getElementById('shiftLogsBody');
+            document.getElementById('shiftLogCount').innerText = `${logs.length} Log Shift`;
+
+            if (!logs || logs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-500">Belum ada aktivitas login / pergantian shift kasir pada periode ini.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = logs.map(log => {
+                const selfieBtn = (log.selfieUrl && log.selfieUrl.startsWith('http'))
+                    ? `<a href="${log.selfieUrl}" target="_blank" class="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 rounded-lg text-[10px] font-bold inline-flex items-center gap-1 transition"><i class="fa-solid fa-face-smile"></i> Lihat Selfie</a>`
+                    : `<span class="text-slate-500 text-[10px]">-</span>`;
+
+                return `
+                    <tr class="hover:bg-slate-900/40 transition">
+                        <td class="p-3">
+                            <strong class="text-amber-400 font-mono block">${log.logId}</strong>
+                            <span class="text-[10px] text-slate-400 block">${log.waktu}</span>
+                        </td>
+                        <td class="p-3 text-slate-400">${log.dariKasir}</td>
+                        <td class="p-3 font-bold text-white">${log.keKasir}</td>
+                        <td class="p-3 text-xs text-slate-300">${log.keterangan}</td>
+                        <td class="p-3 text-center font-mono text-[10px] text-slate-400">${log.terminalToken}</td>
+                        <td class="p-3 text-center">${selfieBtn}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
         /* REKAP & CROSSCHECK INSENTIF KASIR PER NAMA (BULANAN) */
         function renderCashierBonusSummary(transactions) {
             const container = document.getElementById('cashierBonusContainer');
@@ -530,13 +740,15 @@
             transactions.forEach(trx => {
                 const isDone = (String(trx.status).toUpperCase() === 'SELESAI' || String(trx.status).toUpperCase() === 'LUNAS');
                 if (isDone) {
-                    const cashierName = trx.cashierName || 'Umum / Staf Kasir';
+                    // Gabungkan berdasarkan nama dasar kasir (sebelum tanda kurung LOG-XXXXXX)
+                    const rawName = trx.cashierName || 'Umum / Staf Kasir';
+                    const baseName = rawName.split(' (LOG-')[0].trim();
                     const bonus = Number(trx.bonusKasir || 0);
-                    if (!summary[cashierName]) {
-                        summary[cashierName] = { count: 0, totalBonus: 0 };
+                    if (!summary[baseName]) {
+                        summary[baseName] = { count: 0, totalBonus: 0 };
                     }
-                    summary[cashierName].count += 1;
-                    summary[cashierName].totalBonus += bonus;
+                    summary[baseName].count += 1;
+                    summary[baseName].totalBonus += bonus;
                 }
             });
 
@@ -554,11 +766,11 @@
                             <strong class="text-white font-bold block text-xs flex items-center gap-1.5">
                                 <i class="fa-solid fa-user-check text-blue-400 text-[10px]"></i> ${name}
                             </strong>
-                            <span class="text-[10px] text-slate-400 block">${item.count} Transaksi QR Handled</span>
+                            <span class="text-[10px] text-slate-400 block">${item.count} Transaksi QR Verified</span>
                         </div>
                         <div class="text-right">
                             <strong class="text-blue-400 font-extrabold text-sm block">Rp ${Math.round(item.totalBonus).toLocaleString('id-ID')}</strong>
-                            <span class="text-[9px] text-emerald-400 font-medium">Siap Dicairkan</span>
+                            <span class="text-[9px] text-emerald-400 font-medium">Terverifikasi PIN & Selfie</span>
                         </div>
                     </div>
                 `;
