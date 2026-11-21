@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Konfirmasi Terima Komisi - Mitra Bangunan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0B1120; }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col justify-between p-4">
+
+    <main class="max-w-md w-full mx-auto my-auto space-y-5">
+        <!-- Brand Header -->
+        <div class="text-center space-y-2">
+            <div class="w-12 h-12 rounded-2xl bg-teal-500 text-slate-950 flex items-center justify-center text-xl font-black mx-auto shadow-lg shadow-teal-500/20">
+                <i class="fa-solid fa-handshake"></i>
+            </div>
+            <div>
+                <span class="text-[11px] font-bold text-teal-400 uppercase tracking-widest block">Mitra Bangunan Network</span>
+                <h1 class="text-lg sm:text-xl font-black text-white mt-0.5">Konfirmasi Penerimaan Komisi</h1>
+            </div>
+        </div>
+
+        <!-- Kartu Detail Komisi -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4">
+            
+            <!-- Nominal Komisi Highlight -->
+            <div class="bg-slate-950 border border-teal-500/30 rounded-xl p-4 text-center space-y-1">
+                <span id="dispNominalLabel" class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Nominal Komisi Anda</span>
+                <strong id="dispNominal" class="text-3xl font-black text-teal-400 block">Rp 0</strong>
+                <span id="dispStoreName" class="text-xs text-slate-300 font-medium block pt-1">Toko Mitra Bangunan</span>
+            </div>
+
+            <!-- Rincian Data -->
+            <div class="space-y-2.5 text-xs bg-slate-950/60 border border-slate-800/80 rounded-xl p-4">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="text-slate-400">Nama Broker / Tukang</span>
+                    <strong id="dispTukangName" class="text-white font-bold text-right">-</strong>
+                </div>
+                <div class="flex items-center justify-between gap-2 border-t border-slate-800/80 pt-2">
+                    <span class="text-slate-400">Nomor HP / WhatsApp</span>
+                    <span id="dispTukangPhone" class="font-mono text-slate-200 font-semibold">-</span>
+                </div>
+                <div class="flex items-center justify-between gap-2 border-t border-slate-800/80 pt-2">
+                    <span class="text-slate-400">ID Transaksi / No. Struk</span>
+                    <span id="dispTrxRef" class="font-mono text-teal-300 font-semibold">-</span>
+                </div>
+                <div class="flex items-center justify-between gap-2 border-t border-slate-800/80 pt-2">
+                    <span class="text-slate-400">Kasir yang Menyerahkan</span>
+                    <span id="dispKasirName" class="text-slate-200 font-semibold">-</span>
+                </div>
+            </div>
+
+            <!-- Area Aksi: Belum Diverifikasi -->
+            <div id="unverifiedActionBox" class="space-y-3 pt-1">
+                <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 text-[11px] text-amber-200 flex items-start gap-2">
+                    <i class="fa-solid fa-circle-info text-amber-400 mt-0.5"></i>
+                    <span>Pastikan Anda benar-benar sudah menerima uang tunai atau transfer komisi sesuai nominal di atas sebelum menekan tombol konfirmasi.</span>
+                </div>
+
+                <button id="btnVerifyConfirm" onclick="submitBrokerVerification()" class="w-full bg-emerald-500 hover:bg-emerald-400 active:scale-[0.99] text-slate-950 font-black text-sm py-4 px-4 rounded-xl shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-circle-check text-base"></i>
+                    <span>YA, KOMISI SUDAH SAYA TERIMA</span>
+                </button>
+            </div>
+
+            <!-- Area Status: Sudah Diverifikasi -->
+            <div id="verifiedSuccessBox" class="hidden bg-emerald-950/50 border border-emerald-500/40 rounded-xl p-4 text-center space-y-2">
+                <div class="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl mx-auto">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <strong class="text-sm sm:text-base font-black text-emerald-300 block">
+                    Selesai / Lunas — Komisi Sudah Diterima
+                </strong>
+                <p id="dispVerifiedTime" class="text-[11px] text-emerald-200/80 font-mono">Diverifikasi pada: -</p>
+                <p class="text-xs text-slate-300 pt-1">
+                    Terima kasih! Status di sistem kasir dan pemilik toko telah otomatis diperbarui.
+                </p>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="text-center text-[11px] text-slate-500 py-4">
+        &copy; 2026 Mitra Bangunan Network • Sistem Verifikasi Komisi
+    </footer>
+
+    <script>
+        const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbxsQQMYsvWk6R3AkPhkEURDsxFaEyUnqwFyCv500uPYvK0Y0RhPvaHXgw5OcvYeH_tC/exec";
+        const GAS_WEB_APP_URL = localStorage.getItem('mb_gas_url') || DEFAULT_GAS_URL;
+
+        let trxData = {
+            trxId: '',
+            storeId: '',
+            storeName: '',
+            tukangName: '',
+            tukangPhone: '',
+            nominal: 0,
+            pct: '',
+            strukNo: '',
+            kasirName: ''
+        };
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            trxData.trxId = (params.get('trxId') || '').trim();
+            trxData.storeId = (params.get('storeId') || '').trim();
+            trxData.storeName = (params.get('storeName') || trxData.storeId || 'Toko Mitra Bangunan').trim();
+            trxData.tukangName = (params.get('tukang') || 'Mitra Tukang / Broker').trim();
+            trxData.tukangPhone = (params.get('hp') || '-').trim();
+            trxData.nominal = Number(params.get('nominal') || 0);
+            trxData.pct = (params.get('pct') || '').trim();
+            trxData.strukNo = (params.get('struk') || '-').trim();
+            trxData.kasirName = (params.get('kasir') || 'Kasir Toko').trim();
+
+            renderDetails();
+
+            if (!trxData.trxId) return;
+
+            const localVerified = localStorage.getItem(`MB_TUKANG_VERIFIED_${trxData.trxId}`);
+            if (localVerified) {
+                showVerifiedState(localVerified);
+            }
+
+            try {
+                const res = await fetch(`${GAS_WEB_APP_URL}?action=getBrokerCommissionStatus&trxId=${encodeURIComponent(trxData.trxId)}`);
+                const data = await res.json();
+                if (data && data.success) {
+                    if (data.nominal) trxData.nominal = Number(data.nominal);
+                    if (data.incentivePercent) trxData.pct = data.incentivePercent;
+                    if (data.tukangName) trxData.tukangName = data.tukangName;
+                    if (data.tukangPhone) trxData.tukangPhone = data.tukangPhone;
+                    if (data.storeName) trxData.storeName = data.storeName;
+                    if (data.strukNo) trxData.strukNo = data.strukNo;
+                    if (data.kasirName) trxData.kasirName = data.kasirName;
+                    renderDetails();
+
+                    if (data.verified) {
+                        const vTime = data.verifiedAt || localVerified || 'Tercatat di Server';
+                        localStorage.setItem(`MB_TUKANG_VERIFIED_${trxData.trxId}`, vTime);
+                        showVerifiedState(vTime);
+                    }
+                }
+            } catch (e) {}
+        });
+
+        function renderDetails() {
+            document.getElementById('dispNominalLabel').innerText = trxData.pct
+                ? `Nominal Komisi Anda (${trxData.pct})`
+                : 'Nominal Komisi Anda';
+            document.getElementById('dispNominal').innerText = "Rp " + trxData.nominal.toLocaleString('id-ID');
+            document.getElementById('dispStoreName').innerText = trxData.storeName;
+            document.getElementById('dispTukangName').innerText = trxData.tukangName;
+            document.getElementById('dispTukangPhone').innerText = trxData.tukangPhone;
+            document.getElementById('dispTrxRef').innerText = `${trxData.trxId || '-'} (${trxData.strukNo})`;
+            document.getElementById('dispKasirName').innerText = trxData.kasirName;
+        }
+
+        function formatNowIndonesian() {
+            const now = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            return `${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()}, ${pad(now.getHours())}.${pad(now.getMinutes())} WIB`;
+        }
+
+        async function submitBrokerVerification() {
+            if (!trxData.trxId) {
+                return alert("ID Transaksi tidak valid pada tautan ini.");
+            }
+
+            const btn = document.getElementById('btnVerifyConfirm');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> MENGIRIM KONFIRMASI...`;
+
+            const verifiedAt = formatNowIndonesian();
+
+            try {
+                const res = await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'confirmBrokerCommission',
+                        trxId: trxData.trxId,
+                        storeId: trxData.storeId,
+                        tukangName: trxData.tukangName,
+                        tukangPhone: trxData.tukangPhone,
+                        nominal: trxData.nominal,
+                        verifiedAt: verifiedAt,
+                        statusText: 'Selesai / Lunas — Komisi Sudah Diterima Broker/Tukang'
+                    })
+                });
+                const data = await res.json();
+
+                if (data && data.success === false) {
+                    alert("Gagal memverifikasi: " + (data.message || "Transaksi tidak ditemukan."));
+                    return;
+                }
+
+                const finalTime = (data && data.verifiedAt) ? data.verifiedAt : verifiedAt;
+                localStorage.setItem(`MB_TUKANG_VERIFIED_${trxData.trxId}`, finalTime);
+                showVerifiedState(finalTime);
+            } catch (err) {
+                alert("Gagal terhubung ke server. Pastikan internet HP aktif lalu coba tekan tombol kembali.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-circle-check text-base"></i><span>YA, KOMISI SUDAH SAYA TERIMA</span>`;
+            }
+        }
+
+        function showVerifiedState(verifiedAtStr) {
+            document.getElementById('unverifiedActionBox').classList.add('hidden');
+            document.getElementById('verifiedSuccessBox').classList.remove('hidden');
+            document.getElementById('dispVerifiedTime').innerText = `Diverifikasi pada: ${verifiedAtStr}`;
+        }
+    </script>
+</body>
+</html>
