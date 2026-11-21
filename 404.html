@@ -806,13 +806,12 @@
         }
 
         function escapeHtml(str) {
-            return String(str || '').replace(/[&<>"']/g, function(m) {
-                if (m === '&') return '&';
-                if (m === '<') return '<';
-                if (m === '>') return '>';
-                if (m === '"') return '"';
-                return ''';
-            });
+            return String(str || '')
+                .replace(/&/g, '&')
+                .replace(/</g, '<')
+                .replace(/>/g, '>')
+                .replace(/"/g, '"')
+                .replace(/'/g, ''');
         }
 
         function parseNumericValue(val) {
