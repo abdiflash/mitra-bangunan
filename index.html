@@ -707,24 +707,74 @@
 
     <script>
         const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxsQQMYsvWk6R3AkPhkEURDsxFaEyUnqwFyCv500uPYvK0Y0RhPvaHXgw5OcvYeH_tC/exec";
+        const STORES_CACHE_KEY = 'mb_stores_cache_v10_3';
 
+        // Selaras dengan SKEMA_DEFAULT_CONFIG di Code.gs V10.3 & Panduan Skema
         const SKEMA_FALLBACK = {
-            SKEMA_1: { code: 'SKEMA_1', label: 'Skema 1 (Reguler)', incentiveRate: 0.01, creatorRate: 0.008, kasirRate: 0.002, incentivePctText: '1%' },
-            SKEMA_2: { code: 'SKEMA_2', label: 'Skema 2 (Mitra Plus)', incentiveRate: 0.015, creatorRate: 0.012, kasirRate: 0.003, incentivePctText: '1,5%' },
-            SKEMA_3: { code: 'SKEMA_3', label: 'Skema 3 (Prioritas)', incentiveRate: 0.02, creatorRate: 0.016, kasirRate: 0.004, incentivePctText: '2%' }
+            SKEMA_1: {
+                code: 'SKEMA_1',
+                label: 'SKEMA_1 (Default)',
+                incentiveRate: 0.01,   // 1,0% Diskon Nota / Komisi Tukang
+                creatorRate: 0.008,    // 0,8% Platform Creator
+                kasirRate: 0.002,      // 0,2% Bonus Kasir (Total: 2,0%)
+                totalCommitmentRate: 0.02,
+                incentivePctText: '1%',
+                creatorPctText: '0,8%',
+                kasirPctText: '0,2%',
+                totalCommitmentPctText: '2%'
+            },
+            SKEMA_2: {
+                code: 'SKEMA_2',
+                label: 'SKEMA_2 (1% + Kasir)',
+                incentiveRate: 0.005,  // 0,5% Diskon Nota / Komisi Tukang
+                creatorRate: 0.004,    // 0,4% Platform Creator
+                kasirRate: 0.001,      // 0,1% Bonus Kasir (Total: 1,0%)
+                totalCommitmentRate: 0.01,
+                incentivePctText: '0,5%',
+                creatorPctText: '0,4%',
+                kasirPctText: '0,1%',
+                totalCommitmentPctText: '1%'
+            },
+            SKEMA_3: {
+                code: 'SKEMA_3',
+                label: 'SKEMA_3 (1% Non-Kasir)',
+                incentiveRate: 0.005,  // 0,5% Diskon Nota / Komisi Tukang
+                creatorRate: 0.005,    // 0,5% Platform Creator
+                kasirRate: 0,          // 0% Bonus Kasir (Total: 1,0%)
+                totalCommitmentRate: 0.01,
+                incentivePctText: '0,5%',
+                creatorPctText: '0,5%',
+                kasirPctText: '0%',
+                totalCommitmentPctText: '1%'
+            }
         };
 
         let activeStoreSkema = SKEMA_FALLBACK.SKEMA_1;
 
+        // Hapus cache versi lama agar tarif skema lama (1,5% / 2%) tidak menimpa tarif baru
+        try { localStorage.removeItem('mb_stores_cache'); } catch (e) {}
+
         let storesList = [];
         try {
-            storesList = JSON.parse(localStorage.getItem('mb_stores_cache') || 'null') || [];
+            storesList = JSON.parse(localStorage.getItem(STORES_CACHE_KEY) || 'null') || [];
         } catch (e) { storesList = []; }
 
         if (storesList.length === 0) {
             storesList = [
-                { id: 'majujayamakmur-001-jkt', name: 'TB. Maju Jaya Makmur 1', address: 'Jl. Raya Bangunan No. 88 Jakarta', wa: '6282113866890', skema: 'SKEMA_1' },
-                { id: 'majujayamakmur-002-jkt', name: 'TB. Maju Jaya Makmur 2', address: 'Jl. Raya Budi Luhur No. 128 Pekalongan', wa: '6282113866890', skema: 'SKEMA_1' }
+                {
+                    id: 'majujayamakmur-001-jkt',
+                    name: 'TB. Maju Jaya Makmur 1',
+                    address: 'Jl. Raya Bangunan No. 88 Jakarta',
+                    wa: '6282113866890',
+                    skema: 'SKEMA_1'
+                },
+                {
+                    id: 'majujayamakmur-002-jkt',
+                    name: 'TB. Maju Jaya Makmur 2',
+                    address: 'Jl. Raya Budi Luhur No. 128 Pekalongan',
+                    wa: '6282113866890',
+                    skema: 'SKEMA_2'
+                }
             ];
         }
 
@@ -740,8 +790,13 @@
 
         window.addEventListener('DOMContentLoaded', async () => {
             generateTrxId();
-            await loadStoresFromGASBackground();
+            // Terapkan langsung dari data lokal/cache agar instan tanpa menunggu jaringan
             applyStoreLockLogic();
+            // Sinkronkan data toko & skema terbaru dari Google Sheets di latar belakang
+            const updated = await loadStoresFromGASBackground();
+            if (updated) {
+                applyStoreLockLogic();
+            }
         });
 
         function generateTrxId() {
@@ -756,7 +811,7 @@
                 if (m === '<') return '<';
                 if (m === '>') return '>';
                 return '"';
-            }).replace(/\x27/g, '&' + '#39;');
+            }).replace(/\x27/g, ''');
         }
 
         function parseNumericValue(val) {
@@ -766,20 +821,51 @@
             return isFinite(num) ? num : 0;
         }
 
-        function resolveStoreSkemaObj(store) {
-            if (store && store.skemaDetail && typeof store.skemaDetail === 'object' && store.skemaDetail.incentiveRate) {
-                const code = String(store.skemaDetail.code || store.skema || 'SKEMA_1').trim().toUpperCase();
-                const base = SKEMA_FALLBACK[code] || SKEMA_FALLBACK.SKEMA_1;
-                return Object.assign({}, base, store.skemaDetail, { code });
+        function normalizeSkemaCode(raw) {
+            const clean = String(raw || '').trim().toUpperCase();
+            if (clean.indexOf('SKEMA_2') === 0 || clean.indexOf('SKEMA 2') === 0 || clean === 'SKEMA2' || clean === '2') {
+                return 'SKEMA_2';
             }
-            const rawCode = (store && (store.skema || store.Skema_Toko || store.skemaToko))
-                ? String(store.skema || store.Skema_Toko || store.skemaToko).trim().toUpperCase()
-                : 'SKEMA_1';
-            return SKEMA_FALLBACK[rawCode] || SKEMA_FALLBACK.SKEMA_1;
+            if (clean.indexOf('SKEMA_3') === 0 || clean.indexOf('SKEMA 3') === 0 || clean === 'SKEMA3' || clean === '3') {
+                return 'SKEMA_3';
+            }
+            return 'SKEMA_1';
+        }
+
+        function formatPctText(rate) {
+            const pct = +(Number(rate || 0) * 100).toFixed(2);
+            return pct.toString().replace('.', ',') + '%';
+        }
+
+        function resolveStoreSkemaObj(store) {
+            const rawCode = (store && (
+                (store.skemaDetail && store.skemaDetail.code) ||
+                store.skema ||
+                store.Skema_Toko ||
+                store.skemaToko
+            )) || 'SKEMA_1';
+
+            const code = normalizeSkemaCode(rawCode);
+            const base = SKEMA_FALLBACK[code] || SKEMA_FALLBACK.SKEMA_1;
+
+            if (store && store.skemaDetail && typeof store.skemaDetail === 'object' && typeof store.skemaDetail.incentiveRate === 'number') {
+                const incentiveRate = store.skemaDetail.incentiveRate;
+                const creatorRate = (typeof store.skemaDetail.creatorRate === 'number') ? store.skemaDetail.creatorRate : base.creatorRate;
+                const kasirRate = (typeof store.skemaDetail.kasirRate === 'number') ? store.skemaDetail.kasirRate : base.kasirRate;
+                return Object.assign({}, base, store.skemaDetail, {
+                    code: code,
+                    incentiveRate: incentiveRate,
+                    creatorRate: creatorRate,
+                    kasirRate: kasirRate,
+                    incentivePctText: store.skemaDetail.incentivePctText || formatPctText(incentiveRate)
+                });
+            }
+
+            return Object.assign({}, base);
         }
 
         function updateSkemaLabelsUI() {
-            const pct = activeStoreSkema.incentivePctText || '1%';
+            const pct = activeStoreSkema.incentivePctText || formatPctText(activeStoreSkema.incentiveRate);
             const skemaCode = activeStoreSkema.code || 'SKEMA_1';
 
             const badge = document.getElementById('storeSkemaBadge');
@@ -799,20 +885,25 @@
                 const data = await res.json();
                 const rawList = Array.isArray(data) ? data : (data.stores || data.data || data.toko || []);
                 if (Array.isArray(rawList) && rawList.length > 0) {
-                    storesList = rawList.map(s => ({
-                        id: String(s.id || s.ID_Toko || s.storeId || '').trim(),
-                        slug: String(s.slug || s.id || s.ID_Toko || '').trim(),
-                        name: String(s.name || s.Nama_Toko || s.storeName || '').trim(),
-                        address: String(s.address || s.alamat || s.Alamat || '').trim(),
-                        wa: String(s.wa || s.noWa || s.No_WA || '').trim(),
-                        skema: String(s.skema || s.Skema_Toko || s.skemaToko || 'SKEMA_1').trim().toUpperCase(),
-                        skemaDetail: s.skemaDetail || null
-                    })).filter(s => s.id);
-                    localStorage.setItem('mb_stores_cache', JSON.stringify(storesList));
+                    storesList = rawList.map(s => {
+                        const normalizedCode = normalizeSkemaCode(s.skema || s.Skema_Toko || s.skemaToko || 'SKEMA_1');
+                        return {
+                            id: String(s.id || s.ID_Toko || s.storeId || '').trim().toLowerCase(),
+                            slug: String(s.slug || s.id || s.ID_Toko || '').trim().toLowerCase(),
+                            name: String(s.name || s.Nama_Toko || s.storeName || '').trim(),
+                            address: String(s.address || s.alamat || s.Alamat || '').trim(),
+                            wa: String(s.wa || s.noWa || s.No_WA || '').trim(),
+                            skema: normalizedCode,
+                            skemaDetail: s.skemaDetail || null
+                        };
+                    }).filter(s => s.id);
+                    localStorage.setItem(STORES_CACHE_KEY, JSON.stringify(storesList));
+                    return true;
                 }
             } catch (e) {
-                console.log('Menggunakan data cache toko.');
+                console.log('Menggunakan data cache/default toko.');
             }
+            return false;
         }
 
         function applyStoreLockLogic() {
@@ -907,15 +998,15 @@
                 hint.innerHTML = `<i class="fa-solid fa-location-dot text-teal-600"></i> ${escapeHtml(store.address)} (WA: ${escapeHtml(store.wa || '-')})`;
             }
 
+            renderCartModal();
+            renderQrVisualOnly();
+
             if (val) {
                 await loadStoreCatalog(val);
             } else {
                 activeStoreCatalog = [];
                 catalogStatus.classList.add('hidden');
             }
-
-            renderCartModal();
-            renderQrVisualOnly();
         }
 
         async function loadStoreCatalog(storeId) {
@@ -932,7 +1023,7 @@
 
                 if (Array.isArray(rawCatalog)) {
                     activeStoreCatalog = rawCatalog.map(item => ({
-                        kode: String(item.kode || item.Kode_Material || item.Kode || 'CUSTOM').trim(),
+                        kode: String(item.kode || item.Kode_Material || item.Kode || 'CST-001').trim(),
                         nama: String(item.nama || item.Nama_Material || item.Nama_Barang || item.name || '').trim(),
                         kategori: String(item.kategori || item.Kategori || '').trim(),
                         spek: String(item.spek || item.Spesifikasi || '').trim(),
@@ -1007,7 +1098,7 @@
                     <div onclick="selectCustomItemFromList(${idx})" class="p-2.5 hover:bg-teal-50/70 cursor-pointer transition flex justify-between items-center gap-2">
                         <div>
                             <div class="flex items-center gap-1.5">
-                                <span class="text-[9px] font-extrabold ${tagColor} px-1.5 py-0.5 rounded">${escapeHtml(item.kode || 'CUSTOM')}</span>
+                                <span class="text-[9px] font-extrabold ${tagColor} px-1.5 py-0.5 rounded">${escapeHtml(item.kode || 'CUSTOM_TOKO')}</span>
                                 <strong class="text-xs text-slate-900 font-bold">${escapeHtml(item.nama)}</strong>
                             </div>
                             <p class="text-[10px] text-slate-500 mt-0.5">${escapeHtml(item.spek || item.kategori || '-')} (${escapeHtml(item.satuan)})</p>
@@ -1503,8 +1594,8 @@
                 });
             }
 
-            const rate = activeStoreSkema.incentiveRate || 0.01;
-            const pctText = activeStoreSkema.incentivePctText || '1%';
+            const rate = (typeof activeStoreSkema.incentiveRate === 'number') ? activeStoreSkema.incentiveRate : 0.01;
+            const pctText = activeStoreSkema.incentivePctText || formatPctText(rate);
 
             let subtotal = currentCart.reduce((a, b) => a + b.total, 0);
             document.getElementById('cartSubtotal').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
@@ -1565,7 +1656,7 @@
                 return;
             }
 
-            const pctText = activeStoreSkema.incentivePctText || '1%';
+            const pctText = activeStoreSkema.incentivePctText || formatPctText(activeStoreSkema.incentiveRate);
 
             new QRCode(qrBox, {
                 text: currentTrxId,
@@ -1600,9 +1691,10 @@
             const custName = document.getElementById('custName').value.trim() || 'Umum';
             const custPhone = document.getElementById('custPhone').value.trim() || '-';
             const subtotal = currentCart.reduce((a, b) => a + b.total, 0);
-            const incentiveRate = activeStoreSkema.incentiveRate || 0.01;
-            const creatorRate = activeStoreSkema.creatorRate || 0.008;
-            const kasirRate = activeStoreSkema.kasirRate || 0.002;
+
+            const incentiveRate = (typeof activeStoreSkema.incentiveRate === 'number') ? activeStoreSkema.incentiveRate : 0.01;
+            const creatorRate = (typeof activeStoreSkema.creatorRate === 'number') ? activeStoreSkema.creatorRate : 0.008;
+            const kasirRate = (typeof activeStoreSkema.kasirRate === 'number') ? activeStoreSkema.kasirRate : 0.002;
 
             const incentiveVal = Math.round(subtotal * incentiveRate);
             const creatorFeeVal = Math.round(subtotal * creatorRate);
@@ -1612,7 +1704,7 @@
             const payload = {
                 action: 'createTransaction',
                 trxId: currentTrxId,
-                storeId: storeId,
+                storeId: storeId.toLowerCase(),
                 skema: activeStoreSkema.code,
                 custName: custName,
                 custPhone: custPhone,
@@ -1655,8 +1747,8 @@
             const custName = document.getElementById('custName').value.trim() || 'Umum';
             const custPhone = document.getElementById('custPhone').value.trim() || '-';
 
-            const rate = activeStoreSkema.incentiveRate || 0.01;
-            const pctText = activeStoreSkema.incentivePctText || '1%';
+            const rate = (typeof activeStoreSkema.incentiveRate === 'number') ? activeStoreSkema.incentiveRate : 0.01;
+            const pctText = activeStoreSkema.incentivePctText || formatPctText(rate);
 
             let subtotal = currentCart.reduce((a, b) => a + b.total, 0);
             let incentive = Math.round(subtotal * rate);
