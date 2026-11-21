@@ -349,15 +349,18 @@
             if (!skemaInput) return SKEMA_V7.SKEMA_1;
             if (typeof skemaInput === 'object') {
                 const base = SKEMA_V7[String(skemaInput.code || '').toUpperCase()] || SKEMA_V7.SKEMA_1;
-                return { ...base, ...skemaInput };
+                return Object.assign({}, base, skemaInput);
             }
             return SKEMA_V7[String(skemaInput).trim().toUpperCase()] || SKEMA_V7.SKEMA_1;
         }
 
         function escapeHtml(str) {
-            return String(str || '').replace(/[&<>"']/g, m => ({
-                '&': '&', '<': '<', '>': '>', '"': '"', "'": '''
-            }[m]));
+            return String(str || '').replace(/[&<>"]/g, function(m) {
+                if (m === '&') return '&';
+                if (m === '<') return '<';
+                if (m === '>') return '>';
+                return '"';
+            }).replace(/\x27/g, '&' + '#39;');
         }
 
         async function loadStoresList() {
@@ -569,7 +572,7 @@
                         : `<span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-bold">Menunggu Konfirmasi</span>`);
 
                 const fotoBtn = fotoUrl
-                    ? `<button onclick="openImageModal('Struk ${escapeHtml(t.strukNo || t.id)}', '${escapeHtml(fotoUrl)}')" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-emerald-300 px-2.5 py-1 rounded-lg border border-slate-700 font-bold"><i class="fa-solid fa-image"></i> Struk</button>`
+                    ? `<button data-title="Struk ${escapeHtml(t.strukNo || t.id)}" data-url="${escapeHtml(fotoUrl)}" onclick="openImageModal(this.dataset.title, this.dataset.url)" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-emerald-300 px-2.5 py-1 rounded-lg border border-slate-700 font-bold"><i class="fa-solid fa-image"></i> Struk</button>`
                     : `<span class="text-[10px] text-slate-500">-</span>`;
 
                 return `
@@ -618,7 +621,7 @@
                         <td class="p-3 font-mono text-slate-400">${escapeHtml(phone)}</td>
                         <td class="p-3 text-right font-mono font-bold text-blue-400">Rp ${bonus.toLocaleString('id-ID')}</td>
                         <td class="p-3 text-center">
-                            <button onclick="deleteStoreCashier('${escapeHtml(cid)}', '${escapeHtml(cname)}')" class="text-[11px] bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 px-2.5 py-1 rounded-lg font-bold">Hapus</button>
+                            <button data-cid="${escapeHtml(cid)}" data-cname="${escapeHtml(cname)}" onclick="deleteStoreCashier(this.dataset.cid, this.dataset.cname)" class="text-[11px] bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 px-2.5 py-1 rounded-lg font-bold">Hapus</button>
                         </td>
                     </tr>
                 `;
@@ -637,7 +640,8 @@
                 return `
                     <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 flex items-center gap-3">
                         <div class="w-12 h-12 rounded-lg bg-slate-800 overflow-hidden shrink-0 border border-emerald-500/30 cursor-pointer"
-                             onclick="${selfie ? `openImageModal('Selfie Shift - ${escapeHtml(nama)}', '${escapeHtml(selfie)}')` : ''}">
+                             data-title="Selfie Shift - ${escapeHtml(nama)}" data-url="${escapeHtml(selfie)}"
+                             onclick="if(this.dataset.url) openImageModal(this.dataset.title, this.dataset.url)">
                             ${selfie ? `<img src="${escapeHtml(selfie)}" alt="Selfie" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-slate-500"><i class="fa-solid fa-user"></i></div>`}
                         </div>
                         <div class="min-w-0">
