@@ -751,23 +751,31 @@
         }
 
         async function startSelfieCamera() {
-            try {
-                selfieMediaStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
-                    audio: false
-                });
-                const video = document.getElementById('selfieVideo');
-                video.srcObject = selfieMediaStream;
-                video.classList.remove('hidden');
-                document.getElementById('selfiePlaceholder').classList.add('hidden');
-                document.getElementById('selfieSnapshotPreview').classList.add('hidden');
-                document.getElementById('btnOpenSelfieCam').classList.add('hidden');
-                document.getElementById('btnCaptureSelfie').classList.remove('hidden');
-                document.getElementById('btnRetakeSelfie').classList.add('hidden');
-            } catch (err) {
-                alert("❌ Kamera depan tidak dapat diakses: " + err.message);
-            }
+    try {
+        try {
+            selfieMediaStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
+                audio: false
+            });
+        } catch (firstErr) {
+            // Fallback untuk webcam eksternal PC/laptop yang tidak mendukung constraint facingMode
+            selfieMediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
         }
+
+        const video = document.getElementById('selfieVideo');
+        video.srcObject = selfieMediaStream;
+        video.classList.remove('hidden');
+        await video.play();
+
+        document.getElementById('selfiePlaceholder').classList.add('hidden');
+        document.getElementById('selfieSnapshotPreview').classList.add('hidden');
+        document.getElementById('btnOpenSelfieCam').classList.add('hidden');
+        document.getElementById('btnCaptureSelfie').classList.remove('hidden');
+        document.getElementById('btnRetakeSelfie').classList.add('hidden');
+    } catch (err) {
+        alert("❌ Kamera tidak dapat diakses: " + err.message);
+    }
+}
 
         function stopSelfieCamera() {
             if (selfieMediaStream) {
