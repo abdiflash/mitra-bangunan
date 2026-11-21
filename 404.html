@@ -601,6 +601,12 @@
                     </table>
                 </div>
 
+                <!-- Info Faktor Susut Otomatis -->
+                <div id="cartWasteInfoNote" class="hidden text-[11px] text-amber-900 bg-amber-50/90 border border-amber-200 rounded-xl px-3 py-2 flex items-start gap-2">
+                    <i class="fa-solid fa-shield-halved text-amber-600 mt-0.5 shrink-0"></i>
+                    <span>Volume & kuantitas hasil kalkulator otomatis menyertakan <strong>faktor susut / cadangan lapangan (+5% s.d. +10%)</strong> agar material tidak kurang saat pemasangan.</span>
+                </div>
+
                 <!-- Calculation Summary -->
                 <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-1.5">
                     <div class="flex justify-between items-center text-xs">
@@ -1160,7 +1166,8 @@
                 qty: qty,
                 unit: unit,
                 price: price,
-                total: Math.round(qty * price)
+                total: Math.round(qty * price),
+                wasteNote: 'Input manual sesuai kebutuhan pesanan'
             }], 'Material Custom');
             closeModal('customMaterialModal');
         }
@@ -1224,21 +1231,23 @@
 
             let luasKotor = luasPersegi + luasGunungan;
             let luasPengurang = (pintu * 1.8) + (jendela * 1.2);
-            let luasBersih = Math.max(0, luasKotor - luasPengurang) * 1.05;
+            let luasNetto = Math.max(0, luasKotor - luasPengurang);
+            let luasBersih = luasNetto * 1.05;
 
             let items = [];
 
             if (luasBersih > 0) {
+                const areaNote = 'Luas bersih ' + parseFloat(luasNetto.toFixed(1)) + ' m² + cadangan susut & potongan 5%';
                 if (tebal === 'bataMerah') {
                     let qtyBata = Math.ceil(luasBersih * 70);
-                    items.push({ name: '[Dinding] Bata Merah Press', qty: qtyBata, unit: 'pcs', price: 950, total: qtyBata * 950 });
+                    items.push({ name: '[Dinding] Bata Merah Press', qty: qtyBata, unit: 'pcs', price: 950, total: qtyBata * 950, wasteNote: areaNote });
 
                     if (document.getElementById('chkThinbed').checked) {
                         let sakSemenPC = Math.ceil(luasBersih / 12);
-                        items.push({ name: '[Dinding] Semen PC Pasang Bata (40kg)', qty: sakSemenPC, unit: 'sak', price: 56000, total: sakSemenPC * 56000 });
+                        items.push({ name: '[Dinding] Semen PC Pasang Bata (40kg)', qty: sakSemenPC, unit: 'sak', price: 56000, total: sakSemenPC * 56000, wasteNote: 'Termasuk faktor susut adukan +5%' });
 
                         let volPasirPasang = parseFloat((luasBersih * 0.043).toFixed(2));
-                        items.push({ name: '[Dinding] Pasir Pasang Dinding', qty: volPasirPasang, unit: 'm³', price: 280000, total: Math.round(volPasirPasang * 280000) });
+                        items.push({ name: '[Dinding] Pasir Pasang Dinding', qty: volPasirPasang, unit: 'm³', price: 280000, total: Math.round(volPasirPasang * 280000), wasteNote: 'Termasuk faktor susut adukan +5%' });
                     }
                 } else {
                     let m2PerM3 = (tebal === '7.5') ? 13.3 : 10;
@@ -1246,28 +1255,28 @@
                     let volM3 = luasBersih / m2PerM3;
                     let qtyHebel = Math.ceil(volM3 * 10) / 10;
                     let estimasiPcs = Math.round(qtyHebel * pcsPerM3);
-                    items.push({ name: '[Dinding] Bata Ringan Hebel ' + tebal + 'cm (± ' + estimasiPcs + ' pcs)', qty: qtyHebel, unit: 'm³', price: 650000, total: qtyHebel * 650000 });
+                    items.push({ name: '[Dinding] Bata Ringan Hebel ' + tebal + 'cm (± ' + estimasiPcs + ' pcs)', qty: qtyHebel, unit: 'm³', price: 650000, total: qtyHebel * 650000, wasteNote: areaNote });
 
                     if (document.getElementById('chkThinbed').checked) {
                         let sakThinbed = Math.ceil(luasBersih / 10);
-                        items.push({ name: '[Dinding] Semen Thinbed Perekat (40kg)', qty: sakThinbed, unit: 'sak', price: 85000, total: sakThinbed * 85000 });
+                        items.push({ name: '[Dinding] Semen Thinbed Perekat (40kg)', qty: sakThinbed, unit: 'sak', price: 85000, total: sakThinbed * 85000, wasteNote: 'Termasuk faktor susut perekat +5%' });
                     }
                 }
 
                 if (document.getElementById('chkPlester').checked) {
                     let sakPlester = Math.ceil((luasBersih * 2) / 6);
-                    items.push({ name: '[Dinding] Semen Plesteran (Dua Sisi)', qty: sakPlester, unit: 'sak', price: 56000, total: sakPlester * 56000 });
+                    items.push({ name: '[Dinding] Semen Plesteran (Dua Sisi)', qty: sakPlester, unit: 'sak', price: 56000, total: sakPlester * 56000, wasteNote: 'Termasuk faktor susut plesteran +5%' });
                 }
                 if (document.getElementById('chkAcian').checked) {
                     let sakAcian = Math.ceil((luasBersih * 2) / 12);
-                    items.push({ name: '[Dinding] Semen Acian (Dua Sisi)', qty: sakAcian, unit: 'sak', price: 65000, total: sakAcian * 65000 });
+                    items.push({ name: '[Dinding] Semen Acian (Dua Sisi)', qty: sakAcian, unit: 'sak', price: 65000, total: sakAcian * 65000, wasteNote: 'Termasuk faktor susut acian +5%' });
                 }
                 if (document.getElementById('chkCat').checked) {
                     let galonCat = Math.ceil((luasBersih * 2) / 25);
-                    items.push({ name: '[Dinding] Cat Dinding Interior (5kg)', qty: galonCat, unit: 'galon', price: 135000, total: galonCat * 135000 });
+                    items.push({ name: '[Dinding] Cat Dinding Interior (5kg)', qty: galonCat, unit: 'galon', price: 135000, total: galonCat * 135000, wasteNote: 'Termasuk cadangan susut pengecatan +5%' });
 
                     let galonCatDasar = Math.ceil(luasBersih / 30);
-                    items.push({ name: '[Dinding] Cat Dasar / Alkali Sealer (4kg)', qty: galonCatDasar, unit: 'galon', price: 110000, total: galonCatDasar * 110000 });
+                    items.push({ name: '[Dinding] Cat Dasar / Alkali Sealer (4kg)', qty: galonCatDasar, unit: 'galon', price: 110000, total: galonCatDasar * 110000, wasteNote: 'Termasuk cadangan susut pengecatan +5%' });
                 }
             }
             addToCart(items, 'Material Dinding');
@@ -1277,7 +1286,8 @@
             const p = parseFloat(document.getElementById('kerPanjang').value) || 0;
             const l = parseFloat(document.getElementById('kerLebar').value) || 0;
             const uk = document.getElementById('kerUkuran').value;
-            let luas = (p * l) * 1.05;
+            let luasNetto = p * l;
+            let luas = luasNetto * 1.05;
 
             let m2PerDus = 1.00;
             let price = 60000;
@@ -1294,16 +1304,23 @@
             let items = [];
             if (luas > 0) {
                 let dus = Math.ceil(luas / m2PerDus);
-                items.push({ name: '[Keramik] Lantai ' + uk, qty: dus, unit: 'dus', price: price, total: dus * price });
+                items.push({
+                    name: '[Keramik] Lantai ' + uk,
+                    qty: dus,
+                    unit: 'dus',
+                    price: price,
+                    total: dus * price,
+                    wasteNote: 'Luas bersih ' + parseFloat(luasNetto.toFixed(1)) + ' m² + cadangan potongan & susut 5%'
+                });
 
                 if (document.getElementById('chkKerSemenNat').checked) {
                     let kgNat = Math.ceil(luas / 8);
-                    items.push({ name: '[Keramik] Semen Pengisi Nat (1kg)', qty: kgNat, unit: 'bungkus', price: 18000, total: kgNat * 18000 });
+                    items.push({ name: '[Keramik] Semen Pengisi Nat (1kg)', qty: kgNat, unit: 'bungkus', price: 18000, total: kgNat * 18000, wasteNote: 'Termasuk faktor susut pemasangan +5%' });
                 }
 
                 if (document.getElementById('chkKerMortar').checked) {
                     let sakMortar = Math.ceil(luas / 5);
-                    items.push({ name: '[Keramik] Semen Mortar Perekat (40kg)', qty: sakMortar, unit: 'sak', price: 95000, total: sakMortar * 95000 });
+                    items.push({ name: '[Keramik] Semen Mortar Perekat (40kg)', qty: sakMortar, unit: 'sak', price: 95000, total: sakMortar * 95000, wasteNote: 'Termasuk faktor susut pemasangan +5%' });
                 }
             }
             addToCart(items, 'Material Keramik');
@@ -1313,31 +1330,39 @@
             const p = parseFloat(document.getElementById('plfPanjang').value) || 0;
             const l = parseFloat(document.getElementById('plfLebar').value) || 0;
             const jenis = document.getElementById('plfJenis').value;
-            let luas = (p * l) * 1.05;
+            let luasNetto = p * l;
+            let luas = luasNetto * 1.05;
 
             let items = [];
             if (luas > 0) {
                 let lembarBoard = Math.ceil(luas / 2.88);
                 let prcBoard = jenis === 'gypsum9mm' ? 78000 : 60000;
                 let nameBoard = jenis === 'gypsum9mm' ? '[Plafon] Gypsum Board 9mm' : '[Plafon] GRC Board 4mm';
-                items.push({ name: nameBoard, qty: lembarBoard, unit: 'lembar', price: prcBoard, total: lembarBoard * prcBoard });
+                items.push({
+                    name: nameBoard,
+                    qty: lembarBoard,
+                    unit: 'lembar',
+                    price: prcBoard,
+                    total: lembarBoard * prcBoard,
+                    wasteNote: 'Luas bersih ' + parseFloat(luasNetto.toFixed(1)) + ' m² + cadangan potongan 5%'
+                });
 
                 if (document.getElementById('chkPlfHollow').checked) {
                     let btgHollow4 = Math.ceil(luas * 1.1);
-                    items.push({ name: '[Plafon] Hollow Galvanis 4x4 (4m)', qty: btgHollow4, unit: 'batang', price: 32000, total: btgHollow4 * 32000 });
+                    items.push({ name: '[Plafon] Hollow Galvanis 4x4 (4m)', qty: btgHollow4, unit: 'batang', price: 32000, total: btgHollow4 * 32000, wasteNote: 'Termasuk cadangan susut rangka +5%' });
 
                     let btgHollow2 = Math.ceil(luas * 0.8);
-                    items.push({ name: '[Plafon] Hollow Galvanis 2x4 (4m)', qty: btgHollow2, unit: 'batang', price: 24000, total: btgHollow2 * 24000 });
+                    items.push({ name: '[Plafon] Hollow Galvanis 2x4 (4m)', qty: btgHollow2, unit: 'batang', price: 24000, total: btgHollow2 * 24000, wasteNote: 'Termasuk cadangan susut rangka +5%' });
                 }
 
                 if (document.getElementById('chkPlfSekrup').checked) {
                     let dusSekrup = Math.ceil(luas / 3);
-                    items.push({ name: '[Plafon] Sekrup Gypsum (Dus)', qty: dusSekrup, unit: 'dus', price: 15000, total: dusSekrup * 15000 });
+                    items.push({ name: '[Plafon] Sekrup Gypsum (Dus)', qty: dusSekrup, unit: 'dus', price: 15000, total: dusSekrup * 15000, wasteNote: 'Termasuk cadangan susut +5%' });
                 }
 
                 if (document.getElementById('chkPlfCompound').checked) {
                     let sakCmp = Math.ceil(luas / 20);
-                    items.push({ name: '[Plafon] Compound Gypsum (20kg)', qty: sakCmp, unit: 'sak', price: 75000, total: sakCmp * 75000 });
+                    items.push({ name: '[Plafon] Compound Gypsum (20kg)', qty: sakCmp, unit: 'sak', price: 75000, total: sakCmp * 75000, wasteNote: 'Termasuk cadangan sambungan +5%' });
                 }
             }
             addToCart(items, 'Material Plafon');
@@ -1356,18 +1381,32 @@
                 let btgUtama = Math.ceil(totalMUtama / 12);
                 let prcUtama = ut === 'besi12mm' ? 108000 : (ut === 'besi10mm' ? 76000 : 49000);
                 let lblUtama = ut === 'besi12mm' ? '12mm' : (ut === 'besi10mm' ? '10mm' : '8mm');
-                items.push({ name: '[Pembesian] Besi Utama Ø ' + lblUtama + ' SNI', qty: btgUtama, unit: 'batang', price: prcUtama, total: btgUtama * prcUtama });
+                items.push({
+                    name: '[Pembesian] Besi Utama Ø ' + lblUtama + ' SNI',
+                    qty: btgUtama,
+                    unit: 'batang',
+                    price: prcUtama,
+                    total: btgUtama * prcUtama,
+                    wasteNote: 'Panjang bersih ' + parseFloat((L * 4).toFixed(1)) + ' m + cadangan tekukan & sambungan 5%'
+                });
 
                 let jmlBegel = Math.ceil(L / (jarakCm / 100));
                 let totalMBegel = jmlBegel * 0.6 * 1.05;
                 let btgBegel = Math.ceil(totalMBegel / 12);
                 let prcBegel = bg === 'besi8mm' ? 49000 : 32000;
                 let lblBegel = bg === 'besi8mm' ? '8mm' : '6mm';
-                items.push({ name: '[Pembesian] Besi Begel / Sengkang Ø ' + lblBegel, qty: btgBegel, unit: 'batang', price: prcBegel, total: btgBegel * prcBegel });
+                items.push({
+                    name: '[Pembesian] Besi Begel / Sengkang Ø ' + lblBegel,
+                    qty: btgBegel,
+                    unit: 'batang',
+                    price: prcBegel,
+                    total: btgBegel * prcBegel,
+                    wasteNote: 'Termasuk cadangan tekukan kait begel +5%'
+                });
 
                 if (document.getElementById('chkBesBendrat').checked) {
                     let kgBendrat = Math.ceil(L * 0.05);
-                    items.push({ name: '[Pembesian] Kawat Beton / Bendrat', qty: kgBendrat, unit: 'kg', price: 22000, total: kgBendrat * 22000 });
+                    items.push({ name: '[Pembesian] Kawat Beton / Bendrat', qty: kgBendrat, unit: 'kg', price: 22000, total: kgBendrat * 22000, wasteNote: 'Termasuk cadangan pengikatan' });
                 }
             }
             addToCart(items, 'Besi Beton');
@@ -1385,7 +1424,8 @@
             let lTot = l + (2 * o);
             let rad = s * (Math.PI / 180);
             let cosVal = Math.cos(rad) || 1;
-            let luasMiring = ((pTot * lTot) / cosVal) * 1.05;
+            let luasMiringNetto = (pTot * lTot) / cosVal;
+            let luasMiring = luasMiringNetto * 1.05;
 
             let items = [];
             if (p > 0 && l > 0) {
@@ -1401,22 +1441,29 @@
                 else if (jG === 'gtgTanah') { rateGen = 25; prcGen = 3200; nameGen = '[Atap] Genteng Tanah Liat'; }
 
                 let qtyGen = Math.ceil(luasMiring * rateGen);
-                items.push({ name: nameGen, qty: qtyGen, unit: unitGen, price: prcGen, total: qtyGen * prcGen });
+                items.push({
+                    name: nameGen,
+                    qty: qtyGen,
+                    unit: unitGen,
+                    price: prcGen,
+                    total: qtyGen * prcGen,
+                    wasteNote: 'Luas miring bersih ' + parseFloat(luasMiringNetto.toFixed(1)) + ' m² + cadangan potongan 5%'
+                });
 
                 if (nok > 0) {
                     let pcsNok = Math.ceil(nok * 3.5);
-                    items.push({ name: '[Atap] Genteng Nok / Bubungan', qty: pcsNok, unit: 'pcs', price: 16000, total: pcsNok * 16000 });
+                    items.push({ name: '[Atap] Genteng Nok / Bubungan', qty: pcsNok, unit: 'pcs', price: 16000, total: pcsNok * 16000, wasteNote: 'Sesuai panjang nok ' + nok + ' m' });
                 }
 
                 if (document.getElementById('chkAtpBajaRingan').checked) {
                     let btgC75 = Math.ceil(luasMiring * 0.8);
-                    items.push({ name: '[Atap] Baja Ringan Kanal C75 (6m)', qty: btgC75, unit: 'batang', price: 95000, total: btgC75 * 95000 });
+                    items.push({ name: '[Atap] Baja Ringan Kanal C75 (6m)', qty: btgC75, unit: 'batang', price: 95000, total: btgC75 * 95000, wasteNote: 'Termasuk cadangan potongan & overlap +5%' });
 
                     let btgReng = Math.ceil(luasMiring * 1.2);
-                    items.push({ name: '[Atap] Reng Baja Ringan (6m)', qty: btgReng, unit: 'batang', price: 45000, total: btgReng * 45000 });
+                    items.push({ name: '[Atap] Reng Baja Ringan (6m)', qty: btgReng, unit: 'batang', price: 45000, total: btgReng * 45000, wasteNote: 'Termasuk cadangan potongan +5%' });
 
                     let dusBaut = Math.ceil(luasMiring / 5);
-                    items.push({ name: '[Atap] Sekrup Roofing Baja Ringan (Dus)', qty: dusBaut, unit: 'dus', price: 38000, total: dusBaut * 38000 });
+                    items.push({ name: '[Atap] Sekrup Roofing Baja Ringan (Dus)', qty: dusBaut, unit: 'dus', price: 38000, total: dusBaut * 38000, wasteNote: 'Termasuk cadangan pemasangan +5%' });
                 }
             }
             addToCart(items, 'Material Atap');
@@ -1426,22 +1473,23 @@
             const p = parseFloat(document.getElementById('btnPanjang').value) || 0;
             const l = parseFloat(document.getElementById('btnLebar').value) || 0;
             const t = (parseFloat(document.getElementById('btnTebal').value) || 0) / 100;
+            let volNetto = parseFloat((p * l * t).toFixed(2));
             let vol = p * l * t * 1.05;
 
             let items = [];
             if (vol > 0) {
                 let sakSemen = Math.ceil(vol * 9.275);
-                items.push({ name: '[Cor Dak] Semen PC (40kg)', qty: sakSemen, unit: 'sak', price: 68000, total: sakSemen * 68000 });
+                items.push({ name: '[Cor Dak] Semen PC (40kg)', qty: sakSemen, unit: 'sak', price: 68000, total: sakSemen * 68000, wasteNote: 'Volume cor bersih ' + volNetto + ' m³ + susut pengecoran 5%' });
 
                 let volPasir = parseFloat((vol * 0.49).toFixed(2));
-                items.push({ name: '[Cor Dak] Pasir Cor', qty: volPasir, unit: 'm³', price: 320000, total: Math.round(volPasir * 320000) });
+                items.push({ name: '[Cor Dak] Pasir Cor', qty: volPasir, unit: 'm³', price: 320000, total: Math.round(volPasir * 320000), wasteNote: 'Termasuk faktor susut pengecoran +5%' });
 
                 let volSplit = parseFloat((vol * 0.77).toFixed(2));
-                items.push({ name: '[Cor Dak] Koral / Split', qty: volSplit, unit: 'm³', price: 290000, total: Math.round(volSplit * 290000) });
+                items.push({ name: '[Cor Dak] Koral / Split', qty: volSplit, unit: 'm³', price: 290000, total: Math.round(volSplit * 290000), wasteNote: 'Termasuk faktor susut pengecoran +5%' });
 
                 if (document.getElementById('chkBtnWiremesh').checked) {
                     let lbrWm = Math.ceil((p * l * 1.05) / 11.34);
-                    items.push({ name: '[Cor Dak] Besi Wiremesh M8', qty: lbrWm, unit: 'lembar', price: 580000, total: lbrWm * 580000 });
+                    items.push({ name: '[Cor Dak] Besi Wiremesh M8', qty: lbrWm, unit: 'lembar', price: 580000, total: lbrWm * 580000, wasteNote: 'Termasuk cadangan overlap sambungan +5%' });
                 }
             }
             addToCart(items, 'Material Cor Dak');
@@ -1454,28 +1502,36 @@
             const h = parseFloat(document.getElementById('ponTinggi').value) || 0;
             const cmp = document.getElementById('ponCampuran').value;
 
-            let volUtama = ((a + b) / 2) * h * p * 1.05;
+            let volNetto = ((a + b) / 2) * h * p;
+            let volUtama = volNetto * 1.05;
 
             let items = [];
             if (volUtama > 0) {
                 let volBatu = parseFloat((volUtama * 1.2).toFixed(2));
-                items.push({ name: '[Pondasi] Batu Kali / Batu Belah', qty: volBatu, unit: 'm³', price: 280000, total: Math.round(volBatu * 280000) });
+                items.push({
+                    name: '[Pondasi] Batu Kali / Batu Belah',
+                    qty: volBatu,
+                    unit: 'm³',
+                    price: 280000,
+                    total: Math.round(volBatu * 280000),
+                    wasteNote: 'Pasangan bersih ' + parseFloat(volNetto.toFixed(2)) + ' m³ × koef. rongga 1,2 + susut 5%'
+                });
 
                 let rateSem = (cmp === '1pc4ps') ? 4.08 : 3.4;
                 let sakSem = Math.ceil(volUtama * rateSem);
-                items.push({ name: '[Pondasi] Semen PC (40kg)', qty: sakSem, unit: 'sak', price: 68000, total: sakSem * 68000 });
+                items.push({ name: '[Pondasi] Semen PC (40kg)', qty: sakSem, unit: 'sak', price: 68000, total: sakSem * 68000, wasteNote: 'Termasuk faktor susut adukan +5%' });
 
                 let volPasir = parseFloat((volUtama * 0.52).toFixed(2));
-                items.push({ name: '[Pondasi] Pasir Pasang', qty: volPasir, unit: 'm³', price: 280000, total: Math.round(volPasir * 280000) });
+                items.push({ name: '[Pondasi] Pasir Pasang', qty: volPasir, unit: 'm³', price: 280000, total: Math.round(volPasir * 280000), wasteNote: 'Termasuk faktor susut adukan +5%' });
 
                 if (document.getElementById('chkPondasiAan').checked) {
                     let volAan = parseFloat((0.15 * b * p * 1.05 * 1.1).toFixed(2));
-                    items.push({ name: '[Pondasi] Batu Kosong / Aanstamping', qty: volAan, unit: 'm³', price: 280000, total: Math.round(volAan * 280000) });
+                    items.push({ name: '[Pondasi] Batu Kosong / Aanstamping', qty: volAan, unit: 'm³', price: 280000, total: Math.round(volAan * 280000), wasteNote: 'Termasuk susut pemadatan +10% & toleransi +5%' });
                 }
 
                 if (document.getElementById('chkPondasiPasir').checked) {
                     let volPasUrug = parseFloat((0.05 * b * p * 1.05 * 1.1).toFixed(2));
-                    items.push({ name: '[Pondasi] Pasir Urug Alas Bedding', qty: volPasUrug, unit: 'm³', price: 190000, total: Math.round(volPasUrug * 190000) });
+                    items.push({ name: '[Pondasi] Pasir Urug Alas Bedding', qty: volPasUrug, unit: 'm³', price: 190000, total: Math.round(volPasUrug * 190000), wasteNote: 'Termasuk susut pemadatan +10% & toleransi +5%' });
                 }
             }
             addToCart(items, 'Material Pondasi');
@@ -1486,7 +1542,8 @@
             const l = parseFloat(document.getElementById('pvgLebar').value) || 0;
             const model = document.getElementById('pvgModel').value;
 
-            let luas = (p * l) * 1.05;
+            let luasNetto = p * l;
+            let luas = luasNetto * 1.05;
             let items = [];
 
             if (luas > 0) {
@@ -1499,17 +1556,24 @@
                 else if (model === 'rumput') { prcPvg = 85000; namePvg = '[Paving] Grass Block Lubang Rumput'; }
 
                 let m2Qty = Math.ceil(luas);
-                items.push({ name: namePvg, qty: m2Qty, unit: 'm²', price: prcPvg, total: m2Qty * prcPvg });
+                items.push({
+                    name: namePvg,
+                    qty: m2Qty,
+                    unit: 'm²',
+                    price: prcPvg,
+                    total: m2Qty * prcPvg,
+                    wasteNote: 'Luas bersih ' + parseFloat(luasNetto.toFixed(1)) + ' m² + cadangan potongan tepi 5%'
+                });
 
                 if (document.getElementById('chkPvgPasir').checked) {
                     let volPasir = parseFloat((luas * 0.05 * 1.1).toFixed(2));
-                    items.push({ name: '[Paving] Pasir Alas Bedding Paving', qty: volPasir, unit: 'm³', price: 240000, total: Math.round(volPasir * 240000) });
+                    items.push({ name: '[Paving] Pasir Alas Bedding Paving', qty: volPasir, unit: 'm³', price: 240000, total: Math.round(volPasir * 240000), wasteNote: 'Termasuk susut pemadatan +10% & toleransi +5%' });
                 }
 
                 if (document.getElementById('chkPvgKanstin').checked) {
                     let keliling = 2 * (p + l);
                     let pcsKanstin = Math.ceil(keliling / 0.4);
-                    items.push({ name: '[Paving] Kanstin / Kerb Taman 40x20x10 cm', qty: pcsKanstin, unit: 'pcs', price: 28000, total: pcsKanstin * 28000 });
+                    items.push({ name: '[Paving] Kanstin / Kerb Taman 40x20x10 cm', qty: pcsKanstin, unit: 'pcs', price: 28000, total: pcsKanstin * 28000, wasteNote: 'Hitungan keliling area ' + parseFloat(keliling.toFixed(1)) + ' m' });
                 }
             }
             addToCart(items, 'Material Paving');
@@ -1521,28 +1585,56 @@
             const t = (parseFloat(document.getElementById('pbTebal').value) || 0) / 100;
             const jenis = document.getElementById('pbJenis').value;
 
+            let cleanVol = parseFloat((p * l * t).toFixed(2));
             let vol = p * l * t * 1.1;
             let items = [];
 
             if (vol > 0) {
                 if (jenis === 'pasirUrug') {
                     let volUrug = parseFloat(vol.toFixed(2));
-                    items.push({ name: '[Pasir] Pasir Urug / Pasir Cuci', qty: volUrug, unit: 'm³', price: 190000, total: Math.round(volUrug * 190000) });
+                    items.push({
+                        name: '[Pasir] Pasir Urug / Pasir Cuci',
+                        qty: volUrug,
+                        unit: 'm³',
+                        price: 190000,
+                        total: Math.round(volUrug * 190000),
+                        cleanQty: cleanVol,
+                        wastePct: 10,
+                        wasteNote: 'Volume bersih ' + cleanVol + ' m³ + susut pemadatan 10%'
+                    });
                 } else if (jenis === 'pasirPasang') {
                     let volPasang = parseFloat(vol.toFixed(2));
-                    items.push({ name: '[Pasir] Pasir Pasang Pondasi & Dinding', qty: volPasang, unit: 'm³', price: 280000, total: Math.round(volPasang * 280000) });
+                    items.push({
+                        name: '[Pasir] Pasir Pasang Pondasi & Dinding',
+                        qty: volPasang,
+                        unit: 'm³',
+                        price: 280000,
+                        total: Math.round(volPasang * 280000),
+                        cleanQty: cleanVol,
+                        wastePct: 10,
+                        wasteNote: 'Volume bersih ' + cleanVol + ' m³ + susut adukan 10%'
+                    });
                 } else if (jenis === 'pasirCorSplit') {
                     let volPasCor = parseFloat((vol * 0.5).toFixed(2));
-                    items.push({ name: '[Cor Paket] Pasir Cor Super', qty: volPasCor, unit: 'm³', price: 320000, total: Math.round(volPasCor * 320000) });
+                    items.push({ name: '[Cor Paket] Pasir Cor Super', qty: volPasCor, unit: 'm³', price: 320000, total: Math.round(volPasCor * 320000), wasteNote: 'Volume bersih ' + cleanVol + ' m³ + susut cor 10%' });
 
                     let volSplit = parseFloat((vol * 0.8).toFixed(2));
-                    items.push({ name: '[Cor Paket] Batu Split 1/2 cm', qty: volSplit, unit: 'm³', price: 290000, total: Math.round(volSplit * 290000) });
+                    items.push({ name: '[Cor Paket] Batu Split 1/2 cm', qty: volSplit, unit: 'm³', price: 290000, total: Math.round(volSplit * 290000), wasteNote: 'Volume bersih ' + cleanVol + ' m³ + susut cor 10%' });
 
                     let sakSem = Math.ceil(vol * 8);
-                    items.push({ name: '[Cor Paket] Semen PC (40kg)', qty: sakSem, unit: 'sak', price: 68000, total: sakSem * 68000 });
+                    items.push({ name: '[Cor Paket] Semen PC (40kg)', qty: sakSem, unit: 'sak', price: 68000, total: sakSem * 68000, wasteNote: 'Termasuk faktor susut cor +10%' });
                 } else if (jenis === 'batuKali') {
                     let volBatu = parseFloat((vol * 1.1).toFixed(2));
-                    items.push({ name: '[Batu] Batu Kali Belah Pondasi', qty: volBatu, unit: 'm³', price: 280000, total: Math.round(volBatu * 280000) });
+                    items.push({
+                        name: '[Batu] Batu Kali Belah Pondasi',
+                        qty: volBatu,
+                        unit: 'm³',
+                        price: 280000,
+                        total: Math.round(volBatu * 280000),
+                        cleanQty: cleanVol,
+                        wastePct: 21,
+                        wasteNote: 'Volume bersih ' + cleanVol + ' m³ + susut & rongga susun 21%'
+                    });
                 }
             }
             addToCart(items, 'Pasir & Batu');
@@ -1568,6 +1660,12 @@
                     if (typeof currentCart[existingIndex].qty === 'number' && !Number.isInteger(currentCart[existingIndex].qty)) {
                         currentCart[existingIndex].qty = parseFloat(currentCart[existingIndex].qty.toFixed(2));
                     }
+                    if (typeof currentCart[existingIndex].cleanQty === 'number' && typeof it.cleanQty === 'number') {
+                        currentCart[existingIndex].cleanQty = parseFloat((currentCart[existingIndex].cleanQty + it.cleanQty).toFixed(2));
+                        if (currentCart[existingIndex].wastePct) {
+                            currentCart[existingIndex].wasteNote = 'Volume bersih ' + currentCart[existingIndex].cleanQty + ' ' + currentCart[existingIndex].unit + ' + susut ' + currentCart[existingIndex].wastePct + '%';
+                        }
+                    }
                     currentCart[existingIndex].total = Math.round(currentCart[existingIndex].qty * currentCart[existingIndex].price);
                 } else {
                     currentCart.push(it);
@@ -1582,21 +1680,33 @@
         function renderCartModal() {
             document.getElementById('cartBadge').innerText = currentCart.length;
             const tbody = document.getElementById('cartTableBody');
+            const wasteInfoNote = document.getElementById('cartWasteInfoNote');
             tbody.innerHTML = '';
 
             if (currentCart.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400 italic">Keranjang penawaran masih kosong. Silakan pilih & hitung material.</td></tr>';
+                if (wasteInfoNote) wasteInfoNote.classList.add('hidden');
             } else {
+                let hasAutoWaste = false;
                 currentCart.forEach(function(it, idx) {
+                    const wasteHtml = it.wasteNote
+                        ? '<span class="block text-[10px] font-medium text-amber-700 mt-0.5"><i class="fa-solid fa-shield-halved text-[9px]"></i> ' + escapeHtml(it.wasteNote) + '</span>'
+                        : '';
+                    if (it.wasteNote && it.wasteNote.indexOf('Input manual') === -1) {
+                        hasAutoWaste = true;
+                    }
                     tbody.innerHTML +=
                         '<tr>' +
-                            '<td class="p-2 font-bold text-slate-800">' + escapeHtml(it.name) + '</td>' +
+                            '<td class="p-2 font-bold text-slate-800">' + escapeHtml(it.name) + wasteHtml + '</td>' +
                             '<td class="p-2 text-center font-bold text-slate-700">' + it.qty + ' ' + escapeHtml(it.unit) + '</td>' +
                             '<td class="p-2 text-right">Rp ' + Number(it.price).toLocaleString('id-ID') + '</td>' +
                             '<td class="p-2 text-right font-bold text-teal-700">Rp ' + Number(it.total).toLocaleString('id-ID') + '</td>' +
                             '<td class="p-2 text-center"><button onclick="removeItem(' + idx + ')" class="text-red-500 hover:text-red-700 font-black p-1">×</button></td>' +
                         '</tr>';
                 });
+                if (wasteInfoNote) {
+                    wasteInfoNote.classList.toggle('hidden', !hasAutoWaste);
+                }
             }
 
             const rate = (typeof activeStoreSkema.incentiveRate === 'number') ? activeStoreSkema.incentiveRate : 0.01;
@@ -1773,7 +1883,8 @@
             text += '*RINCIAN ITEM MATERIAL GABUNGAN:*\n';
 
             currentCart.forEach(function(it, i) {
-                text += (i + 1) + '. *' + it.name + '*\n   Qty: ' + it.qty + ' ' + it.unit + ' x Rp ' + Number(it.price).toLocaleString('id-ID') + ' = *Rp ' + Number(it.total).toLocaleString('id-ID') + '*\n';
+                const noteLine = it.wasteNote ? ('   _(' + it.wasteNote + ')_\n') : '';
+                text += (i + 1) + '. *' + it.name + '*\n' + noteLine + '   Qty: ' + it.qty + ' ' + it.unit + ' x Rp ' + Number(it.price).toLocaleString('id-ID') + ' = *Rp ' + Number(it.total).toLocaleString('id-ID') + '*\n';
             });
 
             text += '\n-------------------------------\n';
@@ -1785,7 +1896,8 @@
                 text += '*Komisi Tunai (' + pctText + '):* Rp ' + incentive.toLocaleString('id-ID') + ' _(Cair di Kasir)_\n';
                 text += '*GRAND TOTAL BAYAR:* *Rp ' + grandTotal.toLocaleString('id-ID') + '*\n';
             }
-            text += '-------------------------------\n\n';
+            text += '-------------------------------\n';
+            text += '_Catatan: Volume hasil kalkulator sudah termasuk faktor susut/cadangan lapangan (+5% s.d. +10%)._\n\n';
             text += '_Harap tunjukkan pesan WhatsApp & QR Code ini kepada Kasir ' + storeName + ' untuk klaim diskon / komisi Anda._';
 
             let targetWa = (storeObj && storeObj.wa) ? String(storeObj.wa).replace(/[^0-9]/g, '') : '';
