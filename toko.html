@@ -71,20 +71,20 @@
         </section>
 
         <!-- KONTEN DASHBOARD UTAMA PEMILIK TOKO -->
-        <div id="ownerDashboardContent" class="space-y-5">
+        <div id="ownerDashboardContent" class="hidden space-y-5">
 
-            <!-- BANNER SKEMA KEMITRAAN V7.0 -->
+            <!-- BANNER SKEMA KEMITRAAN V10.4 -->
             <section class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border border-slate-700/80 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-wrap items-center justify-between gap-4">
                 <div class="space-y-1">
                     <div class="flex items-center gap-2">
-                        <span class="text-[10px] uppercase tracking-wider font-bold text-slate-400">Konfigurasi Skema Aktif (Code.js V7.0)</span>
-                        <span id="skemaLabelBadge" class="text-xs font-extrabold text-emerald-400">Skema 1 (Reguler)</span>
+                        <span class="text-[10px] uppercase tracking-wider font-bold text-slate-400">Konfigurasi Skema Aktif</span>
+                        <span id="skemaLabelBadge" class="text-xs font-extrabold text-emerald-400">SKEMA_1 (Default)</span>
                     </div>
                     <p id="ownerStoreAddress" class="text-xs text-slate-300">Rincian persentase insentif & biaya layanan otomatis pada setiap transaksi QR terverifikasi:</p>
                 </div>
                 <div class="grid grid-cols-3 gap-2.5 w-full sm:w-auto">
                     <div class="bg-slate-950/80 border border-amber-500/30 px-3.5 py-2 rounded-xl text-center">
-                        <span class="text-[10px] text-amber-300 block font-semibold">Komisi Tukang</span>
+                        <span class="text-[10px] text-amber-300 block font-semibold">Diskon / Tukang</span>
                         <strong id="skemaIncentiveText" class="text-sm font-black text-amber-400 font-mono">1%</strong>
                     </div>
                     <div class="bg-slate-950/80 border border-blue-500/30 px-3.5 py-2 rounded-xl text-center">
@@ -116,8 +116,8 @@
                             <span class="text-[10px] text-slate-400 block">Tagihan Terutang Saat Ini:</span>
                             <strong id="unpaidPlatformAmount" class="text-lg sm:text-xl font-black text-amber-400 font-mono">Rp 0</strong>
                         </div>
-                        <button id="btnPayMidtrans" onclick="payPlatformSetoranMidtrans()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-4 py-3 rounded-xl shadow-lg transition flex items-center gap-2">
-                            <i class="fa-solid fa-credit-card"></i> Lunasi via Midtrans
+                        <button id="btnPayMidtrans" onclick="infoSetoranPlatform()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-4 py-3 rounded-xl shadow-lg transition flex items-center gap-2">
+                            <i class="fa-solid fa-credit-card"></i> Info Pelunasan
                         </button>
                     </div>
                 </div>
@@ -135,14 +135,14 @@
                     <span id="kpiTotalTrxCount" class="text-[10px] text-emerald-400 font-semibold mt-1 block">0 Transaksi Sah</span>
                 </div>
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
-                    <span class="text-[11px] text-slate-400 font-semibold block">Komisi Tukang Disalurkan</span>
+                    <span class="text-[11px] text-slate-400 font-semibold block">Diskon / Komisi Tukang</span>
                     <strong id="kpiTotalBroker" class="text-base sm:text-xl font-black text-amber-400 mt-1 block font-mono">Rp 0</strong>
-                    <span class="text-[10px] text-slate-400 mt-1 block">Dibayarkan langsung di kasir</span>
+                    <span class="text-[10px] text-slate-400 mt-1 block">Diberikan langsung di kasir</span>
                 </div>
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
                     <span class="text-[11px] text-slate-400 font-semibold block">Akumulasi Bonus Kasir</span>
                     <strong id="kpiTotalKasirBonus" class="text-base sm:text-xl font-black text-blue-400 mt-1 block font-mono">Rp 0</strong>
-                    <span class="text-[10px] text-slate-400 mt-1 block">Insentif verifikasi struk</span>
+                    <span id="kpiKasirSubLabel" class="text-[10px] text-slate-400 mt-1 block">Insentif verifikasi struk</span>
                 </div>
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
                     <span class="text-[11px] text-slate-400 font-semibold block">Tukang Langganan Aktif</span>
@@ -167,7 +167,7 @@
             <!-- TAB 1: RIWAYAT TRANSAKSI -->
             <section id="tabPanel-trx" class="owner-tab-panel bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xl">
                 <div class="flex flex-wrap items-center justify-between gap-2">
-                    <h3 class="text-sm font-extrabold text-white">Daftar Transaksi QR Terverifikasi</h3>
+                    <h3 class="text-sm font-extrabold text-white">Daftar Transaksi QR Cabang</h3>
                     <div class="flex items-center gap-2">
                         <input type="text" id="filterTrxInput" oninput="renderTransactionsTable()" placeholder="Cari ID / Struk / Tukang..." class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:border-amber-400 focus:outline-none">
                         <button onclick="exportTransactionsCsv()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold px-3 py-1.5 rounded-xl">
@@ -182,10 +182,10 @@
                             <tr>
                                 <th class="p-3">ID & Waktu</th>
                                 <th class="p-3">Struk & Kasir</th>
-                                <th class="p-3">Broker / Tukang</th>
+                                <th class="p-3">Mode / Tukang</th>
                                 <th class="p-3 text-right">Omzet</th>
-                                <th class="p-3 text-right">Komisi / Fee</th>
-                                <th class="p-3 text-center">Status Tukang</th>
+                                <th class="p-3 text-right">Rincian Komisi</th>
+                                <th class="p-3 text-center">Status</th>
                                 <th class="p-3 text-center">Bukti Struk</th>
                             </tr>
                         </thead>
@@ -208,8 +208,8 @@
                             <input type="text" id="newCashierName" placeholder="Contoh: Rina Marlina" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-semibold text-slate-300 mb-1">No. HP / WhatsApp</label>
-                            <input type="tel" id="newCashierPhone" placeholder="Contoh: 081234567890" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-white font-mono focus:border-emerald-500 focus:outline-none">
+                            <label class="block text-[11px] font-semibold text-slate-300 mb-1">No. HP / Rekening</label>
+                            <input type="text" id="newCashierPhone" placeholder="Contoh: 081234567890" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-white font-mono focus:border-emerald-500 focus:outline-none">
                         </div>
                         <div>
                             <label class="block text-[11px] font-semibold text-slate-300 mb-1">PIN Pribadi (4–6 Digit Angka) <span class="text-rose-400">*</span></label>
@@ -222,15 +222,15 @@
 
                     <div class="lg:col-span-2 space-y-4">
                         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-3 shadow-xl">
-                            <h3 class="text-sm font-extrabold text-white">Daftar Kasir Aktif Cabang</h3>
+                            <h3 class="text-sm font-extrabold text-white">Daftar Kasir Terdaftar Cabang</h3>
                             <div class="overflow-x-auto border border-slate-800 rounded-xl">
                                 <table class="w-full text-left text-xs">
                                     <thead class="bg-slate-950 text-slate-400 border-b border-slate-800">
                                         <tr>
                                             <th class="p-3">ID Kasir</th>
                                             <th class="p-3">Nama Kasir</th>
-                                            <th class="p-3">No. HP</th>
-                                            <th class="p-3 text-right">Total Bonus</th>
+                                            <th class="p-3">Info / HP</th>
+                                            <th class="p-3 text-right">Akumulasi Bonus</th>
                                             <th class="p-3 text-center">Aksi</th>
                                         </tr>
                                     </thead>
@@ -301,16 +301,18 @@
         localStorage.setItem('mb_gas_url', GAS_WEB_APP_URL);
         const LIMIT_BLOKIR_PLATFORM = 500000;
 
-        const SKEMA_V7 = {
-            SKEMA_1: { code: 'SKEMA_1', label: 'Skema 1 (Reguler)', incentiveRate: 0.01, creatorRate: 0.008, kasirRate: 0.002, incentivePctText: '1%', creatorPctText: '0,8%', kasirPctText: '0,2%' },
-            SKEMA_2: { code: 'SKEMA_2', label: 'Skema 2 (Mitra Plus)', incentiveRate: 0.015, creatorRate: 0.012, kasirRate: 0.003, incentivePctText: '1,5%', creatorPctText: '1,2%', kasirPctText: '0,3%' },
-            SKEMA_3: { code: 'SKEMA_3', label: 'Skema 3 (Prioritas)', incentiveRate: 0.02, creatorRate: 0.016, kasirRate: 0.004, incentivePctText: '2%', creatorPctText: '1,6%', kasirPctText: '0,4%' }
+        // 100% Selaras dengan Code.gs, index.html, & kasir.html
+        const SKEMA_V10 = {
+            SKEMA_1: { code: 'SKEMA_1', label: 'SKEMA_1 (Default)', incentiveRate: 0.01, creatorRate: 0.008, kasirRate: 0.002, incentivePctText: '1%', creatorPctText: '0,8%', kasirPctText: '0,2%' },
+            SKEMA_2: { code: 'SKEMA_2', label: 'SKEMA_2 (1% + Kasir)', incentiveRate: 0.005, creatorRate: 0.004, kasirRate: 0.001, incentivePctText: '0,5%', creatorPctText: '0,4%', kasirPctText: '0,1%' },
+            SKEMA_3: { code: 'SKEMA_3', label: 'SKEMA_3 (1% Non-Kasir)', incentiveRate: 0.005, creatorRate: 0.005, kasirRate: 0, incentivePctText: '0,5%', creatorPctText: '0,5%', kasirPctText: '0%' }
         };
 
         let allStores = [];
         let activeStoreId = "";
         let activeStoreObj = null;
-        let activeSkema = SKEMA_V7.SKEMA_1;
+        let activeSkema = SKEMA_V10.SKEMA_1;
+        let verifiedOwnerPin = "";
 
         let storeTransactions = [];
         let storeCashiers = [];
@@ -329,15 +331,22 @@
             document.getElementById('serverNoticeBanner').classList.remove('hidden');
         }
 
+        function pickNumeric(val, fallback) {
+            if (val !== undefined && val !== null && val !== '' && !isNaN(Number(val))) {
+                return Number(val);
+            }
+            return fallback;
+        }
+
         function normalizeStoresPayload(data) {
             const rawList = Array.isArray(data) ? data : (data.stores || data.data || data.toko || []);
             if (!Array.isArray(rawList)) return [];
             return rawList.map(item => ({
                 id: String(item.id || item.ID_Toko || item.storeId || '').trim(),
                 name: String(item.name || item.Nama_Toko || item.storeName || '').trim(),
-                alamat: String(item.alamat || item.Alamat || '').trim(),
-                noWa: String(item.noWa || item.No_WA || '').trim(),
-                pinOwner: String(item.pinOwner || item.PIN_Pemilik_Toko || item.pin || '').trim(),
+                alamat: String(item.address || item.alamat || item.Alamat || '').trim(),
+                noWa: String(item.wa || item.noWa || item.No_WA || '').trim(),
+                hasPin: item.hasPin !== undefined ? Boolean(item.hasPin) : true,
                 skema: String(item.skema || item.Skema_Toko || item.skemaToko || 'SKEMA_1').trim().toUpperCase(),
                 skemaDetail: item.skemaDetail || null,
                 unpaidPlatformFee: Number(item.unpaidPlatformFee || item.unpaidCommission || 0),
@@ -346,12 +355,12 @@
         }
 
         function resolveSkema(skemaInput) {
-            if (!skemaInput) return SKEMA_V7.SKEMA_1;
+            if (!skemaInput) return SKEMA_V10.SKEMA_1;
             if (typeof skemaInput === 'object') {
-                const base = SKEMA_V7[String(skemaInput.code || '').toUpperCase()] || SKEMA_V7.SKEMA_1;
+                const base = SKEMA_V10[String(skemaInput.code || '').toUpperCase()] || SKEMA_V10.SKEMA_1;
                 return Object.assign({}, base, skemaInput);
             }
-            return SKEMA_V7[String(skemaInput).trim().toUpperCase()] || SKEMA_V7.SKEMA_1;
+            return SKEMA_V10[String(skemaInput).trim().toUpperCase()] || SKEMA_V10.SKEMA_1;
         }
 
         function escapeHtml(str) {
@@ -360,7 +369,7 @@
                 if (m === '<') return '<';
                 if (m === '>') return '>';
                 return '"';
-            }).replace(/\x27/g, '&' + '#39;');
+            }).replace(/\x27/g, ''');
         }
 
         async function loadStoresList() {
@@ -372,7 +381,7 @@
                 try {
                     data = JSON.parse(rawText);
                 } catch (e) {
-                    throw new Error("Server mengembalikan HTML (bukan JSON). Pastikan Code.js V7.0 sudah di-deploy dengan akses 'Anyone'.");
+                    throw new Error("Server mengembalikan HTML (bukan JSON). Pastikan Code.gs sudah di-deploy dengan akses 'Anyone'.");
                 }
 
                 allStores = normalizeStoresPayload(data);
@@ -407,30 +416,38 @@
 
         async function selectAndCheckOwnerAccess(store) {
             applyStoreHeaderInfo(store);
-            const unlockedKey = `MB_OWNER_UNLOCKED_${store.id.toLowerCase()}`;
-            if (store.pinOwner && sessionStorage.getItem(unlockedKey) !== '1') {
+            const savedPin = sessionStorage.getItem(`MB_OWNER_PIN_${store.id.toLowerCase()}`) || '';
+            if (store.hasPin && !savedPin) {
+                verifiedOwnerPin = '';
                 document.getElementById('pinGateStoreName').innerText = `${store.name} (${store.id})`;
                 document.getElementById('ownerPinGate').classList.remove('hidden');
                 document.getElementById('ownerDashboardContent').classList.add('hidden');
                 return;
             }
-            document.getElementById('ownerPinGate').classList.add('hidden');
-            document.getElementById('ownerDashboardContent').classList.remove('hidden');
-            await refreshAllOwnerData();
+            verifiedOwnerPin = savedPin;
+            const ok = await refreshAllOwnerData();
+            if (ok) {
+                document.getElementById('ownerPinGate').classList.add('hidden');
+                document.getElementById('ownerDashboardContent').classList.remove('hidden');
+            }
         }
 
         async function verifyOwnerPin() {
             if (!activeStoreObj) return;
             const inputPin = document.getElementById('inputOwnerPin').value.trim();
             if (!inputPin) return alert("Masukkan PIN Pemilik Toko!");
-            if (activeStoreObj.pinOwner && inputPin !== activeStoreObj.pinOwner) {
-                return alert("❌ PIN Pemilik Toko salah!");
+
+            verifiedOwnerPin = inputPin;
+            const ok = await refreshAllOwnerData();
+            if (!ok) {
+                verifiedOwnerPin = '';
+                return;
             }
-            sessionStorage.setItem(`MB_OWNER_UNLOCKED_${activeStoreObj.id.toLowerCase()}`, '1');
+
+            sessionStorage.setItem(`MB_OWNER_PIN_${activeStoreObj.id.toLowerCase()}`, inputPin);
             document.getElementById('inputOwnerPin').value = '';
             document.getElementById('ownerPinGate').classList.add('hidden');
             document.getElementById('ownerDashboardContent').classList.remove('hidden');
-            await refreshAllOwnerData();
         }
 
         function applyStoreHeaderInfo(store) {
@@ -444,6 +461,9 @@
             document.getElementById('skemaIncentiveText').innerText = activeSkema.incentivePctText;
             document.getElementById('skemaKasirText').innerText = activeSkema.kasirPctText;
             document.getElementById('skemaCreatorText').innerText = activeSkema.creatorPctText;
+            document.getElementById('kpiKasirSubLabel').innerText = activeSkema.kasirRate === 0
+                ? 'Skema Non-Kasir (0%)'
+                : `Insentif verifikasi (${activeSkema.kasirPctText})`;
 
             updateSettlementCardUI(Number(store.unpaidPlatformFee || 0), Boolean(store.isBlocked));
         }
@@ -471,65 +491,73 @@
         }
 
         async function refreshAllOwnerData() {
-            if (!activeStoreId) return;
-            await Promise.all([
-                fetchStoreTransactions(),
-                fetchStoreCashiersAndLogs(),
-                fetchStoreBrokers()
-            ]);
-            recalculateDashboardKpis();
-        }
-
-        async function fetchStoreTransactions() {
+            if (!activeStoreId) return false;
             try {
-                const res = await fetch(`${GAS_WEB_APP_URL}?action=getStoreTransactions&storeId=${encodeURIComponent(activeStoreId)}`);
+                const url = `${GAS_WEB_APP_URL}?action=getStoreDashboard&storeId=${encodeURIComponent(activeStoreId)}&pin=${encodeURIComponent(verifiedOwnerPin)}&allTime=1`;
+                const res = await fetch(url);
                 const data = await res.json();
-                const list = data.transactions || data.data || [];
-                storeTransactions = Array.isArray(list) ? list : [];
-                if (typeof data.unpaidPlatformFee !== 'undefined') {
-                    updateSettlementCardUI(Number(data.unpaidPlatformFee), Boolean(data.isBlocked));
+
+                if (!data.success) {
+                    if (data.requirePin) {
+                        sessionStorage.removeItem(`MB_OWNER_PIN_${activeStoreId}`);
+                        document.getElementById('pinGateStoreName').innerText = `${activeStoreObj ? activeStoreObj.name : activeStoreId}`;
+                        document.getElementById('ownerPinGate').classList.remove('hidden');
+                        document.getElementById('ownerDashboardContent').classList.add('hidden');
+                        if (verifiedOwnerPin) alert("❌ PIN Pemilik Toko salah!");
+                        return false;
+                    }
+                    showServerNotice("Gagal Memuat Dashboard", data.message || "Error tidak diketahui");
+                    return false;
                 }
+
+                if (data.store && data.store.skemaDetail) {
+                    activeStoreObj.skema = data.store.skema;
+                    activeStoreObj.skemaDetail = data.store.skemaDetail;
+                    applyStoreHeaderInfo(activeStoreObj);
+                }
+
+                storeTransactions = Array.isArray(data.transactions) ? data.transactions : [];
+                storeCashiers = Array.isArray(data.cashiers) ? data.cashiers : [];
+                storeShiftLogs = Array.isArray(data.shiftLogs) ? data.shiftLogs : [];
+                storeBrokers = Array.isArray(data.brokers) ? data.brokers : [];
+
+                if (data.kpi) {
+                    updateSettlementCardUI(Number(data.kpi.totalTerutangPlatform || 0), Boolean(data.kpi.limitWarning || data.kpi.isBlocked));
+                }
+
                 renderTransactionsTable();
-            } catch (e) { console.error(e); }
-        }
-
-        async function fetchStoreCashiersAndLogs() {
-            try {
-                const [resCashiers, resLogs] = await Promise.all([
-                    fetch(`${GAS_WEB_APP_URL}?action=getStoreCashiers&storeId=${encodeURIComponent(activeStoreId)}`),
-                    fetch(`${GAS_WEB_APP_URL}?action=getShiftLogs&storeId=${encodeURIComponent(activeStoreId)}`)
-                ]);
-                const dataCashiers = await resCashiers.json();
-                storeCashiers = Array.isArray(dataCashiers.cashiers || dataCashiers.data) ? (dataCashiers.cashiers || dataCashiers.data) : [];
                 renderCashiersTable();
-
-                const dataLogs = await resLogs.json();
-                storeShiftLogs = Array.isArray(dataLogs.logs || dataLogs.data) ? (dataLogs.logs || dataLogs.data) : [];
                 renderShiftLogsGrid();
-            } catch (e) { console.error(e); }
-        }
-
-        async function fetchStoreBrokers() {
-            try {
-                const res = await fetch(`${GAS_WEB_APP_URL}?action=getBrokers&storeId=${encodeURIComponent(activeStoreId)}`);
-                const data = await res.json();
-                storeBrokers = Array.isArray(data.brokers || data.data) ? (data.brokers || data.data) : [];
                 renderOwnerBrokersTable();
-            } catch (e) { console.error(e); }
+                recalculateDashboardKpis(data.kpi);
+                return true;
+            } catch (e) {
+                showServerNotice("Gangguan Koneksi Server", e.message || String(e));
+                return false;
+            }
         }
 
-        function recalculateDashboardKpis() {
+        function recalculateDashboardKpis(serverKpi) {
+            if (serverKpi) {
+                document.getElementById('kpiTotalOmzet').innerText = `Rp ${Math.round(Number(serverKpi.totalOmzet || 0)).toLocaleString('id-ID')}`;
+                document.getElementById('kpiTotalTrxCount').innerText = `${Number(serverKpi.totalLunasCount || 0)} Transaksi Sah`;
+                document.getElementById('kpiTotalBroker').innerText = `Rp ${Math.round(Number(serverKpi.totalKomisiTukang || 0)).toLocaleString('id-ID')}`;
+                document.getElementById('kpiTotalKasirBonus').innerText = `Rp ${Math.round(Number(serverKpi.totalBonusKasir || 0)).toLocaleString('id-ID')}`;
+                document.getElementById('kpiBrokerCount').innerText = `${storeBrokers.length} Orang`;
+                return;
+            }
+
             const verifiedTrx = storeTransactions.filter(t => {
-                const st = String(t.status || t.Status || '').toUpperCase();
-                return st.includes('VERIFIED') || st.includes('SELESAI') || st.includes('LUNAS');
+                const st = String(t.status || '').toUpperCase();
+                return st.includes('VERIFIED') || st.includes('SELESAI') || st.includes('LUNAS') || st.includes('MENUNGGU_TUKANG') || st.includes('DITERIMA');
             });
 
             let totalOmzet = 0, totalBroker = 0, totalKasir = 0;
             verifiedTrx.forEach(t => {
-                const sk = resolveSkema(t.skemaDetail || t.skema || t.Skema_Toko || activeSkema);
-                const omzet = Number(t.grandTotal || t.total || t.Total_Belanja || 0);
-                const inc = t.noBroker ? 0 : (Number(t.incentiveVal || t.Komisi_Tukang) || Math.round(omzet * sk.incentiveRate));
-                const ksr = Number(t.kasirBonusVal || t.Bonus_Kasir) || Math.round(omzet * sk.kasirRate);
+                const sk = resolveSkema(t.skemaDetail || t.skema || activeSkema);
+                const omzet = Number(t.grandTotal || 0);
+                const inc = pickNumeric(t.incentiveVal, Math.round(omzet * sk.incentiveRate));
+                const ksr = pickNumeric(t.kasirBonusVal, Math.round(omzet * sk.kasirRate));
                 totalOmzet += omzet;
                 totalBroker += inc;
                 totalKasir += ksr;
@@ -546,10 +574,11 @@
             const tbody = document.getElementById('ownerTrxTableBody');
             const q = (document.getElementById('filterTrxInput').value || '').toLowerCase().trim();
             const filtered = storeTransactions.filter(t =>
-                String(t.id || t.ID_Transaksi || '').toLowerCase().includes(q) ||
-                String(t.strukNo || t.No_Struk || '').toLowerCase().includes(q) ||
-                String(t.tukangName || t.Nama_Tukang || '').toLowerCase().includes(q) ||
-                String(t.cashierName || t.Nama_Kasir || '').toLowerCase().includes(q)
+                String(t.id || '').toLowerCase().includes(q) ||
+                String(t.strukNo || '').toLowerCase().includes(q) ||
+                String(t.tukangName || '').toLowerCase().includes(q) ||
+                String(t.cashierName || '').toLowerCase().includes(q) ||
+                String(t.custName || '').toLowerCase().includes(q)
             );
 
             if (filtered.length === 0) {
@@ -558,18 +587,24 @@
             }
 
             tbody.innerHTML = filtered.map(t => {
-                const sk = resolveSkema(t.skemaDetail || t.skema || t.Skema_Toko || activeSkema);
-                const omzet = Number(t.grandTotal || t.total || t.Total_Belanja || 0);
-                const inc = t.noBroker ? 0 : (Number(t.incentiveVal || t.Komisi_Tukang) || Math.round(omzet * sk.incentiveRate));
-                const ksr = Number(t.kasirBonusVal || t.Bonus_Kasir) || Math.round(omzet * sk.kasirRate);
-                const plt = Number(t.creatorFeeVal || t.Fee_Platform) || Math.round(omzet * sk.creatorRate);
-                const fotoUrl = t.fotoStrukUrl || t.Foto_Struk || '';
+                const sk = resolveSkema(t.skemaDetail || t.skema || activeSkema);
+                const omzet = Number(t.grandTotal || 0);
+                const inc = pickNumeric(t.incentiveVal, Math.round(omzet * sk.incentiveRate));
+                const ksr = pickNumeric(t.kasirBonusVal, Math.round(omzet * sk.kasirRate));
+                const plt = pickNumeric(t.creatorFeeVal, Math.round(omzet * sk.creatorRate));
+                const fotoUrl = (t.fotoStrukUrl && t.fotoStrukUrl !== '-') ? t.fotoStrukUrl : '';
+                const isDiskonNota = String(t.modeIncentive || '').toUpperCase() === 'DISKON_NOTA';
 
-                const statusBadge = t.noBroker
-                    ? `<span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">Tanpa Broker</span>`
-                    : (t.tukangVerified
-                        ? `<span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">Diterima Tukang</span>`
-                        : `<span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-bold">Menunggu Konfirmasi</span>`);
+                let statusBadge = '';
+                if (String(t.status || '').toUpperCase() === 'PENDING') {
+                    statusBadge = `<span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">Menunggu Kasir</span>`;
+                } else if (isDiskonNota || t.noBroker) {
+                    statusBadge = `<span class="text-[10px] bg-teal-500/20 text-teal-300 border border-teal-500/30 px-2 py-0.5 rounded-full font-bold">Selesai (Diskon Nota)</span>`;
+                } else if (t.tukangVerified) {
+                    statusBadge = `<span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">Diterima Tukang</span>`;
+                } else {
+                    statusBadge = `<span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-bold">Menunggu Tukang</span>`;
+                }
 
                 const fotoBtn = fotoUrl
                     ? `<button data-title="Struk ${escapeHtml(t.strukNo || t.id)}" data-url="${escapeHtml(fotoUrl)}" onclick="openImageModal(this.dataset.title, this.dataset.url)" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-emerald-300 px-2.5 py-1 rounded-lg border border-slate-700 font-bold"><i class="fa-solid fa-image"></i> Struk</button>`
@@ -578,21 +613,21 @@
                 return `
                     <tr class="hover:bg-slate-800/40">
                         <td class="p-3">
-                            <strong class="font-mono text-emerald-400 block">${escapeHtml(t.id || t.ID_Transaksi)}</strong>
-                            <span class="text-[10px] text-slate-400">${escapeHtml(t.date || t.Waktu || '-')}</span>
+                            <strong class="font-mono text-emerald-400 block">${escapeHtml(t.id)}</strong>
+                            <span class="text-[10px] text-slate-400">${escapeHtml(t.date || '-')}</span>
                             <span class="text-[9px] font-mono bg-slate-950 text-slate-300 px-1.5 py-0.5 rounded ml-1">${escapeHtml(sk.code)}</span>
                         </td>
                         <td class="p-3">
-                            <span class="font-mono font-bold text-white block">${escapeHtml(t.strukNo || t.No_Struk || '-')}</span>
-                            <span class="text-[10px] text-slate-400">Kasir: ${escapeHtml(t.cashierName || t.Nama_Kasir || '-')}</span>
+                            <span class="font-mono font-bold text-white block">${escapeHtml(t.strukNo || '-')}</span>
+                            <span class="text-[10px] text-slate-400">Kasir: ${escapeHtml(t.cashierName || '-')}</span>
                         </td>
                         <td class="p-3">
-                            <strong class="text-white block">${escapeHtml(t.noBroker ? 'Pembeli Langsung' : (t.tukangName || t.Nama_Tukang || '-'))}</strong>
-                            <span class="text-[10px] font-mono text-slate-400">${escapeHtml(t.tukangPhone || t.No_HP_Tukang || '')}</span>
+                            <strong class="text-white block">${escapeHtml(isDiskonNota ? `Diskon Nota (${t.custName || 'Umum'})` : (t.tukangName || 'Pembeli Langsung'))}</strong>
+                            <span class="text-[10px] font-mono text-slate-400">${escapeHtml(t.tukangPhone || '')}</span>
                         </td>
                         <td class="p-3 text-right font-mono font-bold text-white">Rp ${omzet.toLocaleString('id-ID')}</td>
                         <td class="p-3 text-right font-mono text-[11px]">
-                            <span class="text-amber-400 block">Tukang: Rp ${inc.toLocaleString('id-ID')}</span>
+                            <span class="text-amber-400 block">${isDiskonNota ? 'Diskon' : 'Tukang'}: Rp ${inc.toLocaleString('id-ID')}</span>
                             <span class="text-blue-400 block">Kasir: Rp ${ksr.toLocaleString('id-ID')}</span>
                             <span class="text-slate-400 block">Platform: Rp ${plt.toLocaleString('id-ID')}</span>
                         </td>
@@ -610,10 +645,10 @@
                 return;
             }
             tbody.innerHTML = storeCashiers.map(c => {
-                const cid = c.kasirId || c.ID_Kasir || '';
-                const cname = c.namaKasir || c.Nama_Kasir || '';
-                const phone = c.phone || c.No_HP || '-';
-                const bonus = Number(c.totalBonus || c.Total_Bonus || 0);
+                const cid = c.kasirId || '';
+                const cname = c.namaKasir || '';
+                const phone = c.phone || '-';
+                const bonus = Number(c.totalBonus || 0);
                 return `
                     <tr>
                         <td class="p-3 font-mono text-emerald-400 font-bold">${escapeHtml(cid)}</td>
@@ -635,8 +670,8 @@
                 return;
             }
             grid.innerHTML = storeShiftLogs.slice(0, 8).map(log => {
-                const selfie = log.selfieUrl || log.Foto_Selfie || '';
-                const nama = log.namaKasir || log.Nama_Kasir || '-';
+                const selfie = (log.selfieUrl && log.selfieUrl !== '-') ? log.selfieUrl : '';
+                const nama = log.namaKasir || '-';
                 return `
                     <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 flex items-center gap-3">
                         <div class="w-12 h-12 rounded-lg bg-slate-800 overflow-hidden shrink-0 border border-emerald-500/30 cursor-pointer"
@@ -646,8 +681,8 @@
                         </div>
                         <div class="min-w-0">
                             <strong class="text-xs text-white block truncate">${escapeHtml(nama)}</strong>
-                            <span class="text-[10px] font-mono text-emerald-400 block">${escapeHtml(log.logId || log.ID_Log || '')}</span>
-                            <span class="text-[10px] text-slate-400 block">${escapeHtml(log.loginTime || log.Waktu_Masuk || '-')}</span>
+                            <span class="text-[10px] font-mono text-emerald-400 block">${escapeHtml(log.logId || '')}</span>
+                            <span class="text-[10px] text-slate-400 block">${escapeHtml(log.loginTime || '-')}</span>
                         </div>
                     </div>
                 `;
@@ -657,9 +692,9 @@
         async function addNewStoreCashier() {
             const namaKasir = document.getElementById('newCashierName').value.trim();
             const phone = document.getElementById('newCashierPhone').value.trim();
-            const pin = document.getElementById('newCashierPin').value.trim();
+            const pinKasir = document.getElementById('newCashierPin').value.trim();
             if (!namaKasir) return alert("Nama kasir wajib diisi!");
-            if (!/^[0-9]{4,6}$/.test(pin)) return alert("PIN pribadi wajib berupa 4 hingga 6 digit angka!");
+            if (!/^[0-9]{4,6}$/.test(pinKasir)) return alert("PIN pribadi wajib berupa 4 hingga 6 digit angka!");
 
             const btn = document.getElementById('btnAddCashier');
             btn.disabled = true;
@@ -668,17 +703,25 @@
             try {
                 const res = await fetch(GAS_WEB_APP_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ action: 'addStoreCashier', storeId: activeStoreId, namaKasir, phone, pin })
+                    body: JSON.stringify({
+                        action: 'manageCashier',
+                        subAction: 'add',
+                        storeId: activeStoreId,
+                        ownerPin: verifiedOwnerPin,
+                        namaKasir,
+                        pinKasir,
+                        rekening: phone
+                    })
                 });
                 const data = await res.json();
-                if (!data.success && data.status !== 'success') {
+                if (!data.success) {
                     alert("❌ Gagal menambah kasir: " + (data.message || "Error"));
                     return;
                 }
                 document.getElementById('newCashierName').value = "";
                 document.getElementById('newCashierPhone').value = "";
                 document.getElementById('newCashierPin').value = "";
-                await fetchStoreCashiersAndLogs();
+                await refreshAllOwnerData();
                 alert(`✅ Akun kasir "${namaKasir}" berhasil ditambahkan!`);
             } catch (err) {
                 alert("❌ Gangguan jaringan: " + err.message);
@@ -693,10 +736,20 @@
             try {
                 const res = await fetch(GAS_WEB_APP_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ action: 'deleteStoreCashier', storeId: activeStoreId, kasirId })
+                    body: JSON.stringify({
+                        action: 'manageCashier',
+                        subAction: 'delete',
+                        storeId: activeStoreId,
+                        ownerPin: verifiedOwnerPin,
+                        kasirId
+                    })
                 });
                 const data = await res.json();
-                if (data.success || data.status === 'success') await fetchStoreCashiersAndLogs();
+                if (data.success) {
+                    await refreshAllOwnerData();
+                } else {
+                    alert("❌ " + (data.message || "Gagal menghapus kasir."));
+                }
             } catch (err) { alert("Error: " + err.message); }
         }
 
@@ -704,7 +757,7 @@
             const tbody = document.getElementById('ownerBrokersTableBody');
             const q = (document.getElementById('filterBrokerOwnerInput').value || '').toLowerCase().trim();
             const filtered = storeBrokers.filter(b =>
-                String(b.nama || b.Nama_Tukang || '').toLowerCase().includes(q) || String(b.hp || b.No_HP || '').includes(q)
+                String(b.nama || '').toLowerCase().includes(q) || String(b.hp || '').includes(q)
             );
             if (filtered.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500">Belum ada tukang/broker tercatat.</td></tr>`;
@@ -712,40 +765,18 @@
             }
             tbody.innerHTML = filtered.map(b => `
                 <tr>
-                    <td class="p-3 font-bold text-white">${escapeHtml(b.nama || b.Nama_Tukang)}</td>
-                    <td class="p-3 font-mono text-emerald-400">${escapeHtml(b.hp || b.No_HP)}</td>
-                    <td class="p-3 text-center font-mono font-bold">${Number(b.totalTrx || b.Total_Transaksi || 1)}x</td>
-                    <td class="p-3 text-right font-mono font-bold text-amber-400">Rp ${Number(b.totalKomisi || b.Total_Komisi || 0).toLocaleString('id-ID')}</td>
-                    <td class="p-3 text-right text-slate-400">${escapeHtml(b.lastVisit || b.Kunjungan_Terakhir || '-')}</td>
+                    <td class="p-3 font-bold text-white">${escapeHtml(b.nama)}</td>
+                    <td class="p-3 font-mono text-emerald-400">${escapeHtml(b.hp)}</td>
+                    <td class="p-3 text-center font-mono font-bold">${Number(b.totalTrx || 1)}x</td>
+                    <td class="p-3 text-right font-mono font-bold text-amber-400">Rp ${Number(b.totalKomisi || 0).toLocaleString('id-ID')}</td>
+                    <td class="p-3 text-right text-slate-400">${escapeHtml(b.lastVisit || '-')}</td>
                 </tr>
             `).join('');
         }
 
-        async function payPlatformSetoranMidtrans() {
-            if (!activeStoreId) return;
-            const btn = document.getElementById('btnPayMidtrans');
-            btn.disabled = true;
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Memproses...`;
-            try {
-                const res = await fetch(GAS_WEB_APP_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'createMidtransSettlement', storeId: activeStoreId })
-                });
-                const data = await res.json();
-                if (data.paymentUrl || data.redirect_url) {
-                    window.open(data.paymentUrl || data.redirect_url, '_blank');
-                } else if (data.success || data.status === 'success') {
-                    alert("✅ " + (data.message || "Tagihan setoran berhasil diproses."));
-                    await refreshAllOwnerData();
-                } else {
-                    alert("ℹ️ " + (data.message || "Tidak ada tagihan terutang saat ini."));
-                }
-            } catch (err) {
-                alert("❌ Gagal terhubung ke Midtrans: " + err.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = `<i class="fa-solid fa-credit-card"></i> Lunasi via Midtrans`;
-            }
+        function infoSetoranPlatform() {
+            const amountText = document.getElementById('unpaidPlatformAmount').innerText;
+            alert(`Tagihan setoran platform terutang untuk ${activeStoreObj ? activeStoreObj.name : activeStoreId}: ${amountText}.\n\nSilakan lakukan transfer setoran ke Admin Mitra Bangunan agar status dicatat PAID pada sheet Setoran_Komisi.`);
         }
 
         function switchOwnerTab(tabKey) {
@@ -775,13 +806,13 @@
 
         function exportTransactionsCsv() {
             if (storeTransactions.length === 0) return alert("Belum ada data transaksi.");
-            const headers = ["ID Transaksi", "Tanggal", "Skema", "No Struk", "Kasir", "Nama Tukang", "HP Tukang", "Omzet", "Komisi Tukang", "Bonus Kasir", "Fee Platform"];
+            const headers = ["ID Transaksi", "Tanggal", "Skema", "No Struk", "Kasir", "Nama Tukang", "HP Tukang", "Omzet", "Diskon/Komisi Tukang", "Bonus Kasir", "Fee Platform"];
             const rows = storeTransactions.map(t => {
                 const sk = resolveSkema(t.skemaDetail || t.skema || activeSkema);
-                const omzet = Number(t.grandTotal || t.total || 0);
-                const inc = t.noBroker ? 0 : (Number(t.incentiveVal) || Math.round(omzet * sk.incentiveRate));
-                const ksr = Number(t.kasirBonusVal) || Math.round(omzet * sk.kasirRate);
-                const plt = Number(t.creatorFeeVal) || Math.round(omzet * sk.creatorRate);
+                const omzet = Number(t.grandTotal || 0);
+                const inc = pickNumeric(t.incentiveVal, Math.round(omzet * sk.incentiveRate));
+                const ksr = pickNumeric(t.kasirBonusVal, Math.round(omzet * sk.kasirRate));
+                const plt = pickNumeric(t.creatorFeeVal, Math.round(omzet * sk.creatorRate));
                 return [t.id, t.date || '', sk.code, t.strukNo || '', t.cashierName || '', t.tukangName || '', t.tukangPhone || '', omzet, inc, ksr, plt]
                     .map(v => `"${String(v).replace(/"/g, '""')}"`).join(',');
             });
