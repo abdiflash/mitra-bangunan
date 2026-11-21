@@ -24,7 +24,10 @@
                     <i class="fa-solid fa-shield-halved"></i>
                 </div>
                 <div>
-                    <h1 class="font-extrabold text-sm sm:text-base text-white leading-tight">Terminal Kasir Safe-Guard</h1>
+                    <h1 class="font-extrabold text-sm sm:text-base text-white leading-tight flex items-center gap-2">
+                        Terminal Kasir Safe-Guard
+                        <span id="headerSkemaBadge" class="hidden text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full">SKEMA_1</span>
+                    </h1>
                     <p class="text-[11px] text-emerald-400 font-semibold" id="activeStoreHeader">Memuat Cabang Toko...</p>
                 </div>
             </div>
@@ -46,9 +49,9 @@
                     </button>
                 </div>
 
-                <!-- BONUS INSENTIF SHIFT INI (DINAMIS SESUAI SKEMA TOKO) -->
-                <div id="kasirBonusBadgeBox" class="text-right bg-blue-950/80 border border-blue-500/40 px-3 py-1.5 rounded-xl shadow-sm">
-                    <span id="kasirBonusHeaderLabel" class="text-[9px] text-blue-300 block font-bold leading-tight uppercase tracking-wider">Bonus Shift Ini</span>
+                <!-- BONUS INSENTIF SHIFT INI -->
+                <div class="text-right bg-blue-950/80 border border-blue-500/40 px-3 py-1.5 rounded-xl shadow-sm">
+                    <span class="text-[9px] text-blue-300 block font-bold leading-tight uppercase tracking-wider">Bonus Shift (<span id="headerKasirPctLabel">0,2%</span>)</span>
                     <strong id="kasirBonusCounter" class="text-xs sm:text-sm font-black text-blue-400 block">Rp 0</strong>
                 </div>
 
@@ -184,7 +187,7 @@
                     <div id="brokerDirectoryBox" class="pt-3 border-t border-slate-800 space-y-2.5">
                         <div class="flex flex-wrap items-center justify-between gap-2">
                             <label class="block text-[11px] font-bold text-amber-300 uppercase tracking-wide">
-                                <i class="fa-solid fa-helmet-safety mr-1"></i> <span id="brokerBoxTitle">Data Broker / Tukang Penerima Komisi</span>
+                                <i class="fa-solid fa-helmet-safety mr-1"></i> Data Broker / Tukang Penerima Komisi (<span id="brokerKomisiPctLabel">1%</span>)
                                 <span id="brokerRequiredBadge" class="text-rose-400 ml-1">*Wajib</span>
                             </label>
                             <span id="brokerDirectoryCount" class="text-[10px] bg-amber-500/15 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-mono font-bold">0 Langganan</span>
@@ -205,7 +208,7 @@
                             <div id="brokerDropdownList" class="hidden absolute left-0 right-0 mt-1 bg-slate-950 border border-amber-500/40 rounded-xl shadow-2xl z-40 max-h-52 overflow-y-auto divide-y divide-slate-800"></div>
                         </div>
 
-                        <!-- Input Nama & No WA Tukang -->
+                        <!-- Input Nama & No WA Tukang (Otomatis Terisi dari Pencarian atau Input Baru) -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                             <div>
                                 <label class="block text-[10px] text-slate-400 mb-1">Nama Broker / Tukang <span id="lblReqTukangName" class="text-rose-400">*</span></label>
@@ -221,7 +224,7 @@
                         </p>
                     </div>
 
-                    <!-- AMBIL FOTO STRUK FISIK -->
+                    <!-- AMBIL FOTO STRUK FISIK (KAMERA HP/LAPTOP) -->
                     <div class="pt-3 border-t border-slate-800 space-y-2">
                         <label class="block text-[11px] font-semibold text-slate-400">
                             Foto Struk / Nota Fisik Belanja <span class="text-rose-400">*Wajib Paraf Kasir di Struk Sebelum Difoto</span>
@@ -266,10 +269,11 @@
                         <p class="text-[10px] text-slate-400">Wajib PIN Pribadi + Foto Selfie Wajah Real-Time</p>
                     </div>
                 </div>
-                <button id="btnCloseShiftModal" onclick="closeShiftLoginModal()" class="text-slate-400 hover:text-white text-xl font-bold hidden">&times;</button>
+                <button id="btnCloseShiftModal" onclick="closeShiftLoginModal()" class="text-slate-400 hover:text-white text-xl font-bold hidden">×</button>
             </div>
 
             <div class="p-5 space-y-4">
+                <!-- PILIH NAMA KASIR -->
                 <div>
                     <label class="block text-xs font-bold text-slate-300 mb-1">1. Pilih Akun Kasir Bertugas</label>
                     <select id="selectShiftCashier" class="w-full bg-slate-900 border border-slate-600 rounded-xl p-2.5 text-xs font-bold text-white focus:border-emerald-500 focus:outline-none">
@@ -277,11 +281,13 @@
                     </select>
                 </div>
 
+                <!-- INPUT PIN PRIBADI -->
                 <div>
                     <label class="block text-xs font-bold text-slate-300 mb-1">2. PIN Pribadi Kasir (4–6 Digit)</label>
                     <input type="password" id="inputShiftPin" maxlength="6" inputmode="numeric" placeholder="••••" class="w-full bg-slate-900 border border-slate-600 rounded-xl p-2.5 text-sm text-white tracking-widest font-mono focus:border-emerald-500 focus:outline-none">
                 </div>
 
+                <!-- KAMERA SELFIE REAL-TIME (ANTI UPLOAD GALERI) -->
                 <div class="space-y-2">
                     <div class="flex items-center justify-between">
                         <label class="block text-xs font-bold text-slate-300">3. Selfie Absensi Wajah (Live Kamera)</label>
@@ -310,6 +316,7 @@
                     </div>
                 </div>
 
+                <!-- TOMBOL SUBMIT LOGIN SHIFT -->
                 <button type="button" id="btnSubmitShiftLogin" onclick="submitShiftLogin()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 uppercase tracking-wider">
                     <i class="fa-solid fa-right-to-bracket"></i> Verifikasi PIN & Buka Shift
                 </button>
@@ -321,20 +328,14 @@
         const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbxsQQMYsvWk6R3AkPhkEURDsxFaEyUnqwFyCv500uPYvK0Y0RhPvaHXgw5OcvYeH_tC/exec";
         const GAS_WEB_APP_URL = localStorage.getItem('mb_gas_url') || DEFAULT_GAS_URL;
 
-        const DEFAULT_SCHEME = {
-            code: 'SKEMA_1',
-            label: 'Skema 1 (2% Lengkap)',
-            totalRate: 0.02,
-            totalPercent: '2%',
-            incentiveRate: 0.01,
-            incentivePercent: '1%',
-            creatorRate: 0.008,
-            creatorPercent: '0,8%',
-            kasirRate: 0.002,
-            kasirPercent: '0,2%'
+        // Referensi Skema V7.0
+        const SKEMA_FALLBACK = {
+            SKEMA_1: { code: 'SKEMA_1', label: 'Skema 1 (Reguler)', incentiveRate: 0.01, creatorRate: 0.008, kasirRate: 0.002, incentivePctText: '1%', kasirPctText: '0,2%' },
+            SKEMA_2: { code: 'SKEMA_2', label: 'Skema 2 (Mitra Plus)', incentiveRate: 0.015, creatorRate: 0.012, kasirRate: 0.003, incentivePctText: '1,5%', kasirPctText: '0,3%' },
+            SKEMA_3: { code: 'SKEMA_3', label: 'Skema 3 (Prioritas)', incentiveRate: 0.02, creatorRate: 0.016, kasirRate: 0.004, incentivePctText: '2%', kasirPctText: '0,4%' }
         };
 
-        let activeStoreScheme = DEFAULT_SCHEME;
+        let activeStoreSkema = SKEMA_FALLBACK.SKEMA_1;
         let html5QrcodeScanner = null;
         let selfieMediaStream = null;
         let capturedSelfieBase64 = "";
@@ -346,11 +347,13 @@
         let activeStoreId = "";
         let activeStoreName = "";
 
+        // STATE SESI SHIFT TERAUTENTIKASI
         let activeShiftSession = null;
         let shiftTrxCount = 0;
         let shiftTotalOmzet = 0;
         let accumulatedKasirBonus = 0;
 
+        // STATE DIREKTORI BROKER / TUKANG LANGGANAN & POLLING VERIFIKASI
         let cachedBrokers = [];
         let brokerPollTimer = null;
 
@@ -369,6 +372,21 @@
             });
         });
 
+        function applyStoreSkemaUI(skemaObj) {
+            if (!skemaObj) return;
+            activeStoreSkema = skemaObj;
+            const badge = document.getElementById('headerSkemaBadge');
+            const kasirPctEl = document.getElementById('headerKasirPctLabel');
+            const brokerPctEl = document.getElementById('brokerKomisiPctLabel');
+
+            if (badge) {
+                badge.innerText = `${skemaObj.code || 'SKEMA_1'}`;
+                badge.classList.remove('hidden');
+            }
+            if (kasirPctEl) kasirPctEl.innerText = skemaObj.kasirPctText || '0,2%';
+            if (brokerPctEl) brokerPctEl.innerText = skemaObj.incentivePctText || '1%';
+        }
+
         function initTerminalToken() {
             let token = localStorage.getItem('MB_TERMINAL_TOKEN');
             if (!token) {
@@ -376,25 +394,6 @@
                 localStorage.setItem('MB_TERMINAL_TOKEN', token);
             }
             terminalToken = token;
-        }
-
-        function applyStoreSchemeUI() {
-            const box = document.getElementById('kasirBonusBadgeBox');
-            const lbl = document.getElementById('kasirBonusHeaderLabel');
-            const brokerTitle = document.getElementById('brokerBoxTitle');
-            const incPct = activeStoreScheme.incentivePercent || '1%';
-            const kasirPct = activeStoreScheme.kasirPercent || '0,2%';
-
-            if (brokerTitle) {
-                brokerTitle.innerText = `Data Broker / Tukang Penerima Komisi (${incPct})`;
-            }
-
-            if (activeStoreScheme.kasirRate <= 0) {
-                if (box) box.classList.add('hidden');
-            } else {
-                if (box) box.classList.remove('hidden');
-                if (lbl) lbl.innerText = `Bonus Shift (${kasirPct})`;
-            }
         }
 
         async function resolveStoreContext() {
@@ -417,8 +416,8 @@
                     const found = data.stores.find(s => s.id.toLowerCase() === activeStoreId);
                     if (found) {
                         activeStoreName = found.name;
-                        if (found.scheme) activeStoreScheme = found.scheme;
-                        applyStoreSchemeUI();
+                        const skemaObj = found.skemaDetail || SKEMA_FALLBACK[found.skema] || SKEMA_FALLBACK.SKEMA_1;
+                        applyStoreSkemaUI(skemaObj);
                         document.getElementById('activeStoreHeader').innerText = `${found.name} (${activeStoreId})`;
                         return;
                     }
@@ -427,7 +426,6 @@
 
             activeStoreName = activeStoreId.toUpperCase();
             document.getElementById('activeStoreHeader').innerText = activeStoreName;
-            applyStoreSchemeUI();
         }
 
         function restoreShiftSession() {
@@ -471,7 +469,7 @@
         }
 
         // ----------------------------------------------------------------------
-        // BUKU DIREKTORI BROKER / TUKANG LANGGANAN
+        // BUKU DIREKTORI BROKER / TUKANG LANGGANAN (1-KLIK CARI & AUTO-SAVE)
         // ----------------------------------------------------------------------
         async function loadBrokerDirectory() {
             if (!activeStoreId) return;
@@ -498,7 +496,7 @@
 
         function escapeHtml(str) {
             return String(str || '').replace(/[&<>"']/g, m => ({
-                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+                '&': '&', '<': '<', '>': '>', '"': '"', "'": '''
             }[m]));
         }
 
@@ -606,12 +604,13 @@
             if (!currentLoadedTrx || !currentLoadedTrx.tukangPhone) {
                 return alert("Nomor HP Broker/Tukang tidak tersedia pada transaksi ini.");
             }
+            const skema = currentLoadedTrx.skemaDetail || SKEMA_FALLBACK[currentLoadedTrx.skema] || activeStoreSkema;
+            const pctText = skema.incentivePctText || '1%';
+
             const hpClean = String(currentLoadedTrx.tukangPhone).replace(/[^0-9]/g, '').replace(/^0/, '62').replace(/^8/, '628');
             const baseVerifyUrl = window.location.href.replace(/[^/]*$/, 'verifikasi-komisi.html');
             const subtotal = Number(currentLoadedTrx.grandTotal || 0);
-            const rate = activeStoreScheme.incentiveRate || 0.01;
-            const pct = activeStoreScheme.incentivePercent || '1%';
-            const inc = Number(currentLoadedTrx.incentiveVal) || Math.round(subtotal * rate);
+            const inc = Number(currentLoadedTrx.incentiveVal) || Math.round(subtotal * skema.incentiveRate);
 
             const verifyLink = `${baseVerifyUrl}?trxId=${encodeURIComponent(currentLoadedTrx.id)}` +
                                `&storeId=${encodeURIComponent(activeStoreId)}` +
@@ -619,12 +618,13 @@
                                `&tukang=${encodeURIComponent(currentLoadedTrx.tukangName || '')}` +
                                `&hp=${encodeURIComponent(currentLoadedTrx.tukangPhone || '')}` +
                                `&nominal=${encodeURIComponent(inc)}` +
-                               `&pct=${encodeURIComponent(pct)}` +
+                               `&persen=${encodeURIComponent(pctText)}` +
+                               `&skema=${encodeURIComponent(skema.code)}` +
                                `&struk=${encodeURIComponent(currentLoadedTrx.strukNo || '')}` +
                                `&kasir=${encodeURIComponent(currentLoadedTrx.cashierName || '')}`;
 
             const msg = `Halo *${currentLoadedTrx.tukangName}*,\n` +
-                        `Komisi belanja material Anda sebesar *Rp ${inc.toLocaleString('id-ID')}* (${pct}) (Struk: ${currentLoadedTrx.strukNo || currentLoadedTrx.id}) sudah diserahkan oleh kasir *${activeStoreName}*.\n\n` +
+                        `Komisi belanja material Anda (${pctText}) sebesar *Rp ${inc.toLocaleString('id-ID')}* (Struk: ${currentLoadedTrx.strukNo || currentLoadedTrx.id}) sudah diserahkan oleh kasir *${activeStoreName}*.\n\n` +
                         `Silakan klik tombol konfirmasi pada tautan berikut jika komisi sudah Anda terima:\n` +
                         `${verifyLink}`;
 
@@ -790,488 +790,4 @@
             btn.disabled = true;
             btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> MEMVERIFIKASI PIN & SELFIE...`;
 
-            const prevCashierName = activeShiftSession ? activeShiftSession.namaKasir : "Belum Ada (Buka Shift)";
-
-            try {
-                const res = await fetch(GAS_WEB_APP_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'cashierShiftLogin',
-                        storeId: activeStoreId,
-                        kasirId: kasirId,
-                        pin: pin,
-                        prevCashier: prevCashierName,
-                        terminalToken: terminalToken,
-                        selfieBase64: capturedSelfieBase64
-                    })
-                });
-                const data = await res.json();
-
-                if (!data.success) {
-                    alert("❌ GAGAL LOGIN SHIFT:\n" + data.message);
-                    return;
-                }
-
-                shiftTrxCount = 0;
-                shiftTotalOmzet = 0;
-                accumulatedKasirBonus = 0;
-                document.getElementById('kasirBonusCounter').innerText = "Rp 0";
-                resetKasirUI();
-
-                activeShiftSession = {
-                    storeId: activeStoreId,
-                    shiftToken: data.shiftToken,
-                    logId: data.logId,
-                    kasirId: data.kasirId,
-                    namaKasir: data.namaKasir,
-                    selfieUrl: data.selfieUrl,
-                    selfieThumb: capturedSelfieBase64,
-                    loginTime: data.loginTime
-                };
-
-                localStorage.setItem('MB_SHIFT_SESSION', JSON.stringify(activeShiftSession));
-                applyAuthenticatedShiftUI();
-                closeShiftLoginModal();
-
-                alert(`✅ ABSENSI SHIFT BERHASIL!\nKasir Bertugas: ${data.namaKasir}\nID Log Audit: ${data.logId}\nFoto selfie & waktu pergantian shift telah tercatat di server.`);
-
-            } catch (err) {
-                alert("Kesalahan koneksi server: " + err.toString());
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> Verifikasi PIN & Buka Shift`;
-            }
-        }
-
-        // ----------------------------------------------------------------------
-        // REKAP SHIFT WHATSAPP
-        // ----------------------------------------------------------------------
-        function sendShiftWaReport() {
-            if (!activeShiftSession) return openShiftLoginModal();
-
-            const ownerPhone = "6282113866890";
-            const storeName = activeStoreName || "Toko Bangunan Mitra";
-            const dateStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
-            const kasirPct = activeStoreScheme.kasirPercent || '0,2%';
-
-            const bonusLine = activeStoreScheme.kasirRate > 0
-                ? `Hak Bonus Kasir (${kasirPct}) : *Rp ${Math.round(accumulatedKasirBonus).toLocaleString('id-ID')}*\n\n`
-                : `\n`;
-
-            const textWa = `*REKAP SHIFT KASIR MITRA BANGUNAN*\n` +
-                           `Nama Kasir : *${activeShiftSession.namaKasir}*\n` +
-                           `ID Log     : ${activeShiftSession.logId}\n` +
-                           `Toko       : ${storeName}\n` +
-                           `Tanggal    : ${dateStr}\n\n` +
-                           `Total Transaksi Verified : *${shiftTrxCount} Transaksi*\n` +
-                           `Total Omzet QR Handled   : *Rp ${shiftTotalOmzet.toLocaleString('id-ID')}*\n` +
-                           bonusLine +
-                           `*Laporan shift kasir terverifikasi.*`;
-
-            window.open(`https://api.whatsapp.com/send?phone=${ownerPhone}&text=${encodeURIComponent(textWa)}`, '_blank');
-        }
-
-        // ----------------------------------------------------------------------
-        // SCANNER QR & VERIFIKASI TRANSAKSI
-        // ----------------------------------------------------------------------
-        function handleImageCapture(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const maxWidth = 800;
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > maxWidth) {
-                        height = Math.round((height * maxWidth) / width);
-                        width = maxWidth;
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    compressedBase64Image = canvas.toDataURL('image/jpeg', 0.6);
-                    document.getElementById('imgPreview').src = compressedBase64Image;
-                    document.getElementById('previewContainer').classList.remove('hidden');
-                    document.getElementById('btnFotoLabel').innerText = "Ganti Foto Struk";
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function startScanner() {
-            if (!activeShiftSession) return openShiftLoginModal();
-            document.getElementById('btnStartScan').classList.add('hidden');
-            document.getElementById('btnStopScan').classList.remove('hidden');
-            html5QrcodeScanner = new Html5Qrcode("reader");
-            html5QrcodeScanner.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 200, height: 200 } },
-                onScanSuccess
-            ).catch(err => alert("Gagal membuka kamera: " + err));
-        }
-
-        function stopScanner() {
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.stop().then(() => {
-                    document.getElementById('btnStartScan').classList.remove('hidden');
-                    document.getElementById('btnStopScan').classList.add('hidden');
-                }).catch(() => {});
-            }
-        }
-
-        function onScanSuccess(decodedText) {
-            stopScanner();
-            let parsedId = decodedText;
-            try {
-                const parsed = JSON.parse(decodedText);
-                if (parsed.trx) parsedId = parsed.trx;
-            } catch(e) {}
-            document.getElementById('manualTrxId').value = parsedId;
-            fetchTrxDetails(parsedId);
-        }
-
-        function handleEnterKey(e) {
-            if (e.key === 'Enter') lookupManualTrx();
-        }
-
-        function lookupManualTrx() {
-            if (!activeShiftSession) return openShiftLoginModal();
-            const val = document.getElementById('manualTrxId').value.trim().toUpperCase();
-            if (!val) return alert('Masukkan ID Transaksi!');
-            fetchTrxDetails(val);
-        }
-
-        async function fetchTrxDetails(trxId) {
-            const btnCari = document.getElementById('btnCariManual');
-            btnCari.disabled = true;
-            btnCari.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-
-            try {
-                const res = await fetch(`${GAS_WEB_APP_URL}?action=getTransaction&id=${encodeURIComponent(trxId)}&storeId=${encodeURIComponent(activeStoreId)}`);
-                const data = await res.json();
-                if (data.success && data.trx) {
-                    if (data.scheme) {
-                        activeStoreScheme = data.scheme;
-                        applyStoreSchemeUI();
-                    }
-                    renderTrxDetails(data.trx, !!data.limitWarning);
-                } else {
-                    alert(data.message || 'Transaksi tidak ditemukan!');
-                }
-            } catch(e) {
-                alert('Gagal terhubung ke server: ' + e.toString());
-            } finally {
-                btnCari.disabled = false;
-                btnCari.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Cari';
-            }
-        }
-
-        function renderTrxDetails(trx, isLimitExceeded = false) {
-            currentLoadedTrx = trx;
-            isStoreBlocked = isLimitExceeded;
-            if (trx.scheme) {
-                activeStoreScheme = trx.scheme;
-                applyStoreSchemeUI();
-            }
-
-            const resSec = document.getElementById('resultSection');
-            const blockBanner = document.getElementById('kasirBlockBanner');
-
-            resSec.classList.remove('hidden');
-
-            if (isLimitExceeded) {
-                blockBanner.classList.remove('hidden');
-            } else {
-                blockBanner.classList.add('hidden');
-            }
-
-            document.getElementById('resTrxId').innerText = trx.id;
-            document.getElementById('resCustName').innerText = `Pelanggan: ${trx.custName || 'Umum'}`;
-
-            const stUpper = String(trx.status || '').toUpperCase();
-            const isTukangWaiting = (stUpper.includes('MENUNGGU_TUKANG') || (trx.tukangName && trx.tukangVerified === false));
-            const isDone = (isTukangWaiting || stUpper.includes('SELESAI') || stUpper.includes('LUNAS') || stUpper.includes('DITERIMA'));
-
-            const badge = document.getElementById('resStatusBadge');
-            if (isTukangWaiting) {
-                badge.innerText = 'MENUNGGU VERIFIKASI TUKANG';
-                badge.className = 'bg-amber-500/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full border border-amber-500/40';
-                startBrokerVerificationPolling(trx.id);
-            } else if (isDone) {
-                badge.innerText = trx.tukangName ? 'SELESAI • KOMISI DITERIMA TUKANG' : 'SELESAI';
-                badge.className = 'bg-emerald-500/20 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full border border-emerald-500/30';
-            } else {
-                badge.innerText = 'PENDING';
-                badge.className = 'bg-amber-500/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full border border-amber-500/30';
-            }
-
-            const card = document.getElementById('cashierInstructionCard');
-            const title = document.getElementById('instructionTitle');
-            const text = document.getElementById('instructionText');
-
-            const rate = activeStoreScheme.incentiveRate || 0.01;
-            const pct = activeStoreScheme.incentivePercent || '1%';
-
-            let subtotal = Number(trx.grandTotal || 0);
-            let inc = Number(trx.incentiveVal) || Math.round(subtotal * rate);
-            const isCashback = (trx.modeIncentive === 'CASHBACK_TUKANG' || trx.modeIncentive === 'KOMISI_TUKANG');
-
-            const authBox = document.getElementById('cashierAuthBox');
-            const actionBarButtons = document.getElementById('actionBarButtons');
-
-            if (!isDone && isLimitExceeded) {
-                card.className = "p-4 rounded-xl border bg-rose-950/90 border-rose-500 text-rose-200 space-y-1";
-                title.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-rose-400 text-base"></i> KASIR DIBLOKIR: SETORAN PLATFORM TERLAMPAUI`;
-                text.innerHTML = `Setoran komisi platform terutang telah melampaui limit Rp 500.000.<br><strong class="text-white">Layanan verifikasi ditangguhkan. Minta Pemilik Toko melunasi setoran via Midtrans di toko.html.</strong>`;
-
-                document.getElementById('resFinalTotal').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
-
-                authBox.classList.add('hidden');
-                actionBarButtons.innerHTML = `
-                    <button disabled class="bg-rose-950 text-rose-400 border border-rose-700/60 font-black text-xs px-5 py-3 rounded-xl cursor-not-allowed opacity-95 flex items-center gap-2">
-                        <i class="fa-solid fa-ban text-base"></i> TRANSAKSI DIBLOKIR (WAJIB SETOR)
-                    </button>
-                `;
-                return;
-            }
-
-            if (isDone) {
-                card.className = "p-4 rounded-xl border bg-emerald-950/40 border-emerald-500/40 text-emerald-200 space-y-1.5";
-                title.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> TRANSAKSI TERVERIFIKASI KASIR`;
-
-                const brokerInfoLine = trx.tukangName
-                    ? `<br>👷 Broker/Tukang: <strong>${escapeHtml(trx.tukangName)}</strong> (${escapeHtml(trx.tukangPhone || '-')}) — ${
-                        isTukangWaiting
-                            ? '<span class="text-amber-300 font-bold">Menunggu klik konfirmasi di HP Tukang</span>'
-                            : `<span class="text-emerald-300 font-bold">Sudah Diterima (${escapeHtml(trx.tukangVerifiedAt || 'Verified')})</span>`
-                      }`
-                    : '';
-
-                const komisiDetail = isCashback
-                    ? `💵 <strong>Komisi Tunai Tukang (${pct}): Rp ${inc.toLocaleString('id-ID')}</strong> (Diserahkan ke Tukang)`
-                    : `🏷️ <strong>Diskon Nota (${pct}): Rp ${inc.toLocaleString('id-ID')}</strong> (Dipotongkan di Nota Belanja)`;
-
-                text.innerHTML = `No. Struk Toko: <strong>${escapeHtml(trx.strukNo || '-')}</strong> | Kasir: <strong>${escapeHtml(trx.cashierName || '-')}</strong><br>${komisiDetail}${brokerInfoLine}`;
-                document.getElementById('resFinalTotal').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
-
-                authBox.classList.add('hidden');
-
-                const waTukangBtn = trx.tukangPhone
-                    ? `<button onclick="sendBrokerVerificationWa()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center gap-1.5">
-                           <i class="fa-brands fa-whatsapp text-sm"></i> ${isTukangWaiting ? 'Kirim Link Verifikasi Tukang' : 'Kirim Ulang Bukti Tukang'}
-                       </button>`
-                    : '';
-
-                actionBarButtons.innerHTML = `
-                    ${waTukangBtn}
-                    <button onclick="sendWaResi()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center gap-1.5">
-                        <i class="fa-brands fa-whatsapp text-sm"></i> Resi Pelanggan
-                    </button>
-                    <button onclick="resetKasirUI()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition">
-                        Scan Lagi
-                    </button>
-                `;
-            } else {
-                const reqBadge = document.getElementById('brokerRequiredBadge');
-                const lblName = document.getElementById('lblReqTukangName');
-                const lblPhone = document.getElementById('lblReqTukangPhone');
-
-                if (isCashback) {
-                    card.className = "p-4 rounded-xl border bg-amber-950/40 border-amber-500/40 text-amber-200";
-                    title.innerHTML = `<i class="fa-solid fa-hand-holding-dollar text-amber-400"></i> MODE: KOMISI TUNAI TUKANG (${pct})`;
-                    text.innerHTML = `1. Terima pembayaran penuh: <strong>Rp ${subtotal.toLocaleString('id-ID')}</strong>.<br>2. Pilih/isi Broker Tukang di bawah, lalu serahkan komisi tunai <strong>Rp ${inc.toLocaleString('id-ID')}</strong>.`;
-                    document.getElementById('resFinalTotal').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
-
-                    if (reqBadge) { reqBadge.innerText = '*Wajib Diisi'; reqBadge.className = 'text-rose-400 ml-1'; }
-                    if (lblName) lblName.classList.remove('hidden');
-                    if (lblPhone) lblPhone.classList.remove('hidden');
-                } else {
-                    card.className = "p-4 rounded-xl border bg-emerald-950/40 border-emerald-500/40 text-emerald-200";
-                    title.innerHTML = `<i class="fa-solid fa-percent text-emerald-400"></i> MODE: DISKON NOTA ${pct}`;
-                    text.innerHTML = `Potong nota ${pct} (Rp ${inc.toLocaleString('id-ID')}).<br>Tagihkan ke pembeli: <strong>Rp ${(subtotal - inc).toLocaleString('id-ID')}</strong>`;
-                    document.getElementById('resFinalTotal').innerText = `Rp ${(subtotal - inc).toLocaleString('id-ID')}`;
-
-                    if (reqBadge) { reqBadge.innerText = '(Opsional jika dibawa Tukang)'; reqBadge.className = 'text-slate-400 ml-1 font-normal normal-case'; }
-                    if (lblName) lblName.classList.add('hidden');
-                    if (lblPhone) lblPhone.classList.add('hidden');
-                }
-
-                clearSelectedBroker();
-
-                authBox.classList.remove('hidden');
-                if (activeShiftSession) {
-                    document.getElementById('lockedCashierDisplay').innerText = `${activeShiftSession.namaKasir} (${activeShiftSession.logId})`;
-                }
-                actionBarButtons.innerHTML = `
-                    <button id="btnVerify" onclick="verifyTrx()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-5 py-3 rounded-xl shadow-lg transition flex items-center gap-2">
-                        <i class="fa-solid fa-circle-check text-base"></i> SELESAIKAN TRANSAKSI
-                    </button>
-                `;
-            }
-
-            const tbody = document.getElementById('resTableBody');
-            tbody.innerHTML = (trx.items || []).map(it => `
-                <tr>
-                    <td class="p-2.5 font-semibold">${escapeHtml(it.name)}</td>
-                    <td class="p-2.5 text-center">${it.qty} ${escapeHtml(it.unit)}</td>
-                    <td class="p-2.5 text-right">Rp ${Number(it.price || 0).toLocaleString('id-ID')}</td>
-                    <td class="p-2.5 text-right font-bold text-emerald-400">Rp ${Number(it.total || 0).toLocaleString('id-ID')}</td>
-                </tr>
-            `).join('');
-        }
-
-        async function verifyTrx() {
-            if (!activeShiftSession || !activeShiftSession.shiftToken) {
-                alert("⚠️ Sesi kasir tidak valid! Silakan login PIN & Selfie terlebih dahulu.");
-                return openShiftLoginModal();
-            }
-            if (!currentLoadedTrx) return;
-            if (isStoreBlocked) return alert("❌ TRANSAKSI DIBLOKIR!\nSetoran komisi platform toko melampaui Rp 500.000. Minta pemilik toko untuk melunasi setoran.");
-
-            const strukEl = document.getElementById('inputStrukNo');
-            const strukNo = strukEl ? strukEl.value.trim() : '';
-            const tukangName = (document.getElementById('inputTukangName')?.value || '').trim();
-            const tukangPhone = (document.getElementById('inputTukangPhone')?.value || '').trim();
-            const isCashback = (currentLoadedTrx.modeIncentive === 'CASHBACK_TUKANG' || currentLoadedTrx.modeIncentive === 'KOMISI_TUKANG');
-
-            if (!strukNo) return alert('Nomor Struk Fisik Toko wajib diisi!');
-            if (isCashback && (!tukangName || !tukangPhone)) {
-                return alert('Untuk transaksi Komisi Tunai Tukang, Nama dan No. WA Broker/Tukang wajib dipilih atau diisi!');
-            }
-            if ((tukangName && !tukangPhone) || (!tukangName && tukangPhone)) {
-                return alert('Lengkapi kedua kolom Nama dan No. HP Broker/Tukang, atau kosongkan keduanya.');
-            }
-            if (!compressedBase64Image) return alert('Wajib mengambil Foto Struk Fisik Belanja (yang sudah diparaf kasir)!');
-
-            const btn = document.getElementById('btnVerify');
-            btn.disabled = true;
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> MEMVERIFIKASI...`;
-
-            const payload = {
-                action: 'verifyTransaction',
-                trxId: currentLoadedTrx.id,
-                storeId: activeStoreId,
-                shiftToken: activeShiftSession.shiftToken,
-                strukNo: strukNo,
-                tukangName: tukangName,
-                tukangPhone: tukangPhone,
-                fotoStrukBase64: compressedBase64Image,
-                terminalToken: terminalToken
-            };
-
-            try {
-                const response = await fetch(GAS_WEB_APP_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(payload)
-                });
-                const res = await response.json();
-
-                if (!res.success) {
-                    alert('Gagal Verifikasi: ' + res.message);
-                    return;
-                }
-
-                if (res.scheme) {
-                    activeStoreScheme = res.scheme;
-                    applyStoreSchemeUI();
-                }
-
-                const grandTotal = Number(currentLoadedTrx.grandTotal || 0);
-                const bonusAmt = (res.bonusKasir !== undefined) ? Number(res.bonusKasir) : Math.round(grandTotal * (activeStoreScheme.kasirRate || 0));
-                const inc = (res.incentiveVal !== undefined) ? Number(res.incentiveVal) : Math.round(grandTotal * (activeStoreScheme.incentiveRate || 0.01));
-                const pct = activeStoreScheme.incentivePercent || '1%';
-                const kasirPct = activeStoreScheme.kasirPercent || '0,2%';
-
-                accumulatedKasirBonus += bonusAmt;
-                shiftTrxCount += 1;
-                shiftTotalOmzet += grandTotal;
-
-                document.getElementById('kasirBonusCounter').innerText = "Rp " + Math.round(accumulatedKasirBonus).toLocaleString('id-ID');
-
-                if (tukangName && tukangPhone) {
-                    saveBrokerToLocalCache(tukangName, tukangPhone, inc);
-                }
-
-                const komisiMsg = isCashback
-                    ? `Serahkan Komisi Tunai (${pct}): Rp ${inc.toLocaleString('id-ID')} ke ${tukangName}`
-                    : `Diskon Nota (${pct}): Rp ${inc.toLocaleString('id-ID')} (Sudah Dipotong Nota)`;
-
-                const bonusAlertLine = activeStoreScheme.kasirRate > 0
-                    ? `\n• Bonus Kasir (+${kasirPct}): Rp ${Math.round(bonusAmt).toLocaleString('id-ID')}`
-                    : '';
-
-                alert(`✅ VERIFIKASI SELESAI!\n• Kasir Tercatat: ${res.cashierName}\n• ${komisiMsg}${bonusAlertLine}\n• Bukti Foto Struk Terunggah ke Google Drive.`);
-
-                currentLoadedTrx.status = res.status || (tukangName ? 'MENUNGGU_TUKANG' : 'SELESAI');
-                currentLoadedTrx.cashierName = res.cashierName;
-                currentLoadedTrx.strukNo = strukNo;
-                currentLoadedTrx.tukangName = tukangName;
-                currentLoadedTrx.tukangPhone = tukangPhone;
-                currentLoadedTrx.incentiveVal = inc;
-                currentLoadedTrx.bonusKasir = bonusAmt;
-                currentLoadedTrx.tukangVerified = false;
-                renderTrxDetails(currentLoadedTrx, false);
-
-            } catch(e) {
-                alert('Gangguan Jaringan: ' + e.toString());
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = `<i class="fa-solid fa-circle-check text-base"></i> SELESAIKAN TRANSAKSI`;
-            }
-        }
-
-        function sendWaResi() {
-            if (!currentLoadedTrx) return;
-            let targetPhone = String(currentLoadedTrx.custPhone || '').replace(/[^0-9]/g, '');
-            if (targetPhone.startsWith('0')) targetPhone = '62' + targetPhone.slice(1);
-            else if (targetPhone.startsWith('8')) targetPhone = '62' + targetPhone;
-
-            const rate = activeStoreScheme.incentiveRate || 0.01;
-            const pct = activeStoreScheme.incentivePercent || '1%';
-            const subtotal = Number(currentLoadedTrx.grandTotal || 0);
-            const inc = Number(currentLoadedTrx.incentiveVal) || Math.round(subtotal * rate);
-            const isCashback = (currentLoadedTrx.modeIncentive === 'CASHBACK_TUKANG' || currentLoadedTrx.modeIncentive === 'KOMISI_TUKANG');
-
-            const komisiDetail = isCashback
-                ? `• Mode: CASHBACK TUNAI TUKANG (${pct})\n• Penerima: ${currentLoadedTrx.tukangName || '-'}\n• Nominal Komisi: *Rp ${inc.toLocaleString('id-ID')}*\n• Status: *TELAH DISERAHKAN TUNAI OLEH KASIR*`
-                : `• Mode: DISKON NOTA BELANJA (${pct})\n• Nominal Diskon: *Rp ${inc.toLocaleString('id-ID')}*\n• Status: *TELAH DIPOTONGKAN DI NOTA*`;
-
-            const msg = `*BUKTI VERIFIKASI & KOMISI MITRA BANGUNAN*\n\n` +
-                        `ID Transaksi : *${currentLoadedTrx.id}*\n` +
-                        `Total Belanja: *Rp ${subtotal.toLocaleString('id-ID')}*\n` +
-                        `No. Struk    : ${currentLoadedTrx.strukNo || '-'}\n` +
-                        `Kasir        : ${currentLoadedTrx.cashierName || '-'}\n\n` +
-                        `----------------------------------------\n` +
-                        `*Rincian Manfaat / Komisi (${pct}):*\n` +
-                        `${komisiDetail}\n` +
-                        `----------------------------------------\n\n` +
-                        `Terima kasih atas kerja samanya!`;
-
-            window.open(`https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodeURIComponent(msg)}`, '_blank');
-        }
-
-        function resetKasirUI() {
-            if (brokerPollTimer) {
-                clearInterval(brokerPollTimer);
-                brokerPollTimer = null;
-            }
-            document.getElementById('resultSection').classList.add('hidden');
-            document.getElementById('manualTrxId').value = '';
-            document.getElementById('inputStrukNo').value = '';
-            document.getElementById('previewContainer').classList.add('hidden');
-            clearSelectedBroker();
-            compressedBase64Image = "";
-            currentLoadedTrx = null;
-        }
-    </script>
-</body>
-</html>
+            const
