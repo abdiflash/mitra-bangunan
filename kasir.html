@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:,">
     <title>Kasir Pemindai Secure - Mitra Bangunan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -341,7 +342,6 @@
         const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxsQQMYsvWk6R3AkPhkEURDsxFaEyUnqwFyCv500uPYvK0Y0RhPvaHXgw5OcvYeH_tC/exec";
         localStorage.setItem('mb_gas_url', GAS_WEB_APP_URL);
 
-        // 100% Selaras dengan SKEMA_DEFAULT_CONFIG di Code.gs & index.html
         const SKEMA_FALLBACK = {
             SKEMA_1: { code: 'SKEMA_1', label: 'SKEMA_1 (Default)', incentiveRate: 0.01, creatorRate: 0.008, kasirRate: 0.002, incentivePctText: '1%', creatorPctText: '0,8%', kasirPctText: '0,2%' },
             SKEMA_2: { code: 'SKEMA_2', label: 'SKEMA_2 (1% + Kasir)', incentiveRate: 0.005, creatorRate: 0.004, kasirRate: 0.001, incentivePctText: '0,5%', creatorPctText: '0,4%', kasirPctText: '0,1%' },
@@ -586,12 +586,13 @@
         }
 
         function escapeHtml(str) {
-            return String(str || '').replace(/[&<>"]/g, function(m) {
-                if (m === '&') return '&';
-                if (m === '<') return '<';
-                if (m === '>') return '>';
-                return '"';
-            }).replace(/\x27/g, ''');
+            const sq = String.fromCharCode(39);
+            return String(str == null ? '' : str)
+                .replace(/&/g, '&')
+                .replace(/</g, '<')
+                .replace(/>/g, '>')
+                .replace(/"/g, '"')
+                .split(sq).join('&#' + '39;');
         }
 
         function toggleNoBrokerMode() {
