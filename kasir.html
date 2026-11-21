@@ -751,21 +751,36 @@
         }
 
         async function startSelfieCamera() {
+    stopSelfieCamera();
+
     try {
+        let stream;
         try {
-            selfieMediaStream = await navigator.mediaDevices.getUserMedia({
+            stream = await navigator.mediaDevices.getUserMedia({
                 video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
                 audio: false
             });
         } catch (firstErr) {
-            // Fallback untuk webcam eksternal PC/laptop yang tidak mendukung constraint facingMode
-            selfieMediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+            stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
         }
 
+        selfieMediaStream = stream;
         const video = document.getElementById('selfieVideo');
-        video.srcObject = selfieMediaStream;
+        video.muted = true;
+        video.playsInline = true;
+        video.srcObject = stream;
         video.classList.remove('hidden');
-        await video.play();
+
+        await new Promise((resolve) => {
+            if (video.readyState >= 1) return resolve();
+            video.onloadedmetadata = () => resolve();
+        });
+
+        try {
+            await video.play();
+        } catch (playErr) {
+            if (playErr.name !== 'AbortError') throw playErr;
+        }
 
         document.getElementById('selfiePlaceholder').classList.add('hidden');
         document.getElementById('selfieSnapshotPreview').classList.add('hidden');
