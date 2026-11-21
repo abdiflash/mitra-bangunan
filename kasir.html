@@ -131,7 +131,7 @@
 
             <!-- VERIFICATION CARD SECTION -->
             <section id="resultSection" class="hidden bg-slate-800 rounded-2xl p-4 sm:p-6 border border-slate-700 space-y-4 shadow-2xl">
-                <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                <div class="flex flex-wrap justify-between items-center gap-2 border-b border-slate-700 pb-3">
                     <div>
                         <span id="resTrxId" class="text-xs font-mono font-extrabold text-emerald-400 block">MB-000000</span>
                         <h3 id="resCustName" class="text-base font-bold text-white">Pelanggan: Umum</h3>
@@ -160,8 +160,8 @@
                     </table>
                 </div>
 
-                <!-- FORM OTENTIKASI & UPLOAD FOTO STRUK -->
-                <div id="cashierAuthBox" class="bg-slate-900/80 p-4 rounded-xl border border-slate-700 space-y-3">
+                <!-- FORM OTENTIKASI, DIREKTORI LANGGANAN TUKANG, & UPLOAD FOTO STRUK -->
+                <div id="cashierAuthBox" class="bg-slate-900/80 p-4 rounded-xl border border-slate-700 space-y-3.5">
                     <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wide flex items-center gap-1.5">
                         <i class="fa-solid fa-lock text-emerald-400"></i> Akuntabilitas Kasir & Bukti Fisik
                     </h4>
@@ -180,8 +180,49 @@
                         </div>
                     </div>
 
+                    <!-- BUKU DIREKTORI BROKER / TUKANG LANGGANAN (1-KLIK CARI & AUTO-SAVE) -->
+                    <div id="brokerDirectoryBox" class="pt-3 border-t border-slate-800 space-y-2.5">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <label class="block text-[11px] font-bold text-amber-300 uppercase tracking-wide">
+                                <i class="fa-solid fa-helmet-safety mr-1"></i> Data Broker / Tukang Penerima Komisi (1%)
+                                <span id="brokerRequiredBadge" class="text-rose-400 ml-1">*Wajib</span>
+                            </label>
+                            <span id="brokerDirectoryCount" class="text-[10px] bg-amber-500/15 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-mono font-bold">0 Langganan</span>
+                        </div>
+
+                        <!-- Kotak Pencarian Cepat Langganan -->
+                        <div class="relative" id="brokerSearchWrapper">
+                            <div class="flex items-center bg-slate-950 border border-slate-600 focus-within:border-amber-400 rounded-lg px-3 py-2 gap-2">
+                                <i class="fa-solid fa-magnifying-glass text-amber-400 text-xs"></i>
+                                <input type="text" id="searchBrokerInput" oninput="filterBrokerSuggestions()" onfocus="filterBrokerSuggestions()"
+                                       placeholder="Ketik nama tukang / 4 digit terakhir No. HP langganan..."
+                                       autocomplete="off"
+                                       class="w-full bg-transparent text-xs text-white focus:outline-none">
+                                <button type="button" onclick="clearSelectedBroker()" id="btnClearBroker" class="hidden text-[10px] text-rose-400 hover:underline font-bold shrink-0">Reset</button>
+                            </div>
+
+                            <!-- Dropdown Hasil Pencarian Instan -->
+                            <div id="brokerDropdownList" class="hidden absolute left-0 right-0 mt-1 bg-slate-950 border border-amber-500/40 rounded-xl shadow-2xl z-40 max-h-52 overflow-y-auto divide-y divide-slate-800"></div>
+                        </div>
+
+                        <!-- Input Nama & No WA Tukang (Otomatis Terisi dari Pencarian atau Input Baru) -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <div>
+                                <label class="block text-[10px] text-slate-400 mb-1">Nama Broker / Tukang <span id="lblReqTukangName" class="text-rose-400">*</span></label>
+                                <input type="text" id="inputTukangName" placeholder="Otomatis terisi / ketik nama baru" class="w-full bg-slate-800 border border-slate-600 rounded-lg p-2 text-xs text-white font-semibold focus:border-amber-400 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-slate-400 mb-1">No. HP / WhatsApp <span id="lblReqTukangPhone" class="text-rose-400">*</span></label>
+                                <input type="tel" id="inputTukangPhone" placeholder="Contoh: 08123456789" class="w-full bg-slate-800 border border-slate-600 rounded-lg p-2 text-xs text-emerald-300 font-mono focus:border-amber-400 focus:outline-none">
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-slate-400">
+                            <i class="fa-solid fa-floppy-disk text-teal-400 mr-1"></i> Tukang baru otomatis tersimpan ke daftar langganan toko saat transaksi diselesaikan.
+                        </p>
+                    </div>
+
                     <!-- AMBIL FOTO STRUK FISIK (KAMERA HP/LAPTOP) -->
-                    <div class="pt-2 border-t border-slate-800 space-y-2">
+                    <div class="pt-3 border-t border-slate-800 space-y-2">
                         <label class="block text-[11px] font-semibold text-slate-400">
                             Foto Struk / Nota Fisik Belanja <span class="text-rose-400">*Wajib Paraf Kasir di Struk Sebelum Difoto</span>
                         </label>
@@ -203,7 +244,7 @@
                         <span class="text-[11px] text-slate-400 font-medium block">Total Pembayaran Kasir:</span>
                         <strong id="resFinalTotal" class="text-xl font-black text-emerald-400">Rp 0</strong>
                     </div>
-                    <div id="actionBarButtons" class="flex items-center gap-2">
+                    <div id="actionBarButtons" class="flex flex-wrap items-center gap-2">
                         <button id="btnVerify" onclick="verifyTrx()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-5 py-3 rounded-xl shadow-lg transition flex items-center gap-2">
                             <i class="fa-solid fa-circle-check text-base"></i> SELESAIKAN TRANSAKSI
                         </button>
@@ -225,7 +266,7 @@
                         <p class="text-[10px] text-slate-400">Wajib PIN Pribadi + Foto Selfie Wajah Real-Time</p>
                     </div>
                 </div>
-                <button id="btnCloseShiftModal" onclick="closeShiftLoginModal()" class="text-slate-400 hover:text-white text-xl font-bold hidden">&times;</button>
+                <button id="btnCloseShiftModal" onclick="closeShiftLoginModal()" class="text-slate-400 hover:text-white text-xl font-bold hidden">×</button>
             </div>
 
             <div class="p-5 space-y-4">
@@ -281,7 +322,8 @@
     </div>
 
     <script>
-        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxsQQMYsvWk6R3AkPhkEURDsxFaEyUnqwFyCv500uPYvK0Y0RhPvaHXgw5OcvYeH_tC/exec";
+        const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbxsQQMYsvWk6R3AkPhkEURDsxFaEyUnqwFyCv500uPYvK0Y0RhPvaHXgw5OcvYeH_tC/exec";
+        const GAS_WEB_APP_URL = localStorage.getItem('mb_gas_url') || DEFAULT_GAS_URL;
 
         let html5QrcodeScanner = null;
         let selfieMediaStream = null;
@@ -295,15 +337,29 @@
         let activeStoreName = "";
 
         // STATE SESI SHIFT TERAUTENTIKASI
-        let activeShiftSession = null; // { shiftToken, logId, kasirId, namaKasir, selfieUrl, loginTime, storeId }
+        let activeShiftSession = null;
         let shiftTrxCount = 0;
         let shiftTotalOmzet = 0;
         let accumulatedKasirBonus = 0;
+
+        // STATE DIREKTORI BROKER / TUKANG LANGGANAN & POLLING VERIFIKASI
+        let cachedBrokers = [];
+        let brokerPollTimer = null;
 
         window.addEventListener('DOMContentLoaded', async () => {
             initTerminalToken();
             await resolveStoreContext();
             restoreShiftSession();
+            loadBrokerDirectory();
+
+            // Tutup dropdown pencarian tukang saat klik di luar
+            document.addEventListener('click', (e) => {
+                const wrapper = document.getElementById('brokerSearchWrapper');
+                const dropdown = document.getElementById('brokerDropdownList');
+                if (wrapper && dropdown && !wrapper.contains(e.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            });
         });
 
         function initTerminalToken() {
@@ -386,6 +442,187 @@
         }
 
         // ----------------------------------------------------------------------
+        // BUKU DIREKTORI BROKER / TUKANG LANGGANAN (1-KLIK CARI & AUTO-SAVE)
+        // ----------------------------------------------------------------------
+        async function loadBrokerDirectory() {
+            if (!activeStoreId) return;
+            try {
+                cachedBrokers = JSON.parse(localStorage.getItem(`MB_BROKERS_${activeStoreId}`) || '[]');
+                updateBrokerCountLabel();
+            } catch (e) {}
+
+            try {
+                const res = await fetch(`${GAS_WEB_APP_URL}?action=getBrokers&storeId=${encodeURIComponent(activeStoreId)}`);
+                const data = await res.json();
+                if (data.success && Array.isArray(data.brokers)) {
+                    cachedBrokers = data.brokers;
+                    localStorage.setItem(`MB_BROKERS_${activeStoreId}`, JSON.stringify(cachedBrokers));
+                    updateBrokerCountLabel();
+                }
+            } catch (e) {}
+        }
+
+        function updateBrokerCountLabel() {
+            const el = document.getElementById('brokerDirectoryCount');
+            if (el) el.innerText = `${cachedBrokers.length} Langganan`;
+        }
+
+        function escapeHtml(str) {
+            return String(str || '').replace(/[&<>"']/g, m => ({
+                '&': '&', '<': '<', '>': '>', '"': '"', "'": '''
+            }[m]));
+        }
+
+        function filterBrokerSuggestions() {
+            const inputEl = document.getElementById('searchBrokerInput');
+            const dropdown = document.getElementById('brokerDropdownList');
+            if (!inputEl || !dropdown) return;
+
+            const keyword = inputEl.value.toLowerCase().trim();
+            const matches = cachedBrokers.filter(b =>
+                b.nama.toLowerCase().includes(keyword) || String(b.hp).includes(keyword)
+            ).slice(0, 10);
+
+            if (matches.length === 0 && !keyword) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+
+            let html = matches.map(b => `
+                <button type="button" onclick="selectRegisteredBroker('${escapeHtml(b.nama)}', '${escapeHtml(b.hp)}')"
+                        class="w-full text-left px-3 py-2.5 hover:bg-slate-800 flex items-center justify-between gap-2 transition">
+                    <div>
+                        <strong class="text-xs text-white block">${escapeHtml(b.nama)}</strong>
+                        <span class="text-[11px] font-mono text-emerald-400">${escapeHtml(b.hp)}</span>
+                        ${b.lastVisit ? `<span class="text-[10px] text-slate-500 ml-1.5">• Terakhir: ${escapeHtml(b.lastVisit)}</span>` : ''}
+                    </div>
+                    <span class="text-[10px] bg-amber-500/15 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-bold shrink-0">
+                        ${b.totalTrx || 1}x Belanja
+                    </span>
+                </button>
+            `).join('');
+
+            if (keyword) {
+                html += `
+                    <button type="button" onclick="useNewBrokerName()"
+                            class="w-full text-left px-3 py-2.5 bg-slate-900 hover:bg-slate-800 text-teal-300 text-xs font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-user-plus"></i> Gunakan sebagai Tukang Baru: "${escapeHtml(inputEl.value.trim())}"
+                    </button>
+                `;
+            }
+
+            dropdown.innerHTML = html;
+            dropdown.classList.remove('hidden');
+        }
+
+        function selectRegisteredBroker(nama, hp) {
+            document.getElementById('inputTukangName').value = nama;
+            document.getElementById('inputTukangPhone').value = hp;
+            document.getElementById('searchBrokerInput').value = `${nama} (${hp})`;
+            document.getElementById('brokerDropdownList').classList.add('hidden');
+            document.getElementById('btnClearBroker').classList.remove('hidden');
+        }
+
+        function useNewBrokerName() {
+            const raw = document.getElementById('searchBrokerInput').value.trim();
+            if (/^[0-9+]+$/.test(raw)) {
+                document.getElementById('inputTukangPhone').value = raw;
+                document.getElementById('inputTukangName').focus();
+            } else {
+                document.getElementById('inputTukangName').value = raw;
+                document.getElementById('inputTukangPhone').focus();
+            }
+            document.getElementById('brokerDropdownList').classList.add('hidden');
+            document.getElementById('btnClearBroker').classList.remove('hidden');
+        }
+
+        function clearSelectedBroker() {
+            document.getElementById('searchBrokerInput').value = '';
+            document.getElementById('inputTukangName').value = '';
+            document.getElementById('inputTukangPhone').value = '';
+            document.getElementById('btnClearBroker').classList.add('hidden');
+            document.getElementById('brokerDropdownList').classList.add('hidden');
+        }
+
+        function saveBrokerToLocalCache(nama, hp, komisiNominal) {
+            if (!activeStoreId || !nama || !hp) return;
+            const cleanPhone = String(hp).replace(/[^0-9]/g, '');
+            const todayStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const idx = cachedBrokers.findIndex(b => String(b.hp).replace(/[^0-9]/g, '') === cleanPhone);
+
+            if (idx >= 0) {
+                cachedBrokers[idx].nama = nama;
+                cachedBrokers[idx].totalTrx = (Number(cachedBrokers[idx].totalTrx) || 0) + 1;
+                cachedBrokers[idx].totalKomisi = (Number(cachedBrokers[idx].totalKomisi) || 0) + Number(komisiNominal || 0);
+                cachedBrokers[idx].lastVisit = todayStr;
+            } else {
+                cachedBrokers.unshift({
+                    id: 'TKG-' + Date.now().toString().slice(-5),
+                    nama: nama,
+                    hp: hp,
+                    totalTrx: 1,
+                    totalKomisi: Number(komisiNominal || 0),
+                    lastVisit: todayStr
+                });
+            }
+            cachedBrokers.sort((a, b) => (b.totalTrx || 0) - (a.totalTrx || 0));
+            localStorage.setItem(`MB_BROKERS_${activeStoreId}`, JSON.stringify(cachedBrokers));
+            updateBrokerCountLabel();
+        }
+
+        // ----------------------------------------------------------------------
+        // KIRIM LINK VERIFIKASI WA KE TUKANG & POLLING STATUS REAL-TIME
+        // ----------------------------------------------------------------------
+        function sendBrokerVerificationWa() {
+            if (!currentLoadedTrx || !currentLoadedTrx.tukangPhone) {
+                return alert("Nomor HP Broker/Tukang tidak tersedia pada transaksi ini.");
+            }
+            const hpClean = String(currentLoadedTrx.tukangPhone).replace(/[^0-9]/g, '').replace(/^0/, '62').replace(/^8/, '628');
+            const baseVerifyUrl = window.location.href.replace(/[^/]*$/, 'verifikasi-komisi.html');
+            const subtotal = Number(currentLoadedTrx.grandTotal || 0);
+            const inc = Number(currentLoadedTrx.incentiveVal) || Math.round(subtotal * 0.01);
+
+            const verifyLink = `${baseVerifyUrl}?trxId=${encodeURIComponent(currentLoadedTrx.id)}` +
+                               `&storeId=${encodeURIComponent(activeStoreId)}` +
+                               `&storeName=${encodeURIComponent(activeStoreName)}` +
+                               `&tukang=${encodeURIComponent(currentLoadedTrx.tukangName || '')}` +
+                               `&hp=${encodeURIComponent(currentLoadedTrx.tukangPhone || '')}` +
+                               `&nominal=${encodeURIComponent(inc)}` +
+                               `&struk=${encodeURIComponent(currentLoadedTrx.strukNo || '')}` +
+                               `&kasir=${encodeURIComponent(currentLoadedTrx.cashierName || '')}`;
+
+            const msg = `Halo *${currentLoadedTrx.tukangName}*,\n` +
+                        `Komisi belanja material Anda sebesar *Rp ${inc.toLocaleString('id-ID')}* (Struk: ${currentLoadedTrx.strukNo || currentLoadedTrx.id}) sudah diserahkan oleh kasir *${activeStoreName}*.\n\n` +
+                        `Silakan klik tombol konfirmasi pada tautan berikut jika komisi sudah Anda terima:\n` +
+                        `${verifyLink}`;
+
+            window.open(`https://api.whatsapp.com/send?phone=${hpClean}&text=${encodeURIComponent(msg)}`, '_blank');
+            startBrokerVerificationPolling(currentLoadedTrx.id);
+        }
+
+        function startBrokerVerificationPolling(trxId) {
+            if (brokerPollTimer) clearInterval(brokerPollTimer);
+            if (!trxId) return;
+
+            brokerPollTimer = setInterval(async () => {
+                try {
+                    const res = await fetch(`${GAS_WEB_APP_URL}?action=getBrokerCommissionStatus&trxId=${encodeURIComponent(trxId)}`);
+                    const data = await res.json();
+                    if (data && data.verified) {
+                        clearInterval(brokerPollTimer);
+                        brokerPollTimer = null;
+                        if (currentLoadedTrx && currentLoadedTrx.id === trxId) {
+                            currentLoadedTrx.tukangVerified = true;
+                            currentLoadedTrx.tukangVerifiedAt = data.verifiedAt || 'Tercatat di Server';
+                            currentLoadedTrx.status = data.statusText || 'Selesai / Lunas — Komisi Sudah Diterima Broker/Tukang';
+                            renderTrxDetails(currentLoadedTrx, false);
+                        }
+                    }
+                } catch (e) {}
+            }, 5000);
+        }
+
+        // ----------------------------------------------------------------------
         // MODAL LOGIN PIN PRIBADI + LIVE SELFIE ABSENSI SHIFT
         // ----------------------------------------------------------------------
         async function openShiftLoginModal() {
@@ -403,7 +640,6 @@
             document.getElementById('btnCaptureSelfie').classList.add('hidden');
             document.getElementById('btnRetakeSelfie').classList.add('hidden');
 
-            // Tampilkan tombol close hanya jika sudah ada sesi aktif sebelumnya
             if (activeShiftSession) {
                 document.getElementById('btnCloseShiftModal').classList.remove('hidden');
             } else {
@@ -480,12 +716,10 @@
             canvas.height = Math.round(video.videoHeight * scale);
 
             const ctx = canvas.getContext('2d');
-            // Mirror horizontal agar natural seperti cermin
             ctx.translate(canvas.width, 0);
             ctx.scale(-1, 1);
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            // Watermark timestamp anti-manipulasi di sudut bawah foto selfie
             ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.fillStyle = "rgba(15, 23, 42, 0.75)";
             ctx.fillRect(0, canvas.height - 26, canvas.width, 26);
@@ -546,7 +780,6 @@
                     return;
                 }
 
-                // Reset statistik shift sebelumnya ke 0 untuk kasir baru
                 shiftTrxCount = 0;
                 shiftTotalOmzet = 0;
                 accumulatedKasirBonus = 0;
@@ -719,12 +952,22 @@
             document.getElementById('resTrxId').innerText = trx.id;
             document.getElementById('resCustName').innerText = `Pelanggan: ${trx.custName || 'Umum'}`;
 
-            const isDone = String(trx.status).toUpperCase() === 'SELESAI';
+            const stUpper = String(trx.status || '').toUpperCase();
+            const isTukangWaiting = (stUpper.includes('MENUNGGU_TUKANG') || (trx.tukangName && trx.tukangVerified === false));
+            const isDone = (isTukangWaiting || stUpper.includes('SELESAI') || stUpper.includes('LUNAS') || stUpper.includes('DITERIMA'));
+
             const badge = document.getElementById('resStatusBadge');
-            badge.innerText = isDone ? 'SELESAI' : 'PENDING';
-            badge.className = isDone
-                ? 'bg-emerald-500/20 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full border border-emerald-500/30'
-                : 'bg-amber-500/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full border border-amber-500/30';
+            if (isTukangWaiting) {
+                badge.innerText = 'MENUNGGU VERIFIKASI TUKANG';
+                badge.className = 'bg-amber-500/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full border border-amber-500/40';
+                startBrokerVerificationPolling(trx.id);
+            } else if (isDone) {
+                badge.innerText = trx.tukangName ? 'SELESAI • KOMISI DITERIMA TUKANG' : 'SELESAI';
+                badge.className = 'bg-emerald-500/20 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full border border-emerald-500/30';
+            } else {
+                badge.innerText = 'PENDING';
+                badge.className = 'bg-amber-500/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full border border-amber-500/30';
+            }
 
             const card = document.getElementById('cashierInstructionCard');
             const title = document.getElementById('instructionTitle');
@@ -755,36 +998,68 @@
 
             if (isDone) {
                 card.className = "p-4 rounded-xl border bg-emerald-950/40 border-emerald-500/40 text-emerald-200 space-y-1.5";
-                title.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> TRANSAKSI SELESAI (VERIFIED)`;
+                title.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> TRANSAKSI TERVERIFIKASI KASIR`;
+
+                const brokerInfoLine = trx.tukangName
+                    ? `<br>👷 Broker/Tukang: <strong>${escapeHtml(trx.tukangName)}</strong> (${escapeHtml(trx.tukangPhone || '-')}) — ${
+                        isTukangWaiting
+                            ? '<span class="text-amber-300 font-bold">Menunggu klik konfirmasi di HP Tukang</span>'
+                            : `<span class="text-emerald-300 font-bold">Sudah Diterima (${escapeHtml(trx.tukangVerifiedAt || 'Verified')})</span>`
+                      }`
+                    : '';
 
                 const komisiDetail = isCashback
-                    ? `💵 <strong>Komisi Tunai Tukang (1%): Rp ${inc.toLocaleString('id-ID')}</strong> (Telah Diserahkan Tunai ke Tukang)`
-                    : `🏷️ <strong>Diskon Nota (1%): Rp ${inc.toLocaleString('id-ID')}</strong> (Telah Dipotongkan di Nota Belanja)`;
+                    ? `💵 <strong>Komisi Tunai Tukang (1%): Rp ${inc.toLocaleString('id-ID')}</strong> (Diserahkan ke Tukang)`
+                    : `🏷️ <strong>Diskon Nota (1%): Rp ${inc.toLocaleString('id-ID')}</strong> (Dipotongkan di Nota Belanja)`;
 
-                text.innerHTML = `No. Struk Toko: <strong>${trx.strukNo || '-'}</strong> | Kasir: <strong>${trx.cashierName || '-'}</strong><br>${komisiDetail}`;
+                text.innerHTML = `No. Struk Toko: <strong>${escapeHtml(trx.strukNo || '-')}</strong> | Kasir: <strong>${escapeHtml(trx.cashierName || '-')}</strong><br>${komisiDetail}${brokerInfoLine}`;
                 document.getElementById('resFinalTotal').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
 
                 authBox.classList.add('hidden');
+
+                const waTukangBtn = trx.tukangPhone
+                    ? `<button onclick="sendBrokerVerificationWa()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center gap-1.5">
+                           <i class="fa-brands fa-whatsapp text-sm"></i> ${isTukangWaiting ? 'Kirim Link Verifikasi Tukang' : 'Kirim Ulang Bukti Tukang'}
+                       </button>`
+                    : '';
+
                 actionBarButtons.innerHTML = `
+                    ${waTukangBtn}
                     <button onclick="sendWaResi()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center gap-1.5">
-                        <i class="fa-brands fa-whatsapp text-sm"></i> Kirim Resi WA
+                        <i class="fa-brands fa-whatsapp text-sm"></i> Resi Pelanggan
                     </button>
                     <button onclick="resetKasirUI()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition">
                         Scan Lagi
                     </button>
                 `;
             } else {
+                // Atur label wajib/opsional direktori broker sesuai mode insentif
+                const reqBadge = document.getElementById('brokerRequiredBadge');
+                const lblName = document.getElementById('lblReqTukangName');
+                const lblPhone = document.getElementById('lblReqTukangPhone');
+
                 if (isCashback) {
                     card.className = "p-4 rounded-xl border bg-amber-950/40 border-amber-500/40 text-amber-200";
                     title.innerHTML = `<i class="fa-solid fa-hand-holding-dollar text-amber-400"></i> MODE: KOMISI TUNAI TUKANG (1%)`;
-                    text.innerHTML = `1. Terima pembayaran penuh: <strong>Rp ${subtotal.toLocaleString('id-ID')}</strong>.<br>2. Serahkan komisi tunai <strong>Rp ${inc.toLocaleString('id-ID')}</strong> ke Tukang/Broker.`;
+                    text.innerHTML = `1. Terima pembayaran penuh: <strong>Rp ${subtotal.toLocaleString('id-ID')}</strong>.<br>2. Pilih/isi Broker Tukang di bawah, lalu serahkan komisi tunai <strong>Rp ${inc.toLocaleString('id-ID')}</strong>.`;
                     document.getElementById('resFinalTotal').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
+
+                    if (reqBadge) { reqBadge.innerText = '*Wajib Diisi'; reqBadge.className = 'text-rose-400 ml-1'; }
+                    if (lblName) lblName.classList.remove('hidden');
+                    if (lblPhone) lblPhone.classList.remove('hidden');
                 } else {
                     card.className = "p-4 rounded-xl border bg-emerald-950/40 border-emerald-500/40 text-emerald-200";
                     title.innerHTML = `<i class="fa-solid fa-percent text-emerald-400"></i> MODE: DISKON NOTA 1%`;
                     text.innerHTML = `Potong nota 1% (Rp ${inc.toLocaleString('id-ID')}).<br>Tagihkan ke pembeli: <strong>Rp ${(subtotal - inc).toLocaleString('id-ID')}</strong>`;
                     document.getElementById('resFinalTotal').innerText = `Rp ${(subtotal - inc).toLocaleString('id-ID')}`;
+
+                    if (reqBadge) { reqBadge.innerText = '(Opsional jika dibawa Tukang)'; reqBadge.className = 'text-slate-400 ml-1 font-normal normal-case'; }
+                    if (lblName) lblName.classList.add('hidden');
+                    if (lblPhone) lblPhone.classList.add('hidden');
                 }
+
+                // Reset form input tukang setiap memuat transaksi baru
+                clearSelectedBroker();
 
                 authBox.classList.remove('hidden');
                 if (activeShiftSession) {
@@ -800,8 +1075,8 @@
             const tbody = document.getElementById('resTableBody');
             tbody.innerHTML = (trx.items || []).map(it => `
                 <tr>
-                    <td class="p-2.5 font-semibold">${it.name}</td>
-                    <td class="p-2.5 text-center">${it.qty} ${it.unit}</td>
+                    <td class="p-2.5 font-semibold">${escapeHtml(it.name)}</td>
+                    <td class="p-2.5 text-center">${it.qty} ${escapeHtml(it.unit)}</td>
                     <td class="p-2.5 text-right">Rp ${Number(it.price || 0).toLocaleString('id-ID')}</td>
                     <td class="p-2.5 text-right font-bold text-emerald-400">Rp ${Number(it.total || 0).toLocaleString('id-ID')}</td>
                 </tr>
@@ -818,8 +1093,17 @@
 
             const strukEl = document.getElementById('inputStrukNo');
             const strukNo = strukEl ? strukEl.value.trim() : '';
+            const tukangName = (document.getElementById('inputTukangName')?.value || '').trim();
+            const tukangPhone = (document.getElementById('inputTukangPhone')?.value || '').trim();
+            const isCashback = (currentLoadedTrx.modeIncentive === 'CASHBACK_TUKANG' || currentLoadedTrx.modeIncentive === 'KOMISI_TUKANG');
 
             if (!strukNo) return alert('Nomor Struk Fisik Toko wajib diisi!');
+            if (isCashback && (!tukangName || !tukangPhone)) {
+                return alert('Untuk transaksi Komisi Tunai Tukang (1%), Nama dan No. WA Broker/Tukang wajib dipilih atau diisi!');
+            }
+            if ((tukangName && !tukangPhone) || (!tukangName && tukangPhone)) {
+                return alert('Lengkapi kedua kolom Nama dan No. HP Broker/Tukang, atau kosongkan keduanya.');
+            }
             if (!compressedBase64Image) return alert('Wajib mengambil Foto Struk Fisik Belanja (yang sudah diparaf kasir)!');
 
             const btn = document.getElementById('btnVerify');
@@ -832,6 +1116,8 @@
                 storeId: activeStoreId,
                 shiftToken: activeShiftSession.shiftToken,
                 strukNo: strukNo,
+                tukangName: tukangName,
+                tukangPhone: tukangPhone,
                 fotoStrukBase64: compressedBase64Image,
                 terminalToken: terminalToken
             };
@@ -850,6 +1136,7 @@
 
                 const grandTotal = Number(currentLoadedTrx.grandTotal || 0);
                 const bonusAmt = grandTotal * 0.002;
+                const inc = Number(currentLoadedTrx.incentiveVal) || Math.round(grandTotal * 0.01);
 
                 accumulatedKasirBonus += bonusAmt;
                 shiftTrxCount += 1;
@@ -857,17 +1144,23 @@
 
                 document.getElementById('kasirBonusCounter').innerText = "Rp " + Math.round(accumulatedKasirBonus).toLocaleString('id-ID');
 
-                const inc = Number(currentLoadedTrx.incentiveVal) || Math.round(grandTotal * 0.01);
-                const isCashback = (currentLoadedTrx.modeIncentive === 'CASHBACK_TUKANG' || currentLoadedTrx.modeIncentive === 'KOMISI_TUKANG');
+                // Simpan broker/tukang ke cache lokal langsung agar siap dicari instan pada transaksi berikutnya
+                if (tukangName && tukangPhone) {
+                    saveBrokerToLocalCache(tukangName, tukangPhone, inc);
+                }
+
                 const komisiMsg = isCashback
-                    ? `Serahkan Komisi Tunai 1%: Rp ${inc.toLocaleString('id-ID')} ke Tukang`
+                    ? `Serahkan Komisi Tunai 1%: Rp ${inc.toLocaleString('id-ID')} ke ${tukangName}`
                     : `Diskon Nota 1%: Rp ${inc.toLocaleString('id-ID')} (Sudah Dipotong Nota)`;
 
                 alert(`✅ VERIFIKASI SELESAI!\n• Kasir Tercatat: ${res.cashierName}\n• ${komisiMsg}\n• Bonus Kasir (+0.2%): Rp ${Math.round(bonusAmt).toLocaleString('id-ID')}\n• Bukti Foto Struk Terunggah ke Google Drive.`);
 
-                currentLoadedTrx.status = 'SELESAI';
+                currentLoadedTrx.status = res.status || (tukangName ? 'MENUNGGU_TUKANG' : 'SELESAI');
                 currentLoadedTrx.cashierName = res.cashierName;
                 currentLoadedTrx.strukNo = strukNo;
+                currentLoadedTrx.tukangName = tukangName;
+                currentLoadedTrx.tukangPhone = tukangPhone;
+                currentLoadedTrx.tukangVerified = false;
                 renderTrxDetails(currentLoadedTrx, false);
 
             } catch(e) {
@@ -889,7 +1182,7 @@
             const isCashback = (currentLoadedTrx.modeIncentive === 'CASHBACK_TUKANG' || currentLoadedTrx.modeIncentive === 'KOMISI_TUKANG');
 
             const komisiDetail = isCashback
-                ? `• Mode: CASHBACK TUNAI TUKANG (1%)\n• Nominal Komisi: *Rp ${inc.toLocaleString('id-ID')}*\n• Status: *TELAH DISERAHKAN TUNAI OLEH KASIR*`
+                ? `• Mode: CASHBACK TUNAI TUKANG (1%)\n• Penerima: ${currentLoadedTrx.tukangName || '-'}\n• Nominal Komisi: *Rp ${inc.toLocaleString('id-ID')}*\n• Status: *TELAH DISERAHKAN TUNAI OLEH KASIR*`
                 : `• Mode: DISKON NOTA BELANJA (1%)\n• Nominal Diskon: *Rp ${inc.toLocaleString('id-ID')}*\n• Status: *TELAH DIPOTONGKAN DI NOTA*`;
 
             const msg = `*BUKTI VERIFIKASI & KOMISI MITRA BANGUNAN*\n\n` +
@@ -907,10 +1200,15 @@
         }
 
         function resetKasirUI() {
+            if (brokerPollTimer) {
+                clearInterval(brokerPollTimer);
+                brokerPollTimer = null;
+            }
             document.getElementById('resultSection').classList.add('hidden');
             document.getElementById('manualTrxId').value = '';
             document.getElementById('inputStrukNo').value = '';
             document.getElementById('previewContainer').classList.add('hidden');
+            clearSelectedBroker();
             compressedBase64Image = "";
             currentLoadedTrx = null;
         }
