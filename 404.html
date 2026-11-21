@@ -69,13 +69,18 @@
 
         <!-- STEP 1: PILIH TOKO MITRA & MODE INSENTIF -->
         <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 space-y-4">
-            <div class="flex items-center gap-2 border-b border-slate-100 pb-2.5">
-                <span class="w-6 h-6 rounded-full bg-teal-100 text-teal-700 text-xs font-extrabold flex items-center justify-center">1</span>
-                <h2 class="font-extrabold text-sm sm:text-base text-slate-900">Pilih Toko Mitra & Mode Insentif</h2>
+            <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5 flex-wrap">
+                <div class="flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-teal-100 text-teal-700 text-xs font-extrabold flex items-center justify-center">1</span>
+                    <h2 class="font-extrabold text-sm sm:text-base text-slate-900">Pilih Toko Mitra & Mode Insentif</h2>
+                </div>
+                <span id="storeSkemaBadge" class="hidden text-[10px] font-extrabold bg-teal-100 text-teal-800 border border-teal-200 px-2.5 py-0.5 rounded-full">
+                    SKEMA_1 • Manfaat 1%
+                </span>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Select Toko Mitra (Locked Single-Store View) -->
+                <!-- Select Toko Mitra -->
                 <div>
                     <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Toko Bangunan Tujuan</label>
                     <div class="relative">
@@ -84,7 +89,7 @@
                         </select>
                         <i class="fa-solid fa-lock absolute right-3.5 top-3.5 text-slate-400 pointer-events-none text-xs"></i>
                     </div>
-                    <div class="flex items-center justify-between mt-1">
+                    <div class="flex items-center justify-between mt-1 gap-2 flex-wrap">
                         <p id="storeAddressHint" class="text-[11px] text-slate-500 italic"><i class="fa-solid fa-location-dot text-teal-600"></i> Memuat detail toko...</p>
                         <span id="storeCatalogStatus" class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 hidden">
                             <i class="fa-solid fa-check-circle"></i> Katalog Toko Aktif
@@ -102,7 +107,7 @@
                                 <span class="text-[10px] font-extrabold uppercase text-teal-800 bg-teal-200 px-1.5 py-0.5 rounded">Pemilik Rumah</span>
                                 <input type="radio" name="modeIncentive" value="DISKON_NOTA" checked class="accent-teal-600 w-4 h-4">
                             </div>
-                            <strong class="text-xs text-slate-900 font-bold block">Diskon Nota 1,0%</strong>
+                            <strong id="modeNotaTitle" class="text-xs text-slate-900 font-bold block">Diskon Nota 1%</strong>
                             <p class="text-[10px] text-slate-600 leading-tight">Harga di nota langsung dipotong kasir toko.</p>
                         </label>
 
@@ -112,7 +117,7 @@
                                 <span class="text-[10px] font-extrabold uppercase text-amber-800 bg-amber-200 px-1.5 py-0.5 rounded">Tukang / Broker</span>
                                 <input type="radio" name="modeIncentive" value="CASHBACK_TUKANG" class="accent-amber-600 w-4 h-4">
                             </div>
-                            <strong class="text-xs text-slate-900 font-bold block">Komisi Tunai 1,0%</strong>
+                            <strong id="modeCashbackTitle" class="text-xs text-slate-900 font-bold block">Komisi Tunai 1%</strong>
                             <p class="text-[10px] text-slate-600 leading-tight">Nota utuh untuk klien + komisi cair dari kasir.</p>
                         </label>
                     </div>
@@ -123,11 +128,11 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Pemesan / Proyek</label>
-                    <input type="text" id="custName" onchange="autoUpdateQR()" placeholder="Contoh: Pak Budi (Rumah 2 Lantai)" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900 focus:bg-white focus:border-teal-600 focus:outline-none">
+                    <input type="text" id="custName" onchange="scheduleAutoUpdateQR()" placeholder="Contoh: Pak Budi (Rumah 2 Lantai)" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900 focus:bg-white focus:border-teal-600 focus:outline-none">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">No. WhatsApp Pemesan</label>
-                    <input type="text" id="custPhone" onchange="autoUpdateQR()" placeholder="Contoh: 082113866890" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900 focus:bg-white focus:border-teal-600 focus:outline-none">
+                    <input type="text" id="custPhone" onchange="scheduleAutoUpdateQR()" placeholder="Contoh: 082113866890" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900 focus:bg-white focus:border-teal-600 focus:outline-none">
                 </div>
             </div>
         </section>
@@ -554,7 +559,7 @@
                 <h3 class="font-extrabold text-sm sm:text-base flex items-center gap-2">
                     <i class="fa-solid fa-qrcode text-amber-400"></i> Invoice Penawaran & QR Code Diskon
                 </h3>
-                <button onclick="closeModal('modalCart')" class="text-slate-400 hover:text-white text-2xl font-bold">&times;</button>
+                <button onclick="closeModal('modalCart')" class="text-slate-400 hover:text-white text-2xl font-bold">×</button>
             </div>
 
             <div class="p-4 sm:p-6 overflow-y-auto space-y-4 text-xs sm:text-sm">
@@ -563,7 +568,7 @@
                     <div>
                         <span class="text-[10px] font-bold text-teal-700 uppercase tracking-wider block">Toko Bangunan Tujuan</span>
                         <strong id="dispCartStoreName" class="text-slate-900 text-sm block">-- Belum Dipilih --</strong>
-                        <span id="dispCartModeBadge" class="bg-teal-200 text-teal-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full inline-block mt-1">Diskon Nota 1,0%</span>
+                        <span id="dispCartModeBadge" class="bg-teal-200 text-teal-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full inline-block mt-1">Diskon Nota 1%</span>
                     </div>
                     <div class="text-right">
                         <span class="text-[10px] font-bold text-slate-500 uppercase block">Pemesan</span>
@@ -603,7 +608,7 @@
                         <span id="cartSubtotal" class="font-bold text-slate-900">Rp 0</span>
                     </div>
                     <div class="flex justify-between items-center text-xs">
-                        <span id="cartIncentiveLabel" class="font-bold text-emerald-700">Diskon Nota (1,0%):</span>
+                        <span id="cartIncentiveLabel" class="font-bold text-emerald-700">Diskon Nota (1%):</span>
                         <span id="cartIncentiveVal" class="font-bold text-emerald-700">-Rp 0</span>
                     </div>
                     <div class="pt-2 border-t border-slate-300 flex justify-between items-center font-extrabold text-sm sm:text-base">
@@ -645,7 +650,7 @@
                 <h3 class="font-extrabold text-sm sm:text-base flex items-center gap-2">
                     <i class="fa-solid fa-magnifying-glass text-amber-400"></i> Cari & Tambah Barang Toko
                 </h3>
-                <button onclick="closeModal('customMaterialModal')" class="text-slate-400 hover:text-white text-2xl font-bold">&times;</button>
+                <button onclick="closeModal('customMaterialModal')" class="text-slate-400 hover:text-white text-2xl font-bold">×</button>
             </div>
 
             <div class="p-5 space-y-4 overflow-y-auto custom-scroll">
@@ -701,25 +706,97 @@
     </div>
 
     <script>
-        // HARDCODED BACKEND API - TANPA CONFIG MANUAL
         const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxsQQMYsvWk6R3AkPhkEURDsxFaEyUnqwFyCv500uPYvK0Y0RhPvaHXgw5OcvYeH_tC/exec";
+        const STORES_CACHE_KEY = 'mb_stores_cache_v10_3';
 
-        let storesList = JSON.parse(localStorage.getItem('mb_stores_cache')) || [
-            { id: 'majujayamakmur-001-jkt', name: 'TB. Maju Jaya Makmur 1', address: 'Jl. Raya Bangunan No. 88 Jakarta', wa: '6282113866890' },
-            { id: 'majujayamakmur-002-jkt', name: 'TB. Maju Jaya Makmur 2', address: 'Jl. Raya Budi Luhur No. 128 Pekalongan', wa: '6282113866890' }
-        ];
+        // Selaras dengan SKEMA_DEFAULT_CONFIG di Code.gs V10.3 & Panduan Skema
+        const SKEMA_FALLBACK = {
+            SKEMA_1: {
+                code: 'SKEMA_1',
+                label: 'SKEMA_1 (Default)',
+                incentiveRate: 0.01,   // 1,0% Diskon Nota / Komisi Tukang
+                creatorRate: 0.008,    // 0,8% Platform Creator
+                kasirRate: 0.002,      // 0,2% Bonus Kasir (Total: 2,0%)
+                totalCommitmentRate: 0.02,
+                incentivePctText: '1%',
+                creatorPctText: '0,8%',
+                kasirPctText: '0,2%',
+                totalCommitmentPctText: '2%'
+            },
+            SKEMA_2: {
+                code: 'SKEMA_2',
+                label: 'SKEMA_2 (1% + Kasir)',
+                incentiveRate: 0.005,  // 0,5% Diskon Nota / Komisi Tukang
+                creatorRate: 0.004,    // 0,4% Platform Creator
+                kasirRate: 0.001,      // 0,1% Bonus Kasir (Total: 1,0%)
+                totalCommitmentRate: 0.01,
+                incentivePctText: '0,5%',
+                creatorPctText: '0,4%',
+                kasirPctText: '0,1%',
+                totalCommitmentPctText: '1%'
+            },
+            SKEMA_3: {
+                code: 'SKEMA_3',
+                label: 'SKEMA_3 (1% Non-Kasir)',
+                incentiveRate: 0.005,  // 0,5% Diskon Nota / Komisi Tukang
+                creatorRate: 0.005,    // 0,5% Platform Creator
+                kasirRate: 0,          // 0% Bonus Kasir (Total: 1,0%)
+                totalCommitmentRate: 0.01,
+                incentivePctText: '0,5%',
+                creatorPctText: '0,5%',
+                kasirPctText: '0%',
+                totalCommitmentPctText: '1%'
+            }
+        };
+
+        let activeStoreSkema = SKEMA_FALLBACK.SKEMA_1;
+
+        // Hapus cache versi lama agar tarif skema lama (1,5% / 2%) tidak menimpa tarif baru
+        try { localStorage.removeItem('mb_stores_cache'); } catch (e) {}
+
+        let storesList = [];
+        try {
+            storesList = JSON.parse(localStorage.getItem(STORES_CACHE_KEY) || 'null') || [];
+        } catch (e) { storesList = []; }
+
+        if (storesList.length === 0) {
+            storesList = [
+                {
+                    id: 'majujayamakmur-001-jkt',
+                    name: 'TB. Maju Jaya Makmur 1',
+                    address: 'Jl. Raya Bangunan No. 88 Jakarta',
+                    wa: '6282113866890',
+                    skema: 'SKEMA_1'
+                },
+                {
+                    id: 'majujayamakmur-002-jkt',
+                    name: 'TB. Maju Jaya Makmur 2',
+                    address: 'Jl. Raya Budi Luhur No. 128 Pekalongan',
+                    wa: '6282113866890',
+                    skema: 'SKEMA_2'
+                }
+            ];
+        }
 
         let activeStoreCatalog = [];
+        let filteredCatalogCache = [];
         let selectedCustomItem = null;
         let currentCart = [];
         let selectedMode = 'DISKON_NOTA';
         let currentTrxId = '';
         let modeDinding = 'ruangan';
+        let qrSyncTimer = null;
+        let lastSyncedSignature = '';
 
         window.addEventListener('DOMContentLoaded', async () => {
             generateTrxId();
-            await loadStoresFromGASBackground();
+            // Terapkan langsung dari data lokal/cache agar instan tanpa menunggu jaringan
             applyStoreLockLogic();
+            // Sinkronkan data toko & skema terbaru dari Google Sheets di latar belakang
+            const updated = await loadStoresFromGASBackground();
+            if (updated) {
+                applyStoreLockLogic();
+            }
         });
 
         function generateTrxId() {
@@ -728,22 +805,112 @@
             }
         }
 
+        function escapeHtml(str) {
+            return String(str || '').replace(/[&<>"]/g, function(m) {
+                if (m === '&') return '&';
+                if (m === '<') return '<';
+                if (m === '>') return '>';
+                return '"';
+            }).replace(/\x27/g, ''');
+        }
+
+        function parseNumericValue(val) {
+            if (typeof val === 'number') return isFinite(val) ? val : 0;
+            const cleaned = String(val || '0').replace(/[^0-9.,-]/g, '').replace(/\./g, '').replace(',', '.');
+            const num = parseFloat(cleaned);
+            return isFinite(num) ? num : 0;
+        }
+
+        function normalizeSkemaCode(raw) {
+            const clean = String(raw || '').trim().toUpperCase();
+            if (clean.indexOf('SKEMA_2') === 0 || clean.indexOf('SKEMA 2') === 0 || clean === 'SKEMA2' || clean === '2') {
+                return 'SKEMA_2';
+            }
+            if (clean.indexOf('SKEMA_3') === 0 || clean.indexOf('SKEMA 3') === 0 || clean === 'SKEMA3' || clean === '3') {
+                return 'SKEMA_3';
+            }
+            return 'SKEMA_1';
+        }
+
+        function formatPctText(rate) {
+            const pct = +(Number(rate || 0) * 100).toFixed(2);
+            return pct.toString().replace('.', ',') + '%';
+        }
+
+        function resolveStoreSkemaObj(store) {
+            const rawCode = (store && (
+                (store.skemaDetail && store.skemaDetail.code) ||
+                store.skema ||
+                store.Skema_Toko ||
+                store.skemaToko
+            )) || 'SKEMA_1';
+
+            const code = normalizeSkemaCode(rawCode);
+            const base = SKEMA_FALLBACK[code] || SKEMA_FALLBACK.SKEMA_1;
+
+            if (store && store.skemaDetail && typeof store.skemaDetail === 'object' && typeof store.skemaDetail.incentiveRate === 'number') {
+                const incentiveRate = store.skemaDetail.incentiveRate;
+                const creatorRate = (typeof store.skemaDetail.creatorRate === 'number') ? store.skemaDetail.creatorRate : base.creatorRate;
+                const kasirRate = (typeof store.skemaDetail.kasirRate === 'number') ? store.skemaDetail.kasirRate : base.kasirRate;
+                return Object.assign({}, base, store.skemaDetail, {
+                    code: code,
+                    incentiveRate: incentiveRate,
+                    creatorRate: creatorRate,
+                    kasirRate: kasirRate,
+                    incentivePctText: store.skemaDetail.incentivePctText || formatPctText(incentiveRate)
+                });
+            }
+
+            return Object.assign({}, base);
+        }
+
+        function updateSkemaLabelsUI() {
+            const pct = activeStoreSkema.incentivePctText || formatPctText(activeStoreSkema.incentiveRate);
+            const skemaCode = activeStoreSkema.code || 'SKEMA_1';
+
+            const badge = document.getElementById('storeSkemaBadge');
+            if (badge) {
+                badge.innerText = `${skemaCode} • Manfaat ${pct}`;
+                badge.classList.remove('hidden');
+            }
+            const notaTitle = document.getElementById('modeNotaTitle');
+            const cbTitle = document.getElementById('modeCashbackTitle');
+            if (notaTitle) notaTitle.innerText = `Diskon Nota ${pct}`;
+            if (cbTitle) cbTitle.innerText = `Komisi Tunai ${pct}`;
+        }
+
         async function loadStoresFromGASBackground() {
             try {
                 const res = await fetch(`${GAS_WEB_APP_URL}?action=getStores`);
                 const data = await res.json();
-                if (data.success && Array.isArray(data.stores) && data.stores.length > 0) {
-                    storesList = data.stores;
-                    localStorage.setItem('mb_stores_cache', JSON.stringify(data.stores));
+                const rawList = Array.isArray(data) ? data : (data.stores || data.data || data.toko || []);
+                if (Array.isArray(rawList) && rawList.length > 0) {
+                    storesList = rawList.map(s => {
+                        const normalizedCode = normalizeSkemaCode(s.skema || s.Skema_Toko || s.skemaToko || 'SKEMA_1');
+                        return {
+                            id: String(s.id || s.ID_Toko || s.storeId || '').trim().toLowerCase(),
+                            slug: String(s.slug || s.id || s.ID_Toko || '').trim().toLowerCase(),
+                            name: String(s.name || s.Nama_Toko || s.storeName || '').trim(),
+                            address: String(s.address || s.alamat || s.Alamat || '').trim(),
+                            wa: String(s.wa || s.noWa || s.No_WA || '').trim(),
+                            skema: normalizedCode,
+                            skemaDetail: s.skemaDetail || null
+                        };
+                    }).filter(s => s.id);
+                    localStorage.setItem(STORES_CACHE_KEY, JSON.stringify(storesList));
+                    return true;
                 }
-            } catch(e) { console.log('Menggunakan data cache toko.'); }
+            } catch (e) {
+                console.log('Menggunakan data cache/default toko.');
+            }
+            return false;
         }
 
         function applyStoreLockLogic() {
             const urlParams = new URLSearchParams(window.location.search);
             const pathSlug = window.location.pathname.replace(/^\/|\/$/g, '');
             const querySlug = urlParams.get('s') || urlParams.get('storeId') || urlParams.get('store');
-            
+
             let rawTarget = (querySlug || pathSlug).toLowerCase();
             if (rawTarget === 'index.html' || rawTarget === '404.html') {
                 rawTarget = '';
@@ -751,7 +918,6 @@
 
             const select = document.getElementById('selectStore');
 
-            // SKENARIO A: Pelanggan membuka via Link Cabang Spesifik
             if (rawTarget && rawTarget !== '') {
                 const matchedStore = storesList.find(s => {
                     const idVal = (s.id || '').toLowerCase();
@@ -760,28 +926,23 @@
                 });
 
                 if (matchedStore) {
-                    // Kunci dropdown HANYA untuk toko ini saja (Sembunyikan toko lain)
-                    select.innerHTML = `<option value="${matchedStore.id}">${matchedStore.name}</option>`;
+                    select.innerHTML = `<option value="${escapeHtml(matchedStore.id)}">${escapeHtml(matchedStore.name)}</option>`;
                     select.value = matchedStore.id;
                     select.disabled = true;
                     select.classList.add('bg-slate-200', 'cursor-not-allowed', 'opacity-90');
-                    
                     onStoreChange();
                 } else {
                     select.innerHTML = `<option value="">-- Toko Tidak Ditemukan --</option>`;
                     select.disabled = true;
                     select.classList.add('bg-slate-200', 'cursor-not-allowed');
-                    document.getElementById('storeAddressHint').innerHTML = 
+                    document.getElementById('storeAddressHint').innerHTML =
                         `<span class="text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Link toko tidak valid. Harap scan QR Code resmi toko!</span>`;
                 }
-            } 
-            // SKENARIO B: Pelanggan membuka URL Utama tanpa link cabang
-            else {
+            } else {
                 select.innerHTML = `<option value="">-- Akses Terkunci: Scan QR Code Toko --</option>`;
                 select.disabled = true;
                 select.classList.add('bg-slate-200', 'cursor-not-allowed');
-                
-                document.getElementById('storeAddressHint').innerHTML = 
+                document.getElementById('storeAddressHint').innerHTML =
                     `<span class="text-amber-700 font-bold"><i class="fa-solid fa-lock text-amber-600"></i> Silakan scan QR Code di meja kasir toko mitra untuk membuka kalkulator!</span>`;
             }
         }
@@ -793,6 +954,7 @@
 
             currentCart = [];
             currentTrxId = '';
+            lastSyncedSignature = '';
             generateTrxId();
 
             document.querySelectorAll('input[type="number"]').forEach(input => {
@@ -803,7 +965,7 @@
             document.getElementById('custPhone').value = '';
 
             renderCartModal();
-            autoUpdateQR();
+            renderQrVisualOnly();
             showToast('Penawaran Direset', 'Semua nilai input diisi 0 dan keranjang telah dikosongkan.');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -821,7 +983,7 @@
                 cardNota.className = "cursor-pointer border-2 border-slate-200 bg-slate-50 p-2.5 rounded-xl flex flex-col justify-between transition hover:border-teal-400";
             }
             renderCartModal();
-            autoUpdateQR();
+            scheduleAutoUpdateQR();
         }
 
         async function onStoreChange() {
@@ -831,8 +993,13 @@
             const catalogStatus = document.getElementById('storeCatalogStatus');
 
             if (store) {
-                hint.innerHTML = `<i class="fa-solid fa-location-dot text-teal-600"></i> ${store.address} (WA: ${store.wa || '-'})`;
+                activeStoreSkema = resolveStoreSkemaObj(store);
+                updateSkemaLabelsUI();
+                hint.innerHTML = `<i class="fa-solid fa-location-dot text-teal-600"></i> ${escapeHtml(store.address)} (WA: ${escapeHtml(store.wa || '-')})`;
             }
+
+            renderCartModal();
+            renderQrVisualOnly();
 
             if (val) {
                 await loadStoreCatalog(val);
@@ -840,9 +1007,6 @@
                 activeStoreCatalog = [];
                 catalogStatus.classList.add('hidden');
             }
-
-            renderCartModal();
-            autoUpdateQR();
         }
 
         async function loadStoreCatalog(storeId) {
@@ -853,11 +1017,21 @@
             }
 
             try {
-                const res = await fetch(`${GAS_WEB_APP_URL}?action=getStoreCatalog&storeId=${storeId}`);
+                const res = await fetch(`${GAS_WEB_APP_URL}?action=getStoreCatalog&storeId=${encodeURIComponent(storeId)}`);
                 const data = await res.json();
+                const rawCatalog = data.catalog || data.items || data.data || [];
 
-                if (data.success && Array.isArray(data.catalog)) {
-                    activeStoreCatalog = data.catalog;
+                if (Array.isArray(rawCatalog)) {
+                    activeStoreCatalog = rawCatalog.map(item => ({
+                        kode: String(item.kode || item.Kode_Material || item.Kode || 'CST-001').trim(),
+                        nama: String(item.nama || item.Nama_Material || item.Nama_Barang || item.name || '').trim(),
+                        kategori: String(item.kategori || item.Kategori || '').trim(),
+                        spek: String(item.spek || item.Spesifikasi || '').trim(),
+                        satuan: String(item.satuan || item.Satuan || 'pcs').trim(),
+                        harga: parseNumericValue(item.harga ?? item.Harga_Satuan ?? item.Harga ?? 0),
+                        tipe: String(item.tipe || item.Tipe || '').trim()
+                    })).filter(it => it.nama);
+
                     catalogStatus.classList.remove('hidden');
                     catalogStatus.innerHTML = `<i class="fa-solid fa-check-circle text-emerald-600"></i> ${activeStoreCatalog.length} Katalog Dimuat`;
                 } else {
@@ -898,10 +1072,11 @@
             if (activeStoreCatalog.length === 0) {
                 container.innerHTML = `<p class="p-4 text-center text-xs text-slate-400 italic">Ketikkan nama barang secara manual jika katalog toko tidak tersedia.</p>`;
                 countText.innerText = '0 Item';
+                filteredCatalogCache = [];
                 return;
             }
 
-            const filtered = activeStoreCatalog.filter(item => {
+            filteredCatalogCache = activeStoreCatalog.filter(item => {
                 const nama = (item.nama || '').toLowerCase();
                 const kode = (item.kode || '').toLowerCase();
                 const kategori = (item.kategori || '').toLowerCase();
@@ -909,51 +1084,41 @@
                 return nama.includes(query) || kode.includes(query) || kategori.includes(query) || spek.includes(query);
             });
 
-            countText.innerText = `${filtered.length} Item Ditemukan`;
+            countText.innerText = `${filteredCatalogCache.length} Item Ditemukan`;
 
-            if (filtered.length === 0) {
-                container.innerHTML = `<p class="p-4 text-center text-xs text-slate-400 italic">Material tidak ditemukan dalam katalog toko.</p>`;
+            if (filteredCatalogCache.length === 0) {
+                container.innerHTML = `<p class="p-4 text-center text-xs text-slate-400 italic">Material tidak ditemukan dalam katalog toko. Isi jumlah & harga di bawah untuk menambah manual.</p>`;
                 return;
             }
 
-            filtered.forEach((item, idx) => {
+            container.innerHTML = filteredCatalogCache.map((item, idx) => {
                 const isStd = item.tipe === 'STANDARD_53' || String(item.kode).startsWith('STD-');
                 const tagColor = isStd ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800';
-
-                container.innerHTML += `
+                return `
                     <div onclick="selectCustomItemFromList(${idx})" class="p-2.5 hover:bg-teal-50/70 cursor-pointer transition flex justify-between items-center gap-2">
                         <div>
                             <div class="flex items-center gap-1.5">
-                                <span class="text-[9px] font-extrabold ${tagColor} px-1.5 py-0.5 rounded">${item.kode || 'CUSTOM'}</span>
-                                <strong class="text-xs text-slate-900 font-bold">${item.nama}</strong>
+                                <span class="text-[9px] font-extrabold ${tagColor} px-1.5 py-0.5 rounded">${escapeHtml(item.kode || 'CUSTOM_TOKO')}</span>
+                                <strong class="text-xs text-slate-900 font-bold">${escapeHtml(item.nama)}</strong>
                             </div>
-                            <p class="text-[10px] text-slate-500 mt-0.5">${item.spek || item.kategori || '-'} (${item.satuan})</p>
+                            <p class="text-[10px] text-slate-500 mt-0.5">${escapeHtml(item.spek || item.kategori || '-')} (${escapeHtml(item.satuan)})</p>
                         </div>
-                        <div class="text-right">
-                            <strong class="text-xs font-black text-teal-700 block">Rp ${Number(item.harga).toLocaleString('id-ID')}</strong>
-                            <span class="text-[9px] text-slate-400">/ ${item.satuan}</span>
+                        <div class="text-right shrink-0">
+                            <strong class="text-xs font-black text-teal-700 block">Rp ${Number(item.harga || 0).toLocaleString('id-ID')}</strong>
+                            <span class="text-[9px] text-slate-400">/ ${escapeHtml(item.satuan)}</span>
                         </div>
                     </div>
                 `;
-            });
+            }).join('');
         }
 
         function selectCustomItemFromList(index) {
-            const query = document.getElementById('customSearchInput').value.trim().toLowerCase();
-            const filtered = activeStoreCatalog.filter(item => {
-                const nama = (item.nama || '').toLowerCase();
-                const kode = (item.kode || '').toLowerCase();
-                const kategori = (item.kategori || '').toLowerCase();
-                const spek = (item.spek || '').toLowerCase();
-                return nama.includes(query) || kode.includes(query) || kategori.includes(query) || spek.includes(query);
-            });
-
-            const item = filtered[index];
+            const item = filteredCatalogCache[index];
             if (!item) return;
 
             selectedCustomItem = item;
             document.getElementById('selectedItemTitle').innerText = `${item.nama} (${item.satuan})`;
-            document.getElementById('customItemPrice').value = item.harga;
+            document.getElementById('customItemPrice').value = item.harga || 0;
             updateCustomSubtotal();
         }
 
@@ -961,15 +1126,14 @@
             const qty = parseFloat(document.getElementById('customItemQty').value) || 0;
             const price = parseFloat(document.getElementById('customItemPrice').value) || 0;
             const subtotal = Math.round(qty * price);
-
             document.getElementById('customItemSubtotal').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
         }
 
         function addSelectedCustomItem() {
             let name = '';
             let unit = 'pcs';
-            let price = parseFloat(document.getElementById('customItemPrice').value) || 0;
-            let qty = parseFloat(document.getElementById('customItemQty').value) || 0;
+            const price = parseFloat(document.getElementById('customItemPrice').value) || 0;
+            const qty = parseFloat(document.getElementById('customItemQty').value) || 0;
 
             if (selectedCustomItem) {
                 name = selectedCustomItem.nama + (selectedCustomItem.spek ? ` (${selectedCustomItem.spek})` : '');
@@ -988,15 +1152,13 @@
                 return;
             }
 
-            const customProduct = [{
+            addToCart([{
                 name: name,
                 qty: qty,
                 unit: unit,
                 price: price,
                 total: Math.round(qty * price)
-            }];
-
-            addToCart(customProduct, 'Material Custom');
+            }], 'Material Custom');
             closeModal('customMaterialModal');
         }
 
@@ -1407,7 +1569,7 @@
             });
 
             renderCartModal();
-            autoUpdateQR();
+            scheduleAutoUpdateQR();
             showToast(`${categoryLabel} Ditambahkan!`, `${items.length} jenis item berhasil ditumpuk ke keranjang.`);
         }
 
@@ -1422,19 +1584,22 @@
                 currentCart.forEach((it, idx) => {
                     tbody.innerHTML += `
                         <tr>
-                            <td class="p-2 font-bold text-slate-800">${it.name}</td>
-                            <td class="p-2 text-center font-bold text-slate-700">${it.qty} ${it.unit}</td>
-                            <td class="p-2 text-right">Rp ${it.price.toLocaleString('id-ID')}</td>
-                            <td class="p-2 text-right font-bold text-teal-700">Rp ${it.total.toLocaleString('id-ID')}</td>
-                            <td class="p-2 text-center"><button onclick="removeItem(${idx})" class="text-red-500 hover:text-red-700 font-black p-1">&times;</button></td>
+                            <td class="p-2 font-bold text-slate-800">${escapeHtml(it.name)}</td>
+                            <td class="p-2 text-center font-bold text-slate-700">${it.qty} ${escapeHtml(it.unit)}</td>
+                            <td class="p-2 text-right">Rp ${Number(it.price).toLocaleString('id-ID')}</td>
+                            <td class="p-2 text-right font-bold text-teal-700">Rp ${Number(it.total).toLocaleString('id-ID')}</td>
+                            <td class="p-2 text-center"><button onclick="removeItem(${idx})" class="text-red-500 hover:text-red-700 font-black p-1">×</button></td>
                         </tr>
                     `;
                 });
             }
 
+            const rate = (typeof activeStoreSkema.incentiveRate === 'number') ? activeStoreSkema.incentiveRate : 0.01;
+            const pctText = activeStoreSkema.incentivePctText || formatPctText(rate);
+
             let subtotal = currentCart.reduce((a, b) => a + b.total, 0);
             document.getElementById('cartSubtotal').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
-            let incentive = Math.round(subtotal * 0.01);
+            let incentive = Math.round(subtotal * rate);
             let grandTotal = selectedMode === 'DISKON_NOTA' ? Math.max(0, subtotal - incentive) : subtotal;
 
             const lbl = document.getElementById('cartIncentiveLabel');
@@ -1442,16 +1607,16 @@
             const modeBadge = document.getElementById('dispCartModeBadge');
 
             if (selectedMode === 'DISKON_NOTA') {
-                lbl.innerText = 'Diskon Nota (1,0%):';
+                lbl.innerText = `Diskon Nota (${pctText}):`;
                 lbl.className = 'font-bold text-emerald-700';
                 val.innerText = `-Rp ${incentive.toLocaleString('id-ID')}`;
-                modeBadge.innerText = 'Diskon Nota 1,0%';
+                modeBadge.innerText = `Diskon Nota ${pctText} (${activeStoreSkema.code})`;
                 modeBadge.className = 'bg-teal-200 text-teal-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full inline-block mt-1';
             } else {
-                lbl.innerText = 'Komisi Tunai Tukang (1,0%):';
+                lbl.innerText = `Komisi Tunai Tukang (${pctText}):`;
                 lbl.className = 'font-bold text-amber-700';
                 val.innerText = `Rp ${incentive.toLocaleString('id-ID')} (Cair di Kasir)`;
-                modeBadge.innerText = 'Komisi Tunai Tukang 1,0%';
+                modeBadge.innerText = `Komisi Tunai Tukang ${pctText} (${activeStoreSkema.code})`;
                 modeBadge.className = 'bg-amber-200 text-amber-900 text-[10px] font-extrabold px-2 py-0.5 rounded-full inline-block mt-1';
             }
 
@@ -1466,20 +1631,21 @@
         function removeItem(idx) {
             currentCart.splice(idx, 1);
             renderCartModal();
-            autoUpdateQR();
+            scheduleAutoUpdateQR();
         }
 
         function clearCart() {
             if (confirm('Apakah Anda yakin ingin mengosongkan keranjang penawaran?')) {
                 currentCart = [];
                 currentTrxId = '';
+                lastSyncedSignature = '';
                 generateTrxId();
                 renderCartModal();
-                autoUpdateQR();
+                renderQrVisualOnly();
             }
         }
 
-        async function autoUpdateQR() {
+        function renderQrVisualOnly() {
             generateTrxId();
             const qrBox = document.getElementById('qrCodeBox');
             qrBox.innerHTML = '';
@@ -1490,48 +1656,80 @@
                 return;
             }
 
-            const storeId = document.getElementById('selectStore').value || 'ALL';
-            let subtotal = currentCart.reduce((a, b) => a + b.total, 0);
-
-            let qrPayload = JSON.stringify({
-                trx: currentTrxId,
-                str: storeId,
-                mode: selectedMode,
-                tot: subtotal,
-                items: currentCart.length
-            });
-
-            if (GAS_WEB_APP_URL && storeId !== 'ALL') {
-                try {
-                    fetch(GAS_WEB_APP_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            action: 'createTransaction',
-                            trxId: currentTrxId,
-                            storeId: storeId,
-                            custName: document.getElementById('custName').value || 'Umum',
-                            custPhone: document.getElementById('custPhone').value || '-',
-                            items: currentCart,
-                            grandTotal: subtotal,
-                            modeIncentive: selectedMode
-                        })
-                    }).catch(e => console.log('Offline / Local storage fallback'));
-                } catch(e) {}
-            }
+            const pctText = activeStoreSkema.incentivePctText || formatPctText(activeStoreSkema.incentiveRate);
 
             new QRCode(qrBox, {
-                text: qrPayload,
+                text: currentTrxId,
                 width: 150,
                 height: 150,
-                colorDark : "#0f172a",
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.M
+                colorDark: "#0f172a",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.M
             });
 
             document.getElementById('qrTrxIdText').innerText = currentTrxId;
             document.getElementById('qrInstructionText').innerText = selectedMode === 'DISKON_NOTA'
-                ? "Tunjukkan QR ini ke Kasir Toko untuk menerima Potongan Nota 1%."
-                : "Tunjukkan QR ini ke Kasir Toko. Nota dicetak utuh untuk klien + Kasir menyerahkan Komisi Tunai 1% ke Anda.";
+                ? `Tunjukkan QR ini ke Kasir Toko untuk menerima Potongan Nota ${pctText}.`
+                : `Tunjukkan QR ini ke Kasir Toko. Nota dicetak utuh untuk klien + Kasir menyerahkan Komisi Tunai ${pctText} ke Anda.`;
+        }
+
+        function scheduleAutoUpdateQR() {
+            renderQrVisualOnly();
+            if (currentCart.length === 0) return;
+
+            clearTimeout(qrSyncTimer);
+            qrSyncTimer = setTimeout(() => {
+                syncTransactionToServer();
+            }, 600);
+        }
+
+        async function syncTransactionToServer() {
+            if (currentCart.length === 0) return;
+            const storeId = document.getElementById('selectStore').value;
+            if (!GAS_WEB_APP_URL || !storeId) return;
+
+            const custName = document.getElementById('custName').value.trim() || 'Umum';
+            const custPhone = document.getElementById('custPhone').value.trim() || '-';
+            const subtotal = currentCart.reduce((a, b) => a + b.total, 0);
+
+            const incentiveRate = (typeof activeStoreSkema.incentiveRate === 'number') ? activeStoreSkema.incentiveRate : 0.01;
+            const creatorRate = (typeof activeStoreSkema.creatorRate === 'number') ? activeStoreSkema.creatorRate : 0.008;
+            const kasirRate = (typeof activeStoreSkema.kasirRate === 'number') ? activeStoreSkema.kasirRate : 0.002;
+
+            const incentiveVal = Math.round(subtotal * incentiveRate);
+            const creatorFeeVal = Math.round(subtotal * creatorRate);
+            const kasirBonusVal = Math.round(subtotal * kasirRate);
+            const grandTotal = selectedMode === 'DISKON_NOTA' ? Math.max(0, subtotal - incentiveVal) : subtotal;
+
+            const payload = {
+                action: 'createTransaction',
+                trxId: currentTrxId,
+                storeId: storeId.toLowerCase(),
+                skema: activeStoreSkema.code,
+                custName: custName,
+                custPhone: custPhone,
+                items: currentCart,
+                subtotal: subtotal,
+                grandTotal: grandTotal,
+                incentiveVal: incentiveVal,
+                creatorFeeVal: creatorFeeVal,
+                kasirBonusVal: kasirBonusVal,
+                modeIncentive: selectedMode
+            };
+
+            const signature = JSON.stringify(payload);
+            if (signature === lastSyncedSignature) return;
+            lastSyncedSignature = signature;
+
+            try {
+                await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    body: signature
+                });
+            } catch (e) {
+                lastSyncedSignature = '';
+                console.log('Offline / Local storage fallback');
+            }
         }
 
         function shareWA() {
@@ -1541,6 +1739,7 @@
             }
 
             generateTrxId();
+            syncTransactionToServer();
 
             const storeSelect = document.getElementById('selectStore').value;
             const storeObj = storesList.find(s => s.id === storeSelect);
@@ -1548,16 +1747,19 @@
             const custName = document.getElementById('custName').value.trim() || 'Umum';
             const custPhone = document.getElementById('custPhone').value.trim() || '-';
 
+            const rate = (typeof activeStoreSkema.incentiveRate === 'number') ? activeStoreSkema.incentiveRate : 0.01;
+            const pctText = activeStoreSkema.incentivePctText || formatPctText(rate);
+
             let subtotal = currentCart.reduce((a, b) => a + b.total, 0);
-            let incentive = Math.round(subtotal * 0.01);
+            let incentive = Math.round(subtotal * rate);
             let grandTotal = selectedMode === 'DISKON_NOTA' ? Math.max(0, subtotal - incentive) : subtotal;
 
             let text = `*PENAWARAN MATERIAL - MITRA BANGUNAN*\n`;
             text += `===============================\n`;
             text += `*Kode QR / Trx ID:* ${currentTrxId}\n`;
-            text += `*Toko Tujuan:* ${storeName}\n`;
+            text += `*Toko Tujuan:* ${storeName} (${activeStoreSkema.code})\n`;
             text += `*Pemesan:* ${custName} (${custPhone})\n`;
-            text += `*Mode Manfaat:* ${selectedMode === 'DISKON_NOTA' ? 'Diskon Nota Direct 1.0%' : 'Komisi Tunai Tukang 1.0%'}\n`;
+            text += `*Mode Manfaat:* ${selectedMode === 'DISKON_NOTA' ? `Diskon Nota Direct ${pctText}` : `Komisi Tunai Tukang ${pctText}`}\n`;
             text += `===============================\n\n`;
             text += `*RINCIAN ITEM MATERIAL GABUNGAN:*\n`;
 
@@ -1568,10 +1770,10 @@
             text += `\n-------------------------------\n`;
             text += `*Subtotal:* Rp ${subtotal.toLocaleString('id-ID')}\n`;
             if (selectedMode === 'DISKON_NOTA') {
-                text += `*Diskon Nota (1%):* -Rp ${incentive.toLocaleString('id-ID')}\n`;
+                text += `*Diskon Nota (${pctText}):* -Rp ${incentive.toLocaleString('id-ID')}\n`;
                 text += `*GRAND TOTAL NOTA:* *Rp ${grandTotal.toLocaleString('id-ID')}*\n`;
             } else {
-                text += `*Komisi Tunai (1%):* Rp ${incentive.toLocaleString('id-ID')} _(Cair di Kasir)_\n`;
+                text += `*Komisi Tunai (${pctText}):* Rp ${incentive.toLocaleString('id-ID')} _(Cair di Kasir)_\n`;
                 text += `*GRAND TOTAL BAYAR:* *Rp ${grandTotal.toLocaleString('id-ID')}*\n`;
             }
             text += `-------------------------------\n\n`;
@@ -1587,7 +1789,7 @@
 
             const isDummyNumber = targetWa.includes('123456789') || targetWa.includes('987654321') || targetWa.length < 10;
 
-            let waUrl = (!isDummyNumber && targetWa) 
+            let waUrl = (!isDummyNumber && targetWa)
                 ? `https://api.whatsapp.com/send?phone=${targetWa}&text=${encodeURIComponent(text)}`
                 : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
 
@@ -1608,9 +1810,9 @@
             }, 3000);
         }
 
-        function openModal(id) { 
-            document.getElementById(id).classList.remove('hidden'); 
-            if (id === 'modalCart') autoUpdateQR();
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+            if (id === 'modalCart') renderQrVisualOnly();
         }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
     </script>
