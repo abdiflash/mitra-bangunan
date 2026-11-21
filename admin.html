@@ -19,7 +19,7 @@
                 </div>
                 <div>
                     <h1 class="font-extrabold text-base leading-tight">Admin Mitra Bangunan</h1>
-                    <p class="text-xs text-amber-300">Rekap Transaksi & Komisi Creator (1,0%)</p>
+                    <p class="text-xs text-amber-300">Rekap Transaksi Multi-Skema (SKEMA_1, SKEMA_2, SKEMA_3)</p>
                 </div>
             </div>
             <button onclick="openConfigModal()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700">
@@ -30,7 +30,6 @@
 
     <main class="max-w-6xl mx-auto px-4 mt-4 space-y-4">
 
-        <!-- 4 OVERVIEW STAT CARDS (PASTEL SCHEME) -->
         <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <div class="bg-teal-50 border border-teal-200 rounded-2xl p-4 shadow-sm">
                 <span class="text-[11px] font-extrabold text-teal-700 uppercase tracking-wider block">Total Transaksi</span>
@@ -41,20 +40,19 @@
                 <strong id="statOmzet" class="text-xl sm:text-2xl font-black text-slate-900 mt-1 block">Rp 0</strong>
             </div>
             <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 shadow-sm">
-                <span class="text-[11px] font-extrabold text-amber-800 uppercase tracking-wider block">Insentif Pembeli/Tukang</span>
+                <span class="text-[11px] font-extrabold text-amber-800 uppercase tracking-wider block">Diskon / Komisi Tukang</span>
                 <strong id="statIncentive" class="text-xl sm:text-2xl font-black text-amber-700 mt-1 block">Rp 0</strong>
             </div>
             <div class="bg-emerald-100 border border-emerald-300 rounded-2xl p-4 shadow-sm">
-                <span class="text-[11px] font-extrabold text-emerald-900 uppercase tracking-wider block">Komisi Creator (1%)</span>
+                <span class="text-[11px] font-extrabold text-emerald-900 uppercase tracking-wider block">Total Komisi Creator</span>
                 <strong id="statCreator" class="text-xl sm:text-2xl font-black text-emerald-700 mt-1 block">Rp 0</strong>
             </div>
         </section>
 
-        <!-- TABLE DATA REKAP -->
         <section class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 space-y-3">
             <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 pb-3">
                 <h2 class="font-extrabold text-slate-900 text-sm sm:text-base flex items-center gap-2">
-                    <i class="fa-solid fa-list-check text-teal-600"></i> Laporan Transaksi
+                    <i class="fa-solid fa-list-check text-teal-600"></i> Laporan Transaksi Seluruh Cabang
                 </h2>
                 <button onclick="loadAdminReport()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow transition flex items-center gap-1.5">
                     <i class="fa-solid fa-rotate text-xs"></i> Refresh Data
@@ -65,16 +63,19 @@
                 <table class="w-full text-left text-xs">
                     <thead class="bg-slate-100 font-bold text-slate-700 border-b border-slate-200">
                         <tr>
-                            <th class="p-2.5">ID Transaksi</th>
+                            <th class="p-2.5">ID & Cabang</th>
                             <th class="p-2.5">Pelanggan</th>
+                            <th class="p-2.5 text-center">Skema</th>
                             <th class="p-2.5 text-right">Total Belanja</th>
-                            <th class="p-2.5 text-center">Mode Insentif</th>
-                            <th class="p-2.5 text-right">Insentif 1%</th>
-                            <th class="p-2.5 text-right">Komisi Creator 1%</th>
+                            <th class="p-2.5 text-center">Mode</th>
+                            <th class="p-2.5 text-right">Diskon/Tukang</th>
+                            <th class="p-2.5 text-right">Creator</th>
+                            <th class="p-2.5 text-right">Bonus Kasir</th>
                             <th class="p-2.5 text-center">Status</th>
                         </tr>
                     </thead>
                     <tbody id="reportTableBody" class="divide-y divide-slate-100 font-medium">
+                        <tr><td colspan="9" class="p-6 text-center text-slate-400">Memuat data laporan...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -94,30 +95,36 @@
     </div>
 
     <script>
-        let GAS_WEB_APP_URL = localStorage.getItem('mb_gas_url') || '';
+        const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbxsQQMYsvWk6R3AkPhkEURDsxFaEyUnqwFyCv500uPYvK0Y0RhPvaHXgw5OcvYeH_tC/exec";
+        let GAS_WEB_APP_URL = localStorage.getItem('mb_gas_url') || DEFAULT_GAS_URL;
 
         window.addEventListener('DOMContentLoaded', () => {
             loadAdminReport();
         });
 
-        async function loadAdminReport() {
-            if (!GAS_WEB_APP_URL) {
-                // Mock Data for Demo
-                const mockList = [
-                    { id: 'MB-102938', custName: 'Pak Budi', total: 12500000, mode: 'DISKON_NOTA', incentive: 125000, creator: 125000, status: 'LUNAS' },
-                    { id: 'MB-102939', custName: 'Tukang Slamet', total: 8400000, mode: 'CASHBACK_TUKANG', incentive: 84000, creator: 84000, status: 'PENDING' }
-                ];
-                renderReport(mockList);
-                return;
-            }
+        function escapeHtml(str) {
+            return String(str || '').replace(/[&<>"]/g, function(m) {
+                if (m === '&') return '&';
+                if (m === '<') return '<';
+                if (m === '>') return '>';
+                return '"';
+            }).replace(/\x27/g, ''');
+        }
 
+        async function loadAdminReport() {
+            const tbody = document.getElementById('reportTableBody');
+            tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-400">Memuat data laporan...</td></tr>`;
             try {
                 const res = await fetch(`${GAS_WEB_APP_URL}?action=getAdminReport`);
                 const data = await res.json();
                 if (data.success) {
-                    renderReport(data.report);
+                    renderReport(data.report || []);
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-rose-500">Gagal memuat laporan: ${escapeHtml(data.message || 'Error')}</td></tr>`;
                 }
-            } catch(e) { alert('Gagal mengambil laporan dari GAS'); }
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-rose-500">Gagal mengambil laporan dari GAS: ${escapeHtml(e.message)}</td></tr>`;
+            }
         }
 
         function renderReport(list) {
@@ -126,42 +133,60 @@
             let totalCreator = 0;
 
             const tbody = document.getElementById('reportTableBody');
-            tbody.innerHTML = '';
+            if (!list || list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-400">Belum ada data transaksi.</td></tr>`;
+                document.getElementById('statCount').innerText = '0';
+                document.getElementById('statOmzet').innerText = 'Rp 0';
+                document.getElementById('statIncentive').innerText = 'Rp 0';
+                document.getElementById('statCreator').innerText = 'Rp 0';
+                return;
+            }
 
-            list.forEach(r => {
-                const tot = parseFloat(r.total) || 0;
-                const inc = parseFloat(r.incentive) || (tot * 0.01);
-                const cre = parseFloat(r.creator) || (tot * 0.01);
+            tbody.innerHTML = list.map(r => {
+                const tot = Number(r.total || 0);
+                const inc = Number(r.incentive || 0);
+                const cre = Number(r.creator || 0);
+                const ksr = Number(r.kasirBonus || 0);
+                const modeUpper = String(r.mode || 'DISKON_NOTA').toUpperCase();
+                const isDiskonNota = modeUpper === 'DISKON_NOTA';
 
                 totalOmzet += tot;
                 totalIncentive += inc;
                 totalCreator += cre;
 
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="p-2.5 font-bold text-teal-700">${r.id}</td>
-                        <td class="p-2.5 font-bold text-slate-900">${r.custName || 'Umum'}</td>
-                        <td class="p-2.5 text-right font-bold">Rp ${tot.toLocaleString('id-ID')}</td>
+                return `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-2.5">
+                            <span class="font-bold text-teal-700 block font-mono">${escapeHtml(r.id)}</span>
+                            <span class="text-[10px] text-slate-500 block">${escapeHtml(r.storeName || r.storeId || '-')}</span>
+                            <span class="text-[10px] text-slate-400">${escapeHtml(r.date || '')}</span>
+                        </td>
+                        <td class="p-2.5 font-bold text-slate-900">${escapeHtml(r.custName || 'Umum')}</td>
                         <td class="p-2.5 text-center">
-                            <span class="${r.mode === 'DISKON_NOTA' ? 'bg-teal-100 text-teal-800' : 'bg-amber-100 text-amber-800'} text-[10px] font-extrabold px-2 py-0.5 rounded-full">
-                                ${r.mode === 'DISKON_NOTA' ? 'Diskon Nota' : 'Cashback Tukang'}
+                            <span class="bg-slate-100 text-slate-700 font-mono text-[10px] font-bold px-2 py-0.5 rounded border border-slate-200">${escapeHtml(r.skema || 'SKEMA_1')}</span>
+                        </td>
+                        <td class="p-2.5 text-right font-bold font-mono">Rp ${tot.toLocaleString('id-ID')}</td>
+                        <td class="p-2.5 text-center">
+                            <span class="${isDiskonNota ? 'bg-teal-100 text-teal-800' : 'bg-amber-100 text-amber-800'} text-[10px] font-extrabold px-2 py-0.5 rounded-full">
+                                ${isDiskonNota ? 'Diskon Nota' : 'Komisi Tukang'}
                             </span>
                         </td>
-                        <td class="p-2.5 text-right font-bold text-amber-700">Rp ${inc.toLocaleString('id-ID')}</td>
-                        <td class="p-2.5 text-right font-black text-emerald-700">Rp ${cre.toLocaleString('id-ID')}</td>
+                        <td class="p-2.5 text-right font-bold text-amber-700 font-mono">Rp ${inc.toLocaleString('id-ID')} <span class="text-[10px] text-slate-400">(${escapeHtml(r.incentivePct || '-')})</span></td>
+                        <td class="p-2.5 text-right font-black text-emerald-700 font-mono">Rp ${cre.toLocaleString('id-ID')} <span class="text-[10px] text-slate-400">(${escapeHtml(r.creatorPct || '-')})</span></td>
+                        <td class="p-2.5 text-right font-bold text-blue-700 font-mono">Rp ${ksr.toLocaleString('id-ID')} <span class="text-[10px] text-slate-400">(${escapeHtml(r.kasirPct || '0%')})</span></td>
                         <td class="p-2.5 text-center">
-                            <span class="${r.status === 'LUNAS' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'} text-[10px] font-bold px-2 py-0.5 rounded-full">
-                                ${r.status || 'PENDING'}
+                            <span class="bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-200">
+                                ${escapeHtml(r.status || 'PENDING')}
                             </span>
                         </td>
                     </tr>
                 `;
-            });
+            }).join('');
 
-            document.getElementById('statCount').innerText = list.length;
-            document.getElementById('statOmzet').innerText = `Rp ${totalOmzet.toLocaleString('id-ID')}`;
-            document.getElementById('statIncentive').innerText = `Rp ${totalIncentive.toLocaleString('id-ID')}`;
-            document.getElementById('statCreator').innerText = `Rp ${totalCreator.toLocaleString('id-ID')}`;
+            document.getElementById('statCount').innerText = list.length.toLocaleString('id-ID');
+            document.getElementById('statOmzet').innerText = `Rp ${Math.round(totalOmzet).toLocaleString('id-ID')}`;
+            document.getElementById('statIncentive').innerText = `Rp ${Math.round(totalIncentive).toLocaleString('id-ID')}`;
+            document.getElementById('statCreator').innerText = `Rp ${Math.round(totalCreator).toLocaleString('id-ID')}`;
         }
 
         function openConfigModal() {
@@ -170,7 +195,9 @@
         }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
         function saveConfigUrl() {
-            GAS_WEB_APP_URL = document.getElementById('cfgGasUrl').value.trim();
+            const val = document.getElementById('cfgGasUrl').value.trim();
+            if (!val) return alert("URL Web App GAS tidak boleh kosong!");
+            GAS_WEB_APP_URL = val;
             localStorage.setItem('mb_gas_url', GAS_WEB_APP_URL);
             closeModal('modalConfig');
             loadAdminReport();
