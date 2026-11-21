@@ -707,16 +707,16 @@
 
     <script>
         const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxsQQMYsvWk6R3AkPhkEURDsxFaEyUnqwFyCv500uPYvK0Y0RhPvaHXgw5OcvYeH_tC/exec";
-        const STORES_CACHE_KEY = 'mb_stores_cache_v10_3';
+        const STORES_CACHE_KEY = 'mb_stores_cache_v10_4';
 
         // Selaras dengan SKEMA_DEFAULT_CONFIG di Code.gs V10.3 & Panduan Skema
         const SKEMA_FALLBACK = {
             SKEMA_1: {
                 code: 'SKEMA_1',
                 label: 'SKEMA_1 (Default)',
-                incentiveRate: 0.01,   // 1,0% Diskon Nota / Komisi Tukang
-                creatorRate: 0.008,    // 0,8% Platform Creator
-                kasirRate: 0.002,      // 0,2% Bonus Kasir (Total: 2,0%)
+                incentiveRate: 0.01,
+                creatorRate: 0.008,
+                kasirRate: 0.002,
                 totalCommitmentRate: 0.02,
                 incentivePctText: '1%',
                 creatorPctText: '0,8%',
@@ -726,9 +726,9 @@
             SKEMA_2: {
                 code: 'SKEMA_2',
                 label: 'SKEMA_2 (1% + Kasir)',
-                incentiveRate: 0.005,  // 0,5% Diskon Nota / Komisi Tukang
-                creatorRate: 0.004,    // 0,4% Platform Creator
-                kasirRate: 0.001,      // 0,1% Bonus Kasir (Total: 1,0%)
+                incentiveRate: 0.005,
+                creatorRate: 0.004,
+                kasirRate: 0.001,
                 totalCommitmentRate: 0.01,
                 incentivePctText: '0,5%',
                 creatorPctText: '0,4%',
@@ -738,9 +738,9 @@
             SKEMA_3: {
                 code: 'SKEMA_3',
                 label: 'SKEMA_3 (1% Non-Kasir)',
-                incentiveRate: 0.005,  // 0,5% Diskon Nota / Komisi Tukang
-                creatorRate: 0.005,    // 0,5% Platform Creator
-                kasirRate: 0,          // 0% Bonus Kasir (Total: 1,0%)
+                incentiveRate: 0.005,
+                creatorRate: 0.005,
+                kasirRate: 0,
                 totalCommitmentRate: 0.01,
                 incentivePctText: '0,5%',
                 creatorPctText: '0,5%',
@@ -751,8 +751,10 @@
 
         let activeStoreSkema = SKEMA_FALLBACK.SKEMA_1;
 
-        // Hapus cache versi lama agar tarif skema lama (1,5% / 2%) tidak menimpa tarif baru
-        try { localStorage.removeItem('mb_stores_cache'); } catch (e) {}
+        try {
+            localStorage.removeItem('mb_stores_cache');
+            localStorage.removeItem('mb_stores_cache_v10_3');
+        } catch (e) {}
 
         let storesList = [];
         try {
@@ -788,11 +790,9 @@
         let qrSyncTimer = null;
         let lastSyncedSignature = '';
 
-        window.addEventListener('DOMContentLoaded', async () => {
+        window.addEventListener('DOMContentLoaded', async function() {
             generateTrxId();
-            // Terapkan langsung dari data lokal/cache agar instan tanpa menunggu jaringan
             applyStoreLockLogic();
-            // Sinkronkan data toko & skema terbaru dari Google Sheets di latar belakang
             const updated = await loadStoresFromGASBackground();
             if (updated) {
                 applyStoreLockLogic();
@@ -806,12 +806,14 @@
         }
 
         function escapeHtml(str) {
+            const amp = String.fromCharCode(38);
+            const sq = String.fromCharCode(39);
             return String(str || '')
-                .replace(/&/g, '&')
-                .replace(/</g, '<')
-                .replace(/>/g, '>')
-                .replace(/"/g, '"')
-                .replace(/'/g, ''');
+                .replace(/&/g, amp + 'amp;')
+                .replace(/</g, amp + 'lt;')
+                .replace(/>/g, amp + 'gt;')
+                .replace(/"/g, amp + 'quot;')
+                .replace(new RegExp(sq, 'g'), amp + '#039;');
         }
 
         function parseNumericValue(val) {
@@ -870,22 +872,22 @@
 
             const badge = document.getElementById('storeSkemaBadge');
             if (badge) {
-                badge.innerText = `${skemaCode} • Manfaat ${pct}`;
+                badge.innerText = skemaCode + ' • Manfaat ' + pct;
                 badge.classList.remove('hidden');
             }
             const notaTitle = document.getElementById('modeNotaTitle');
             const cbTitle = document.getElementById('modeCashbackTitle');
-            if (notaTitle) notaTitle.innerText = `Diskon Nota ${pct}`;
-            if (cbTitle) cbTitle.innerText = `Komisi Tunai ${pct}`;
+            if (notaTitle) notaTitle.innerText = 'Diskon Nota ' + pct;
+            if (cbTitle) cbTitle.innerText = 'Komisi Tunai ' + pct;
         }
 
         async function loadStoresFromGASBackground() {
             try {
-                const res = await fetch(`${GAS_WEB_APP_URL}?action=getStores`);
+                const res = await fetch(GAS_WEB_APP_URL + '?action=getStores');
                 const data = await res.json();
                 const rawList = Array.isArray(data) ? data : (data.stores || data.data || data.toko || []);
                 if (Array.isArray(rawList) && rawList.length > 0) {
-                    storesList = rawList.map(s => {
+                    storesList = rawList.map(function(s) {
                         const normalizedCode = normalizeSkemaCode(s.skema || s.Skema_Toko || s.skemaToko || 'SKEMA_1');
                         return {
                             id: String(s.id || s.ID_Toko || s.storeId || '').trim().toLowerCase(),
@@ -896,7 +898,7 @@
                             skema: normalizedCode,
                             skemaDetail: s.skemaDetail || null
                         };
-                    }).filter(s => s.id);
+                    }).filter(function(s) { return Boolean(s.id); });
                     localStorage.setItem(STORES_CACHE_KEY, JSON.stringify(storesList));
                     return true;
                 }
@@ -919,36 +921,36 @@
             const select = document.getElementById('selectStore');
 
             if (rawTarget && rawTarget !== '') {
-                const matchedStore = storesList.find(s => {
+                const matchedStore = storesList.find(function(s) {
                     const idVal = (s.id || '').toLowerCase();
                     const slugVal = (s.slug || '').toLowerCase();
                     return idVal === rawTarget || slugVal === rawTarget || idVal.includes(rawTarget);
                 });
 
                 if (matchedStore) {
-                    select.innerHTML = `<option value="${escapeHtml(matchedStore.id)}">${escapeHtml(matchedStore.name)}</option>`;
+                    select.innerHTML = '<option value="' + escapeHtml(matchedStore.id) + '">' + escapeHtml(matchedStore.name) + '</option>';
                     select.value = matchedStore.id;
                     select.disabled = true;
                     select.classList.add('bg-slate-200', 'cursor-not-allowed', 'opacity-90');
                     onStoreChange();
                 } else {
-                    select.innerHTML = `<option value="">-- Toko Tidak Ditemukan --</option>`;
+                    select.innerHTML = '<option value="">-- Toko Tidak Ditemukan --</option>';
                     select.disabled = true;
                     select.classList.add('bg-slate-200', 'cursor-not-allowed');
                     document.getElementById('storeAddressHint').innerHTML =
-                        `<span class="text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Link toko tidak valid. Harap scan QR Code resmi toko!</span>`;
+                        '<span class="text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Link toko tidak valid. Harap scan QR Code resmi toko!</span>';
                 }
             } else {
-                select.innerHTML = `<option value="">-- Akses Terkunci: Scan QR Code Toko --</option>`;
+                select.innerHTML = '<option value="">-- Akses Terkunci: Scan QR Code Toko --</option>';
                 select.disabled = true;
                 select.classList.add('bg-slate-200', 'cursor-not-allowed');
                 document.getElementById('storeAddressHint').innerHTML =
-                    `<span class="text-amber-700 font-bold"><i class="fa-solid fa-lock text-amber-600"></i> Silakan scan QR Code di meja kasir toko mitra untuk membuka kalkulator!</span>`;
+                    '<span class="text-amber-700 font-bold"><i class="fa-solid fa-lock text-amber-600"></i> Silakan scan QR Code di meja kasir toko mitra untuk membuka kalkulator!</span>';
             }
         }
 
         function resetAllCalculator() {
-            if (currentCart.length > 0 && !confirm("Kosongkan keranjang dan buat penawaran baru?")) {
+            if (currentCart.length > 0 && !confirm('Kosongkan keranjang dan buat penawaran baru?')) {
                 return;
             }
 
@@ -957,7 +959,7 @@
             lastSyncedSignature = '';
             generateTrxId();
 
-            document.querySelectorAll('input[type="number"]').forEach(input => {
+            document.querySelectorAll('input[type="number"]').forEach(function(input) {
                 input.value = 0;
             });
 
@@ -976,11 +978,11 @@
             const cardCashback = document.getElementById('cardModeCashback');
 
             if (mode === 'DISKON_NOTA') {
-                cardNota.className = "cursor-pointer border-2 border-teal-500 bg-teal-50/60 p-2.5 rounded-xl flex flex-col justify-between transition hover:border-teal-600";
-                cardCashback.className = "cursor-pointer border-2 border-slate-200 bg-slate-50 p-2.5 rounded-xl flex flex-col justify-between transition hover:border-amber-400";
+                cardNota.className = 'cursor-pointer border-2 border-teal-500 bg-teal-50/60 p-2.5 rounded-xl flex flex-col justify-between transition hover:border-teal-600';
+                cardCashback.className = 'cursor-pointer border-2 border-slate-200 bg-slate-50 p-2.5 rounded-xl flex flex-col justify-between transition hover:border-amber-400';
             } else {
-                cardCashback.className = "cursor-pointer border-2 border-amber-500 bg-amber-50/60 p-2.5 rounded-xl flex flex-col justify-between transition hover:border-amber-600";
-                cardNota.className = "cursor-pointer border-2 border-slate-200 bg-slate-50 p-2.5 rounded-xl flex flex-col justify-between transition hover:border-teal-400";
+                cardCashback.className = 'cursor-pointer border-2 border-amber-500 bg-amber-50/60 p-2.5 rounded-xl flex flex-col justify-between transition hover:border-amber-600';
+                cardNota.className = 'cursor-pointer border-2 border-slate-200 bg-slate-50 p-2.5 rounded-xl flex flex-col justify-between transition hover:border-teal-400';
             }
             renderCartModal();
             scheduleAutoUpdateQR();
@@ -988,14 +990,14 @@
 
         async function onStoreChange() {
             const val = document.getElementById('selectStore').value;
-            const store = storesList.find(s => s.id === val);
+            const store = storesList.find(function(s) { return s.id === val; });
             const hint = document.getElementById('storeAddressHint');
             const catalogStatus = document.getElementById('storeCatalogStatus');
 
             if (store) {
                 activeStoreSkema = resolveStoreSkemaObj(store);
                 updateSkemaLabelsUI();
-                hint.innerHTML = `<i class="fa-solid fa-location-dot text-teal-600"></i> ${escapeHtml(store.address)} (WA: ${escapeHtml(store.wa || '-')})`;
+                hint.innerHTML = '<i class="fa-solid fa-location-dot text-teal-600"></i> ' + escapeHtml(store.address) + ' (WA: ' + escapeHtml(store.wa || '-') + ')';
             }
 
             renderCartModal();
@@ -1017,29 +1019,32 @@
             }
 
             try {
-                const res = await fetch(`${GAS_WEB_APP_URL}?action=getStoreCatalog&storeId=${encodeURIComponent(storeId)}`);
+                const res = await fetch(GAS_WEB_APP_URL + '?action=getStoreCatalog&storeId=' + encodeURIComponent(storeId));
                 const data = await res.json();
                 const rawCatalog = data.catalog || data.items || data.data || [];
 
                 if (Array.isArray(rawCatalog)) {
-                    activeStoreCatalog = rawCatalog.map(item => ({
-                        kode: String(item.kode || item.Kode_Material || item.Kode || 'CST-001').trim(),
-                        nama: String(item.nama || item.Nama_Material || item.Nama_Barang || item.name || '').trim(),
-                        kategori: String(item.kategori || item.Kategori || '').trim(),
-                        spek: String(item.spek || item.Spesifikasi || '').trim(),
-                        satuan: String(item.satuan || item.Satuan || 'pcs').trim(),
-                        harga: parseNumericValue(item.harga ?? item.Harga_Satuan ?? item.Harga ?? 0),
-                        tipe: String(item.tipe || item.Tipe || '').trim()
-                    })).filter(it => it.nama);
+                    activeStoreCatalog = rawCatalog.map(function(item) {
+                        const rawHarga = (item.harga !== undefined) ? item.harga : ((item.Harga_Satuan !== undefined) ? item.Harga_Satuan : (item.Harga || 0));
+                        return {
+                            kode: String(item.kode || item.Kode_Material || item.Kode || 'CST-001').trim(),
+                            nama: String(item.nama || item.Nama_Material || item.Nama_Barang || item.name || '').trim(),
+                            kategori: String(item.kategori || item.Kategori || '').trim(),
+                            spek: String(item.spek || item.Spesifikasi || '').trim(),
+                            satuan: String(item.satuan || item.Satuan || 'pcs').trim(),
+                            harga: parseNumericValue(rawHarga),
+                            tipe: String(item.tipe || item.Tipe || '').trim()
+                        };
+                    }).filter(function(it) { return Boolean(it.nama); });
 
                     catalogStatus.classList.remove('hidden');
-                    catalogStatus.innerHTML = `<i class="fa-solid fa-check-circle text-emerald-600"></i> ${activeStoreCatalog.length} Katalog Dimuat`;
+                    catalogStatus.innerHTML = '<i class="fa-solid fa-check-circle text-emerald-600"></i> ' + activeStoreCatalog.length + ' Katalog Dimuat';
                 } else {
                     activeStoreCatalog = [];
                     catalogStatus.classList.add('hidden');
                 }
             } catch (e) {
-                console.error("Gagal memuat katalog toko:", e);
+                console.error('Gagal memuat katalog toko:', e);
                 catalogStatus.classList.add('hidden');
             }
         }
@@ -1047,7 +1052,7 @@
         function openCustomMaterialModal() {
             const storeSelect = document.getElementById('selectStore').value;
             if (!storeSelect) {
-                alert("Sistem terkunci! Harap scan QR Code resmi di kasir toko mitra untuk memilih toko.");
+                alert('Sistem terkunci! Harap scan QR Code resmi di kasir toko mitra untuk memilih toko.');
                 return;
             }
 
@@ -1070,13 +1075,13 @@
             container.innerHTML = '';
 
             if (activeStoreCatalog.length === 0) {
-                container.innerHTML = `<p class="p-4 text-center text-xs text-slate-400 italic">Ketikkan nama barang secara manual jika katalog toko tidak tersedia.</p>`;
+                container.innerHTML = '<p class="p-4 text-center text-xs text-slate-400 italic">Ketikkan nama barang secara manual jika katalog toko tidak tersedia.</p>';
                 countText.innerText = '0 Item';
                 filteredCatalogCache = [];
                 return;
             }
 
-            filteredCatalogCache = activeStoreCatalog.filter(item => {
+            filteredCatalogCache = activeStoreCatalog.filter(function(item) {
                 const nama = (item.nama || '').toLowerCase();
                 const kode = (item.kode || '').toLowerCase();
                 const kategori = (item.kategori || '').toLowerCase();
@@ -1084,31 +1089,29 @@
                 return nama.includes(query) || kode.includes(query) || kategori.includes(query) || spek.includes(query);
             });
 
-            countText.innerText = `${filteredCatalogCache.length} Item Ditemukan`;
+            countText.innerText = filteredCatalogCache.length + ' Item Ditemukan';
 
             if (filteredCatalogCache.length === 0) {
-                container.innerHTML = `<p class="p-4 text-center text-xs text-slate-400 italic">Material tidak ditemukan dalam katalog toko. Isi jumlah & harga di bawah untuk menambah manual.</p>`;
+                container.innerHTML = '<p class="p-4 text-center text-xs text-slate-400 italic">Material tidak ditemukan dalam katalog toko. Isi jumlah & harga di bawah untuk menambah manual.</p>';
                 return;
             }
 
-            container.innerHTML = filteredCatalogCache.map((item, idx) => {
+            container.innerHTML = filteredCatalogCache.map(function(item, idx) {
                 const isStd = item.tipe === 'STANDARD_53' || String(item.kode).startsWith('STD-');
                 const tagColor = isStd ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800';
-                return `
-                    <div onclick="selectCustomItemFromList(${idx})" class="p-2.5 hover:bg-teal-50/70 cursor-pointer transition flex justify-between items-center gap-2">
-                        <div>
-                            <div class="flex items-center gap-1.5">
-                                <span class="text-[9px] font-extrabold ${tagColor} px-1.5 py-0.5 rounded">${escapeHtml(item.kode || 'CUSTOM_TOKO')}</span>
-                                <strong class="text-xs text-slate-900 font-bold">${escapeHtml(item.nama)}</strong>
-                            </div>
-                            <p class="text-[10px] text-slate-500 mt-0.5">${escapeHtml(item.spek || item.kategori || '-')} (${escapeHtml(item.satuan)})</p>
-                        </div>
-                        <div class="text-right shrink-0">
-                            <strong class="text-xs font-black text-teal-700 block">Rp ${Number(item.harga || 0).toLocaleString('id-ID')}</strong>
-                            <span class="text-[9px] text-slate-400">/ ${escapeHtml(item.satuan)}</span>
-                        </div>
-                    </div>
-                `;
+                return '<div onclick="selectCustomItemFromList(' + idx + ')" class="p-2.5 hover:bg-teal-50/70 cursor-pointer transition flex justify-between items-center gap-2">' +
+                    '<div>' +
+                        '<div class="flex items-center gap-1.5">' +
+                            '<span class="text-[9px] font-extrabold ' + tagColor + ' px-1.5 py-0.5 rounded">' + escapeHtml(item.kode || 'CUSTOM_TOKO') + '</span>' +
+                            '<strong class="text-xs text-slate-900 font-bold">' + escapeHtml(item.nama) + '</strong>' +
+                        '</div>' +
+                        '<p class="text-[10px] text-slate-500 mt-0.5">' + escapeHtml(item.spek || item.kategori || '-') + ' (' + escapeHtml(item.satuan) + ')</p>' +
+                    '</div>' +
+                    '<div class="text-right shrink-0">' +
+                        '<strong class="text-xs font-black text-teal-700 block">Rp ' + Number(item.harga || 0).toLocaleString('id-ID') + '</strong>' +
+                        '<span class="text-[9px] text-slate-400">/ ' + escapeHtml(item.satuan) + '</span>' +
+                    '</div>' +
+                '</div>';
             }).join('');
         }
 
@@ -1117,7 +1120,7 @@
             if (!item) return;
 
             selectedCustomItem = item;
-            document.getElementById('selectedItemTitle').innerText = `${item.nama} (${item.satuan})`;
+            document.getElementById('selectedItemTitle').innerText = item.nama + ' (' + item.satuan + ')';
             document.getElementById('customItemPrice').value = item.harga || 0;
             updateCustomSubtotal();
         }
@@ -1126,7 +1129,7 @@
             const qty = parseFloat(document.getElementById('customItemQty').value) || 0;
             const price = parseFloat(document.getElementById('customItemPrice').value) || 0;
             const subtotal = Math.round(qty * price);
-            document.getElementById('customItemSubtotal').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
+            document.getElementById('customItemSubtotal').innerText = 'Rp ' + subtotal.toLocaleString('id-ID');
         }
 
         function addSelectedCustomItem() {
@@ -1136,7 +1139,7 @@
             const qty = parseFloat(document.getElementById('customItemQty').value) || 0;
 
             if (selectedCustomItem) {
-                name = selectedCustomItem.nama + (selectedCustomItem.spek ? ` (${selectedCustomItem.spek})` : '');
+                name = selectedCustomItem.nama + (selectedCustomItem.spek ? ' (' + selectedCustomItem.spek + ')' : '');
                 unit = selectedCustomItem.satuan || 'pcs';
             } else {
                 const manualSearch = document.getElementById('customSearchInput').value.trim();
@@ -1163,8 +1166,8 @@
         }
 
         function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(btn => {
+            document.querySelectorAll('.tab-content').forEach(function(el) { el.classList.add('hidden'); });
+            document.querySelectorAll('.tab-btn').forEach(function(btn) {
                 btn.className = 'tab-btn bg-slate-100 text-slate-700 font-semibold py-2 px-3 rounded-xl border border-slate-200 flex items-center gap-1.5 whitespace-nowrap';
             });
             document.getElementById(tabId).classList.remove('hidden');
@@ -1195,7 +1198,7 @@
             document.getElementById('dinPanjang').value = p;
             document.getElementById('dinLebar').value = l;
             document.getElementById('dinTinggi').value = t;
-            showToast('Preset Diterapkan', `Ruangan ${p}x${l}x${t}m telah diset.`);
+            showToast('Preset Diterapkan', 'Ruangan ' + p + 'x' + l + 'x' + t + 'm telah diset.');
         }
 
         /* -------------------------------------------------------------------------- */
@@ -1243,7 +1246,7 @@
                     let volM3 = luasBersih / m2PerM3;
                     let qtyHebel = Math.ceil(volM3 * 10) / 10;
                     let estimasiPcs = Math.round(qtyHebel * pcsPerM3);
-                    items.push({ name: `[Dinding] Bata Ringan Hebel ${tebal}cm (± ${estimasiPcs} pcs)`, qty: qtyHebel, unit: 'm³', price: 650000, total: qtyHebel * 650000 });
+                    items.push({ name: '[Dinding] Bata Ringan Hebel ' + tebal + 'cm (± ' + estimasiPcs + ' pcs)', qty: qtyHebel, unit: 'm³', price: 650000, total: qtyHebel * 650000 });
 
                     if (document.getElementById('chkThinbed').checked) {
                         let sakThinbed = Math.ceil(luasBersih / 10);
@@ -1291,7 +1294,7 @@
             let items = [];
             if (luas > 0) {
                 let dus = Math.ceil(luas / m2PerDus);
-                items.push({ name: `[Keramik] Lantai ${uk}`, qty: dus, unit: 'dus', price: price, total: dus * price });
+                items.push({ name: '[Keramik] Lantai ' + uk, qty: dus, unit: 'dus', price: price, total: dus * price });
 
                 if (document.getElementById('chkKerSemenNat').checked) {
                     let kgNat = Math.ceil(luas / 8);
@@ -1353,14 +1356,14 @@
                 let btgUtama = Math.ceil(totalMUtama / 12);
                 let prcUtama = ut === 'besi12mm' ? 108000 : (ut === 'besi10mm' ? 76000 : 49000);
                 let lblUtama = ut === 'besi12mm' ? '12mm' : (ut === 'besi10mm' ? '10mm' : '8mm');
-                items.push({ name: `[Pembesian] Besi Utama Ø ${lblUtama} SNI`, qty: btgUtama, unit: 'batang', price: prcUtama, total: btgUtama * prcUtama });
+                items.push({ name: '[Pembesian] Besi Utama Ø ' + lblUtama + ' SNI', qty: btgUtama, unit: 'batang', price: prcUtama, total: btgUtama * prcUtama });
 
                 let jmlBegel = Math.ceil(L / (jarakCm / 100));
                 let totalMBegel = jmlBegel * 0.6 * 1.05;
                 let btgBegel = Math.ceil(totalMBegel / 12);
                 let prcBegel = bg === 'besi8mm' ? 49000 : 32000;
                 let lblBegel = bg === 'besi8mm' ? '8mm' : '6mm';
-                items.push({ name: `[Pembesian] Besi Begel / Sengkang Ø ${lblBegel}`, qty: btgBegel, unit: 'batang', price: prcBegel, total: btgBegel * prcBegel });
+                items.push({ name: '[Pembesian] Besi Begel / Sengkang Ø ' + lblBegel, qty: btgBegel, unit: 'batang', price: prcBegel, total: btgBegel * prcBegel });
 
                 if (document.getElementById('chkBesBendrat').checked) {
                     let kgBendrat = Math.ceil(L * 0.05);
@@ -1549,14 +1552,17 @@
         /* MANAJEMEN PENAWARAN (CART & AUTOMATED QR)                                 */
         /* -------------------------------------------------------------------------- */
 
-        function addToCart(items, categoryLabel = 'Material') {
+        function addToCart(items, categoryLabel) {
+            const label = categoryLabel || 'Material';
             if (!items || items.length === 0) {
                 alert('Silakan masukkan nilai ukuran yang lebih besar dari 0.');
                 return;
             }
 
-            items.forEach(it => {
-                let existingIndex = currentCart.findIndex(existing => existing.name === it.name && existing.unit === it.unit && existing.price === it.price);
+            items.forEach(function(it) {
+                let existingIndex = currentCart.findIndex(function(existing) {
+                    return existing.name === it.name && existing.unit === it.unit && existing.price === it.price;
+                });
                 if (existingIndex > -1) {
                     currentCart[existingIndex].qty += it.qty;
                     if (typeof currentCart[existingIndex].qty === 'number' && !Number.isInteger(currentCart[existingIndex].qty)) {
@@ -1570,7 +1576,7 @@
 
             renderCartModal();
             scheduleAutoUpdateQR();
-            showToast(`${categoryLabel} Ditambahkan!`, `${items.length} jenis item berhasil ditumpuk ke keranjang.`);
+            showToast(label + ' Ditambahkan!', items.length + ' jenis item berhasil ditumpuk ke keranjang.');
         }
 
         function renderCartModal() {
@@ -1579,26 +1585,25 @@
             tbody.innerHTML = '';
 
             if (currentCart.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400 italic">Keranjang penawaran masih kosong. Silakan pilih & hitung material.</td></tr>`;
+                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400 italic">Keranjang penawaran masih kosong. Silakan pilih & hitung material.</td></tr>';
             } else {
-                currentCart.forEach((it, idx) => {
-                    tbody.innerHTML += `
-                        <tr>
-                            <td class="p-2 font-bold text-slate-800">${escapeHtml(it.name)}</td>
-                            <td class="p-2 text-center font-bold text-slate-700">${it.qty} ${escapeHtml(it.unit)}</td>
-                            <td class="p-2 text-right">Rp ${Number(it.price).toLocaleString('id-ID')}</td>
-                            <td class="p-2 text-right font-bold text-teal-700">Rp ${Number(it.total).toLocaleString('id-ID')}</td>
-                            <td class="p-2 text-center"><button onclick="removeItem(${idx})" class="text-red-500 hover:text-red-700 font-black p-1">×</button></td>
-                        </tr>
-                    `;
+                currentCart.forEach(function(it, idx) {
+                    tbody.innerHTML +=
+                        '<tr>' +
+                            '<td class="p-2 font-bold text-slate-800">' + escapeHtml(it.name) + '</td>' +
+                            '<td class="p-2 text-center font-bold text-slate-700">' + it.qty + ' ' + escapeHtml(it.unit) + '</td>' +
+                            '<td class="p-2 text-right">Rp ' + Number(it.price).toLocaleString('id-ID') + '</td>' +
+                            '<td class="p-2 text-right font-bold text-teal-700">Rp ' + Number(it.total).toLocaleString('id-ID') + '</td>' +
+                            '<td class="p-2 text-center"><button onclick="removeItem(' + idx + ')" class="text-red-500 hover:text-red-700 font-black p-1">×</button></td>' +
+                        '</tr>';
                 });
             }
 
             const rate = (typeof activeStoreSkema.incentiveRate === 'number') ? activeStoreSkema.incentiveRate : 0.01;
             const pctText = activeStoreSkema.incentivePctText || formatPctText(rate);
 
-            let subtotal = currentCart.reduce((a, b) => a + b.total, 0);
-            document.getElementById('cartSubtotal').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
+            let subtotal = currentCart.reduce(function(a, b) { return a + b.total; }, 0);
+            document.getElementById('cartSubtotal').innerText = 'Rp ' + subtotal.toLocaleString('id-ID');
             let incentive = Math.round(subtotal * rate);
             let grandTotal = selectedMode === 'DISKON_NOTA' ? Math.max(0, subtotal - incentive) : subtotal;
 
@@ -1607,23 +1612,23 @@
             const modeBadge = document.getElementById('dispCartModeBadge');
 
             if (selectedMode === 'DISKON_NOTA') {
-                lbl.innerText = `Diskon Nota (${pctText}):`;
+                lbl.innerText = 'Diskon Nota (' + pctText + '):';
                 lbl.className = 'font-bold text-emerald-700';
-                val.innerText = `-Rp ${incentive.toLocaleString('id-ID')}`;
-                modeBadge.innerText = `Diskon Nota ${pctText} (${activeStoreSkema.code})`;
+                val.innerText = '-Rp ' + incentive.toLocaleString('id-ID');
+                modeBadge.innerText = 'Diskon Nota ' + pctText + ' (' + activeStoreSkema.code + ')';
                 modeBadge.className = 'bg-teal-200 text-teal-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full inline-block mt-1';
             } else {
-                lbl.innerText = `Komisi Tunai Tukang (${pctText}):`;
+                lbl.innerText = 'Komisi Tunai Tukang (' + pctText + '):';
                 lbl.className = 'font-bold text-amber-700';
-                val.innerText = `Rp ${incentive.toLocaleString('id-ID')} (Cair di Kasir)`;
-                modeBadge.innerText = `Komisi Tunai Tukang ${pctText} (${activeStoreSkema.code})`;
+                val.innerText = 'Rp ' + incentive.toLocaleString('id-ID') + ' (Cair di Kasir)';
+                modeBadge.innerText = 'Komisi Tunai Tukang ' + pctText + ' (' + activeStoreSkema.code + ')';
                 modeBadge.className = 'bg-amber-200 text-amber-900 text-[10px] font-extrabold px-2 py-0.5 rounded-full inline-block mt-1';
             }
 
-            document.getElementById('cartGrandTotal').innerText = `Rp ${grandTotal.toLocaleString('id-ID')}`;
+            document.getElementById('cartGrandTotal').innerText = 'Rp ' + grandTotal.toLocaleString('id-ID');
 
             const storeSelect = document.getElementById('selectStore');
-            const storeObj = storesList.find(s => s.id === storeSelect.value);
+            const storeObj = storesList.find(function(s) { return s.id === storeSelect.value; });
             document.getElementById('dispCartStoreName').innerText = storeObj ? storeObj.name : '-- Belum Dipilih --';
             document.getElementById('dispCartCustName').innerText = document.getElementById('custName').value.trim() || 'Umum';
         }
@@ -1651,7 +1656,7 @@
             qrBox.innerHTML = '';
 
             if (currentCart.length === 0) {
-                qrBox.innerHTML = `<span class="text-xs text-slate-400 italic">QR Code akan muncul otomatis saat ada material di keranjang.</span>`;
+                qrBox.innerHTML = '<span class="text-xs text-slate-400 italic">QR Code akan muncul otomatis saat ada material di keranjang.</span>';
                 document.getElementById('qrTrxIdText').innerText = 'MB-XXXXXX';
                 return;
             }
@@ -1662,15 +1667,15 @@
                 text: currentTrxId,
                 width: 150,
                 height: 150,
-                colorDark: "#0f172a",
-                colorLight: "#ffffff",
+                colorDark: '#0f172a',
+                colorLight: '#ffffff',
                 correctLevel: QRCode.CorrectLevel.M
             });
 
             document.getElementById('qrTrxIdText').innerText = currentTrxId;
             document.getElementById('qrInstructionText').innerText = selectedMode === 'DISKON_NOTA'
-                ? `Tunjukkan QR ini ke Kasir Toko untuk menerima Potongan Nota ${pctText}.`
-                : `Tunjukkan QR ini ke Kasir Toko. Nota dicetak utuh untuk klien + Kasir menyerahkan Komisi Tunai ${pctText} ke Anda.`;
+                ? ('Tunjukkan QR ini ke Kasir Toko untuk menerima Potongan Nota ' + pctText + '.')
+                : ('Tunjukkan QR ini ke Kasir Toko. Nota dicetak utuh untuk klien + Kasir menyerahkan Komisi Tunai ' + pctText + ' ke Anda.');
         }
 
         function scheduleAutoUpdateQR() {
@@ -1678,7 +1683,7 @@
             if (currentCart.length === 0) return;
 
             clearTimeout(qrSyncTimer);
-            qrSyncTimer = setTimeout(() => {
+            qrSyncTimer = setTimeout(function() {
                 syncTransactionToServer();
             }, 600);
         }
@@ -1690,7 +1695,7 @@
 
             const custName = document.getElementById('custName').value.trim() || 'Umum';
             const custPhone = document.getElementById('custPhone').value.trim() || '-';
-            const subtotal = currentCart.reduce((a, b) => a + b.total, 0);
+            const subtotal = currentCart.reduce(function(a, b) { return a + b.total; }, 0);
 
             const incentiveRate = (typeof activeStoreSkema.incentiveRate === 'number') ? activeStoreSkema.incentiveRate : 0.01;
             const creatorRate = (typeof activeStoreSkema.creatorRate === 'number') ? activeStoreSkema.creatorRate : 0.008;
@@ -1742,7 +1747,7 @@
             syncTransactionToServer();
 
             const storeSelect = document.getElementById('selectStore').value;
-            const storeObj = storesList.find(s => s.id === storeSelect);
+            const storeObj = storesList.find(function(s) { return s.id === storeSelect; });
             const storeName = storeObj ? storeObj.name : 'Toko Bangunan Mitra';
             const custName = document.getElementById('custName').value.trim() || 'Umum';
             const custPhone = document.getElementById('custPhone').value.trim() || '-';
@@ -1750,34 +1755,38 @@
             const rate = (typeof activeStoreSkema.incentiveRate === 'number') ? activeStoreSkema.incentiveRate : 0.01;
             const pctText = activeStoreSkema.incentivePctText || formatPctText(rate);
 
-            let subtotal = currentCart.reduce((a, b) => a + b.total, 0);
+            let subtotal = currentCart.reduce(function(a, b) { return a + b.total; }, 0);
             let incentive = Math.round(subtotal * rate);
             let grandTotal = selectedMode === 'DISKON_NOTA' ? Math.max(0, subtotal - incentive) : subtotal;
 
-            let text = `*PENAWARAN MATERIAL - MITRA BANGUNAN*\n`;
-            text += `===============================\n`;
-            text += `*Kode QR / Trx ID:* ${currentTrxId}\n`;
-            text += `*Toko Tujuan:* ${storeName} (${activeStoreSkema.code})\n`;
-            text += `*Pemesan:* ${custName} (${custPhone})\n`;
-            text += `*Mode Manfaat:* ${selectedMode === 'DISKON_NOTA' ? `Diskon Nota Direct ${pctText}` : `Komisi Tunai Tukang ${pctText}`}\n`;
-            text += `===============================\n\n`;
-            text += `*RINCIAN ITEM MATERIAL GABUNGAN:*\n`;
+            const modeLabel = selectedMode === 'DISKON_NOTA'
+                ? ('Diskon Nota Direct ' + pctText)
+                : ('Komisi Tunai Tukang ' + pctText);
 
-            currentCart.forEach((it, i) => {
-                text += `${i + 1}. *${it.name}*\n   Qty: ${it.qty} ${it.unit} x Rp ${it.price.toLocaleString('id-ID')} = *Rp ${it.total.toLocaleString('id-ID')}*\n`;
+            let text = '*PENAWARAN MATERIAL - MITRA BANGUNAN*\n';
+            text += '===============================\n';
+            text += '*Kode QR / Trx ID:* ' + currentTrxId + '\n';
+            text += '*Toko Tujuan:* ' + storeName + ' (' + activeStoreSkema.code + ')\n';
+            text += '*Pemesan:* ' + custName + ' (' + custPhone + ')\n';
+            text += '*Mode Manfaat:* ' + modeLabel + '\n';
+            text += '===============================\n\n';
+            text += '*RINCIAN ITEM MATERIAL GABUNGAN:*\n';
+
+            currentCart.forEach(function(it, i) {
+                text += (i + 1) + '. *' + it.name + '*\n   Qty: ' + it.qty + ' ' + it.unit + ' x Rp ' + Number(it.price).toLocaleString('id-ID') + ' = *Rp ' + Number(it.total).toLocaleString('id-ID') + '*\n';
             });
 
-            text += `\n-------------------------------\n`;
-            text += `*Subtotal:* Rp ${subtotal.toLocaleString('id-ID')}\n`;
+            text += '\n-------------------------------\n';
+            text += '*Subtotal:* Rp ' + subtotal.toLocaleString('id-ID') + '\n';
             if (selectedMode === 'DISKON_NOTA') {
-                text += `*Diskon Nota (${pctText}):* -Rp ${incentive.toLocaleString('id-ID')}\n`;
-                text += `*GRAND TOTAL NOTA:* *Rp ${grandTotal.toLocaleString('id-ID')}*\n`;
+                text += '*Diskon Nota (' + pctText + '):* -Rp ' + incentive.toLocaleString('id-ID') + '\n';
+                text += '*GRAND TOTAL NOTA:* *Rp ' + grandTotal.toLocaleString('id-ID') + '*\n';
             } else {
-                text += `*Komisi Tunai (${pctText}):* Rp ${incentive.toLocaleString('id-ID')} _(Cair di Kasir)_\n`;
-                text += `*GRAND TOTAL BAYAR:* *Rp ${grandTotal.toLocaleString('id-ID')}*\n`;
+                text += '*Komisi Tunai (' + pctText + '):* Rp ' + incentive.toLocaleString('id-ID') + ' _(Cair di Kasir)_\n';
+                text += '*GRAND TOTAL BAYAR:* *Rp ' + grandTotal.toLocaleString('id-ID') + '*\n';
             }
-            text += `-------------------------------\n\n`;
-            text += `_Harap tunjukkan pesan WhatsApp & QR Code ini kepada Kasir ${storeName} untuk klaim diskon / komisi Anda._`;
+            text += '-------------------------------\n\n';
+            text += '_Harap tunjukkan pesan WhatsApp & QR Code ini kepada Kasir ' + storeName + ' untuk klaim diskon / komisi Anda._';
 
             let targetWa = (storeObj && storeObj.wa) ? String(storeObj.wa).replace(/[^0-9]/g, '') : '';
 
@@ -1790,8 +1799,8 @@
             const isDummyNumber = targetWa.includes('123456789') || targetWa.includes('987654321') || targetWa.length < 10;
 
             let waUrl = (!isDummyNumber && targetWa)
-                ? `https://api.whatsapp.com/send?phone=${targetWa}&text=${encodeURIComponent(text)}`
-                : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+                ? ('https://api.whatsapp.com/send?phone=' + targetWa + '&text=' + encodeURIComponent(text))
+                : ('https://api.whatsapp.com/send?text=' + encodeURIComponent(text));
 
             window.open(waUrl, '_blank');
         }
@@ -1804,7 +1813,7 @@
             toast.classList.remove('translate-y-20', 'opacity-0');
             toast.classList.add('translate-y-0', 'opacity-100');
 
-            setTimeout(() => {
+            setTimeout(function() {
                 toast.classList.remove('translate-y-0', 'opacity-100');
                 toast.classList.add('translate-y-20', 'opacity-0');
             }, 3000);
