@@ -78,7 +78,7 @@
             <div class="space-y-1 max-w-md mx-auto">
                 <h2 class="text-base sm:text-lg font-black text-white">Terminal Kasir Terkunci (Wajib Absensi Shift)</h2>
                 <p class="text-xs text-slate-300 leading-relaxed">
-                    Untuk mencegah penyalahgunaan akun & manipulasi bonus kasir, setiap kasir yang bertugas wajib memilih nama akun, memasukkan <strong>PIN Pribadi</strong>, dan mengambil <strong>Selfie Live Kamera</strong>.
+                    Setiap kasir yang bertugas wajib memilih nama akun, memasukkan <strong>PIN Pribadi</strong>, dan mengambil <strong>Selfie Live Kamera</strong> sebelum memindai QR transaksi.
                 </p>
             </div>
             <button onclick="openShiftLoginModal()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-6 py-3 rounded-xl shadow-lg transition inline-flex items-center gap-2 uppercase tracking-wider">
@@ -144,7 +144,8 @@
                         <span id="resTrxId" class="text-xs font-mono font-extrabold text-emerald-400 block">MB-000000</span>
                         <h3 id="resCustName" class="text-base font-bold text-white">Pelanggan: Umum</h3>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span id="resModeTag" class="bg-teal-500/20 text-teal-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-teal-500/30">DISKON NOTA</span>
                         <span id="resSkemaTag" class="bg-slate-900 text-emerald-300 text-[10px] font-mono font-bold px-2.5 py-1 rounded-full border border-emerald-500/30">SKEMA_1</span>
                         <span id="resStatusBadge" class="bg-amber-500/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full border border-amber-500/30">PENDING</span>
                     </div>
@@ -171,7 +172,7 @@
 
                 <div id="skemaBreakdownBox" class="bg-slate-900/80 border border-slate-700/80 rounded-xl p-3 grid grid-cols-3 gap-2 text-center">
                     <div class="bg-slate-950/70 p-2 rounded-lg border border-amber-500/20">
-                        <span class="text-[10px] text-amber-300 block font-semibold">Komisi Tukang (<span id="calcBrokerPct">1%</span>)</span>
+                        <span id="calcBenefitLabel" class="text-[10px] text-amber-300 block font-semibold">Manfaat (<span id="calcBrokerPct">1%</span>)</span>
                         <strong id="calcBrokerNominal" class="text-xs font-black text-amber-400 font-mono">Rp 0</strong>
                     </div>
                     <div class="bg-slate-950/70 p-2 rounded-lg border border-blue-500/20">
@@ -214,7 +215,7 @@
 
                         <label class="inline-flex items-center gap-2 text-[11px] text-slate-300 cursor-pointer select-none">
                             <input type="checkbox" id="chkNoBroker" onchange="toggleNoBrokerMode()" class="rounded bg-slate-800 border-slate-600 text-emerald-500 focus:ring-0">
-                            <span>Pembeli Langsung (Tanpa Broker / Tukang)</span>
+                            <span>Pembeli Langsung / Mode Diskon Nota (Tanpa Komisi Tunai Tukang)</span>
                         </label>
 
                         <div id="brokerInputFieldsWrapper" class="space-y-2.5">
@@ -340,10 +341,11 @@
         const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxsQQMYsvWk6R3AkPhkEURDsxFaEyUnqwFyCv500uPYvK0Y0RhPvaHXgw5OcvYeH_tC/exec";
         localStorage.setItem('mb_gas_url', GAS_WEB_APP_URL);
 
+        // 100% Selaras dengan SKEMA_DEFAULT_CONFIG di Code.gs & index.html
         const SKEMA_FALLBACK = {
-            SKEMA_1: { code: 'SKEMA_1', label: 'Skema 1 (Reguler)', incentiveRate: 0.01, creatorRate: 0.008, kasirRate: 0.002, incentivePctText: '1%', creatorPctText: '0,8%', kasirPctText: '0,2%' },
-            SKEMA_2: { code: 'SKEMA_2', label: 'Skema 2 (Mitra Plus)', incentiveRate: 0.015, creatorRate: 0.012, kasirRate: 0.003, incentivePctText: '1,5%', creatorPctText: '1,2%', kasirPctText: '0,3%' },
-            SKEMA_3: { code: 'SKEMA_3', label: 'Skema 3 (Prioritas)', incentiveRate: 0.02, creatorRate: 0.016, kasirRate: 0.004, incentivePctText: '2%', creatorPctText: '1,6%', kasirPctText: '0,4%' }
+            SKEMA_1: { code: 'SKEMA_1', label: 'SKEMA_1 (Default)', incentiveRate: 0.01, creatorRate: 0.008, kasirRate: 0.002, incentivePctText: '1%', creatorPctText: '0,8%', kasirPctText: '0,2%' },
+            SKEMA_2: { code: 'SKEMA_2', label: 'SKEMA_2 (1% + Kasir)', incentiveRate: 0.005, creatorRate: 0.004, kasirRate: 0.001, incentivePctText: '0,5%', creatorPctText: '0,4%', kasirPctText: '0,1%' },
+            SKEMA_3: { code: 'SKEMA_3', label: 'SKEMA_3 (1% Non-Kasir)', incentiveRate: 0.005, creatorRate: 0.005, kasirRate: 0, incentivePctText: '0,5%', creatorPctText: '0,5%', kasirPctText: '0%' }
         };
 
         let activeStoreSkema = SKEMA_FALLBACK.SKEMA_1;
@@ -386,6 +388,13 @@
             document.getElementById('serverNoticeBanner').classList.remove('hidden');
         }
 
+        function pickNumeric(val, fallback) {
+            if (val !== undefined && val !== null && val !== '' && !isNaN(Number(val))) {
+                return Number(val);
+            }
+            return fallback;
+        }
+
         function normalizeStoresList(payload) {
             const arr = Array.isArray(payload) ? payload : (payload.stores || payload.data || payload.toko || []);
             if (!Array.isArray(arr)) return [];
@@ -394,7 +403,7 @@
                 name: String(item.name || item.Nama_Toko || item.storeName || '').trim(),
                 skema: String(item.skema || item.Skema_Toko || item.skemaToko || 'SKEMA_1').trim().toUpperCase(),
                 skemaDetail: item.skemaDetail || null,
-                isBlocked: Boolean(item.isBlocked)
+                isBlocked: Boolean(item.isBlocked || item.limitWarning)
             })).filter(s => s.id);
         }
 
@@ -441,7 +450,7 @@
 
             if (!activeStoreId) {
                 document.getElementById('activeStoreHeader').innerText = "Cabang Belum Dipilih (?s=id_toko)";
-                showServerNotice("Parameter Cabang Kosong", "Tambahkan ?s=majujayamakmur-002-jkt di akhir URL browser.");
+                showServerNotice("Parameter Cabang Kosong", "Tambahkan ?s=majujayamakmur-003-jkt di akhir URL browser.");
                 return;
             }
 
@@ -454,7 +463,7 @@
                 try {
                     data = JSON.parse(rawText);
                 } catch (e) {
-                    throw new Error("Response server bukan JSON. Pastikan Code.js V7.0 sudah di-deploy dengan akses 'Anyone'.");
+                    throw new Error("Response server bukan JSON. Pastikan Code.gs sudah di-deploy dengan akses 'Anyone'.");
                 }
 
                 const stores = normalizeStoresList(data);
@@ -582,14 +591,14 @@
                 if (m === '<') return '<';
                 if (m === '>') return '>';
                 return '"';
-            }).replace(/\x27/g, '&' + '#39;');
+            }).replace(/\x27/g, ''');
         }
 
         function toggleNoBrokerMode() {
             const isNoBroker = document.getElementById('chkNoBroker').checked;
             document.getElementById('brokerInputFieldsWrapper').classList.toggle('hidden', isNoBroker);
             const reqBadge = document.getElementById('brokerRequiredBadge');
-            reqBadge.innerText = isNoBroker ? '(Tanpa Broker)' : '*Wajib';
+            reqBadge.innerText = isNoBroker ? '(Tidak Perlu)' : '*Wajib';
             reqBadge.className = isNoBroker ? 'text-slate-400 ml-1' : 'text-rose-400 ml-1';
             if (isNoBroker) clearSelectedBroker();
         }
@@ -682,13 +691,13 @@
         function sendBrokerVerificationWa() {
             if (!currentLoadedTrx || !currentLoadedTrx.tukangPhone) return alert("Nomor HP Broker/Tukang tidak tersedia.");
             const skema = resolveSkemaObject(currentLoadedTrx.skemaDetail || currentLoadedTrx.skema);
-            const pctText = skema.incentivePctText || '1%';
+            const pctText = skema.incentivePctText || '0,5%';
             const hpClean = String(currentLoadedTrx.tukangPhone).replace(/[^0-9]/g, '').replace(/^0/, '62').replace(/^8/, '628');
             const baseVerifyUrl = window.location.href.replace(/[^/]*$/, 'verifikasi-komisi.html');
-            const subtotal = Number(currentLoadedTrx.grandTotal || currentLoadedTrx.total || 0);
-            const inc = Number(currentLoadedTrx.incentiveVal) || Math.round(subtotal * skema.incentiveRate);
+            const subtotal = Number(currentLoadedTrx.subtotal || currentLoadedTrx.grandTotal || 0);
+            const inc = pickNumeric(currentLoadedTrx.incentiveVal, Math.round(subtotal * skema.incentiveRate));
 
-            const verifyLink = `${baseVerifyUrl}?trxId=${encodeURIComponent(currentLoadedTrx.id)}&storeId=${encodeURIComponent(activeStoreId)}&storeName=${encodeURIComponent(activeStoreName)}&tukang=${encodeURIComponent(currentLoadedTrx.tukangName || '')}&hp=${encodeURIComponent(currentLoadedTrx.tukangPhone || '')}&nominal=${encodeURIComponent(inc)}&persen=${encodeURIComponent(pctText)}&skema=${encodeURIComponent(skema.code)}&struk=${encodeURIComponent(currentLoadedTrx.strukNo || '')}&kasir=${encodeURIComponent(currentLoadedTrx.cashierName || '')}`;
+            const verifyLink = `${baseVerifyUrl}?trxId=${encodeURIComponent(currentLoadedTrx.id)}&storeId=${encodeURIComponent(activeStoreId)}&storeName=${encodeURIComponent(activeStoreName)}&tukang=${encodeURIComponent(currentLoadedTrx.tukangName || '')}&hp=${encodeURIComponent(currentLoadedTrx.tukangPhone || '')}&nominal=${encodeURIComponent(inc)}&pct=${encodeURIComponent(pctText)}&skema=${encodeURIComponent(skema.code)}&struk=${encodeURIComponent(currentLoadedTrx.strukNo || '')}&kasir=${encodeURIComponent(currentLoadedTrx.cashierName || '')}`;
             const msg = `Halo *${currentLoadedTrx.tukangName}*,\nKomisi belanja material Anda (${pctText}) sebesar *Rp ${inc.toLocaleString('id-ID')}* (Struk: ${currentLoadedTrx.strukNo || currentLoadedTrx.id}) sudah diserahkan oleh kasir *${activeStoreName}*.\n\nKlik konfirmasi:\n${verifyLink}`;
             window.open(`https://api.whatsapp.com/send?phone=${hpClean}&text=${encodeURIComponent(msg)}`, '_blank');
         }
@@ -805,6 +814,7 @@
             const kasirId = selectEl.value.trim();
             const selectedName = selectEl.options[selectEl.selectedIndex] ? selectEl.options[selectEl.selectedIndex].text : '';
             const pin = document.getElementById('inputShiftPin').value.trim();
+            const prevCashier = activeShiftSession ? activeShiftSession.namaKasir : 'Belum Ada (Buka Shift)';
 
             if (!kasirId) return alert("Pilih nama kasir Anda terlebih dahulu!");
             if (!pin || pin.length < 4) return alert("Masukkan PIN pribadi Anda (minimal 4 digit)!");
@@ -818,10 +828,11 @@
                 const res = await fetch(GAS_WEB_APP_URL, {
                     method: 'POST',
                     body: JSON.stringify({
-                        action: 'loginCashierShift',
+                        action: 'cashierShiftLogin',
                         storeId: activeStoreId,
                         kasirId,
                         pin,
+                        prevCashier,
                         selfieBase64: capturedSelfieBase64,
                         terminalToken
                     })
@@ -850,7 +861,9 @@
                 shiftTotalOmzet = 0;
                 accumulatedKasirBonus = 0;
                 if (data.skemaDetail || data.skema) applyStoreSkemaUI(data.skemaDetail || data.skema);
-                if (typeof data.storeBlocked !== 'undefined') setStoreBlockedState(data.storeBlocked);
+                if (typeof data.storeBlocked !== 'undefined' || typeof data.limitWarning !== 'undefined') {
+                    setStoreBlockedState(Boolean(data.storeBlocked || data.limitWarning));
+                }
 
                 persistShiftSession();
                 updateShiftCounterUI();
@@ -942,7 +955,9 @@
                     alert("❌ Transaksi tidak ditemukan: " + (data.message || trxId));
                     return;
                 }
-                if (typeof data.storeBlocked !== 'undefined') setStoreBlockedState(data.storeBlocked);
+                if (typeof data.storeBlocked !== 'undefined' || typeof data.limitWarning !== 'undefined') {
+                    setStoreBlockedState(Boolean(data.storeBlocked || data.limitWarning));
+                }
                 if (trxObj.skemaDetail || trxObj.skema || trxObj.Skema_Toko) {
                     applyStoreSkemaUI(trxObj.skemaDetail || trxObj.skema || trxObj.Skema_Toko);
                 }
@@ -960,24 +975,36 @@
             const skema = resolveSkemaObject(trx.skemaDetail || trx.skema || trx.Skema_Toko || activeStoreSkema);
             const trxId = trx.id || trx.trxId || trx.ID_Transaksi || '-';
             const grandTotal = Number(trx.grandTotal || trx.total || trx.Total_Belanja || 0);
+            const modeInc = String(trx.modeIncentive || 'DISKON_NOTA').trim().toUpperCase();
+            const isDiskonNota = (modeInc === 'DISKON_NOTA');
             const statusUpper = String(trx.status || trx.Status || 'PENDING').toUpperCase();
-            const isVerified = statusUpper.includes('VERIFIED') || statusUpper.includes('SELESAI') || statusUpper.includes('LUNAS');
+            const isVerified = statusUpper.includes('VERIFIED') || statusUpper.includes('SELESAI') || statusUpper.includes('LUNAS') || statusUpper.includes('MENUNGGU_TUKANG') || statusUpper.includes('DITERIMA');
 
             const tName = trx.tukangName || trx.Nama_Tukang || '';
             const tPhone = trx.tukangPhone || trx.No_HP_Tukang || '';
-            const isNoBroker = Boolean(trx.noBroker) || (isVerified && !tName && !tPhone);
-            const incentiveVal = isNoBroker ? 0 : (Number(trx.incentiveVal || trx.Komisi_Tukang) || Math.round(grandTotal * skema.incentiveRate));
-            const kasirBonusVal = Number(trx.kasirBonusVal || trx.Bonus_Kasir) || Math.round(grandTotal * skema.kasirRate);
-            const creatorFeeVal = Number(trx.creatorFeeVal || trx.Fee_Platform) || Math.round(grandTotal * skema.creatorRate);
+            const isNoBroker = isDiskonNota || Boolean(trx.noBroker) || (isVerified && !tName && !tPhone);
+
+            const baseSubtotal = pickNumeric(trx.subtotal, (isDiskonNota && skema.incentiveRate < 1) ? Math.round(grandTotal / (1 - skema.incentiveRate)) : grandTotal);
+            const rawIncentive = pickNumeric(trx.incentiveVal, Math.round(baseSubtotal * skema.incentiveRate));
+            const incentiveVal = (!isDiskonNota && isNoBroker) ? 0 : rawIncentive;
+            const kasirBonusVal = pickNumeric(trx.bonusKasir !== undefined ? trx.bonusKasir : trx.kasirBonusVal, Math.round(baseSubtotal * skema.kasirRate));
+            const creatorFeeVal = pickNumeric(trx.creatorVal !== undefined ? trx.creatorVal : trx.creatorFeeVal, Math.round(baseSubtotal * skema.creatorRate));
 
             document.getElementById('resultSection').classList.remove('hidden');
             document.getElementById('resTrxId').innerText = trxId;
             document.getElementById('resCustName').innerText = `Pelanggan: ${trx.custName || trx.customerName || trx.Nama_Pelanggan || 'Umum'}`;
+
+            const modeTag = document.getElementById('resModeTag');
+            modeTag.innerText = isDiskonNota ? `DISKON NOTA (${skema.incentivePctText})` : `KOMISI TUNAI TUKANG (${skema.incentivePctText})`;
+            modeTag.className = isDiskonNota
+                ? 'bg-teal-500/20 text-teal-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-teal-500/30'
+                : 'bg-amber-500/20 text-amber-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-amber-500/30';
+
             document.getElementById('resSkemaTag').innerText = `${skema.code} (${skema.label})`;
 
             const badge = document.getElementById('resStatusBadge');
             if (isVerified) {
-                badge.innerText = trx.tukangVerified ? 'TERVERIFIKASI + KOMISI DITERIMA' : 'TERVERIFIKASI KASIR';
+                badge.innerText = trx.tukangVerified ? 'TERVERIFIKASI + SELESAI' : 'TERVERIFIKASI KASIR';
                 badge.className = 'bg-emerald-500/20 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full border border-emerald-500/40';
             } else {
                 badge.innerText = 'PENDING VERIFIKASI';
@@ -991,13 +1018,19 @@
                 instCard.className = 'p-4 rounded-xl border bg-emerald-950/50 border-emerald-500/40 text-emerald-200 space-y-1';
                 instTitle.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> Transaksi Sudah Diverifikasi (${trx.strukNo || trx.No_Struk || '-'})`;
                 instText.innerText = `Diverifikasi oleh ${trx.cashierName || trx.Nama_Kasir || '-'}.`;
+            } else if (isDiskonNota) {
+                instCard.className = 'p-4 rounded-xl border bg-teal-950/40 border-teal-500/40 text-teal-200 space-y-1';
+                instTitle.innerHTML = `<i class="fa-solid fa-tag text-teal-400"></i> Mode Pemilik Rumah — Diskon Langsung di Nota (${skema.incentivePctText})`;
+                instText.innerText = `Berikan potongan nota Rp ${incentiveVal.toLocaleString('id-ID')} sehingga pelanggan membayar Rp ${grandTotal.toLocaleString('id-ID')}. Input No. Struk fisik, paraf struk lalu foto (tidak perlu input data tukang/broker).`;
             } else {
                 instCard.className = 'p-4 rounded-xl border bg-amber-950/40 border-amber-500/40 text-amber-200 space-y-1';
-                instTitle.innerHTML = `<i class="fa-solid fa-clipboard-check text-amber-400"></i> Instruksi Verifikasi Kasir (${skema.code})`;
-                instText.innerText = `Cocokkan material & terima pembayaran Rp ${grandTotal.toLocaleString('id-ID')}. Input No. Struk fisik, isi data Broker/Tukang (${skema.incentivePctText}), paraf struk lalu foto sebelum menekan Selesaikan Transaksi.`;
+                instTitle.innerHTML = `<i class="fa-solid fa-hand-holding-dollar text-amber-400"></i> Mode Tukang / Broker — Komisi Tunai (${skema.incentivePctText})`;
+                instText.innerText = `Cetak nota utuh Rp ${grandTotal.toLocaleString('id-ID')} dan serahkan komisi tunai Rp ${incentiveVal.toLocaleString('id-ID')} kepada Tukang/Broker. Wajib isi Nama & No. HP Tukang/Broker, input No. Struk, paraf lalu foto struk.`;
             }
 
-            document.getElementById('calcBrokerPct').innerText = skema.incentivePctText;
+            document.getElementById('calcBenefitLabel').innerHTML = isDiskonNota
+                ? `Diskon Nota (<span id="calcBrokerPct">${skema.incentivePctText}</span>)`
+                : `Komisi Tukang (<span id="calcBrokerPct">${skema.incentivePctText}</span>)`;
             document.getElementById('calcBrokerNominal').innerText = `Rp ${incentiveVal.toLocaleString('id-ID')}`;
             document.getElementById('calcKasirPct').innerText = skema.kasirPctText;
             document.getElementById('calcKasirNominal').innerText = `Rp ${kasirBonusVal.toLocaleString('id-ID')}`;
@@ -1010,7 +1043,7 @@
                 ? items.map(item => {
                     const qty = Number(item.qty || 1);
                     const price = Number(item.price || 0);
-                    const sub = Number(item.subtotal) || (qty * price);
+                    const sub = Number(item.total || item.subtotal) || (qty * price);
                     return `<tr><td class="p-2.5 font-medium text-white">${escapeHtml(item.name || item.material || 'Material')}</td><td class="p-2.5 text-center font-mono">${qty} ${escapeHtml(item.unit || '')}</td><td class="p-2.5 text-right font-mono">Rp ${price.toLocaleString('id-ID')}</td><td class="p-2.5 text-right font-mono font-bold text-emerald-400">Rp ${sub.toLocaleString('id-ID')}</td></tr>`;
                 }).join('')
                 : `<tr><td colspan="4" class="p-3 text-center text-slate-400">Rincian item sesuai nota belanja</td></tr>`;
@@ -1023,7 +1056,7 @@
             if (isVerified) {
                 authBox.classList.add('hidden');
                 let btnsHtml = `<span class="text-xs font-bold text-emerald-400 px-3 py-2 bg-emerald-950/70 border border-emerald-500/30 rounded-xl"><i class="fa-solid fa-check-double"></i> Selesai</span>`;
-                if (tPhone && !trx.tukangVerified) {
+                if (!isDiskonNota && tPhone && !trx.tukangVerified) {
                     currentLoadedTrx.tukangName = tName;
                     currentLoadedTrx.tukangPhone = tPhone;
                     btnsHtml += `<button onclick="sendBrokerVerificationWa()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs px-4 py-3 rounded-xl shadow-lg transition flex items-center gap-1.5"><i class="fa-brands fa-whatsapp text-sm"></i> Kirim Link Konfirmasi Komisi Tukang</button>`;
@@ -1037,9 +1070,9 @@
                     document.getElementById('inputFotoStruk').value = "";
                     document.getElementById('previewContainer').classList.add('hidden');
                     document.getElementById('btnFotoLabel').innerText = "Ambil Foto Struk (Sudah Diparaf)";
-                    document.getElementById('chkNoBroker').checked = false;
+                    document.getElementById('chkNoBroker').checked = isDiskonNota;
                     toggleNoBrokerMode();
-                    if (tName || tPhone) {
+                    if (!isDiskonNota && (tName || tPhone)) {
                         document.getElementById('inputTukangName').value = tName;
                         document.getElementById('inputTukangPhone').value = tPhone;
                         document.getElementById('searchBrokerInput').value = `${tName} (${tPhone})`;
@@ -1090,10 +1123,13 @@
             if (!compressedBase64Image) return alert("⚠️ Wajib memfoto Struk Fisik yang sudah diparaf kasir!");
 
             const skema = resolveSkemaObject(currentLoadedTrx.skemaDetail || currentLoadedTrx.skema || activeStoreSkema);
-            const grandTotal = Number(currentLoadedTrx.grandTotal || currentLoadedTrx.total || currentLoadedTrx.Total_Belanja || 0);
-            const incentiveVal = isNoBroker ? 0 : Math.round(grandTotal * skema.incentiveRate);
-            const creatorFeeVal = Math.round(grandTotal * skema.creatorRate);
-            const kasirBonusVal = Math.round(grandTotal * skema.kasirRate);
+            const grandTotal = Number(currentLoadedTrx.grandTotal || currentLoadedTrx.total || 0);
+            const isDiskonNota = String(currentLoadedTrx.modeIncentive || 'DISKON_NOTA').toUpperCase() === 'DISKON_NOTA';
+            const baseSubtotal = pickNumeric(currentLoadedTrx.subtotal, (isDiskonNota && skema.incentiveRate < 1) ? Math.round(grandTotal / (1 - skema.incentiveRate)) : grandTotal);
+
+            const incentiveVal = (!isDiskonNota && isNoBroker) ? 0 : Math.round(baseSubtotal * skema.incentiveRate);
+            const creatorFeeVal = Math.round(baseSubtotal * skema.creatorRate);
+            const kasirBonusVal = Math.round(baseSubtotal * skema.kasirRate);
 
             const btn = document.getElementById('btnVerify');
             btn.disabled = true;
@@ -1131,29 +1167,35 @@
                     return;
                 }
 
+                const finalKasirBonus = pickNumeric(data.bonusKasir, kasirBonusVal);
+                const finalIncentive = pickNumeric(data.incentiveVal, incentiveVal);
+
                 shiftTrxCount += 1;
                 shiftTotalOmzet += grandTotal;
-                accumulatedKasirBonus += kasirBonusVal;
+                accumulatedKasirBonus += finalKasirBonus;
                 persistShiftSession();
                 updateShiftCounterUI();
 
-                if (!isNoBroker && tukangName && tukangPhone) {
-                    saveBrokerToLocalCache(tukangName, tukangPhone, incentiveVal);
+                if (!isDiskonNota && !isNoBroker && tukangName && tukangPhone) {
+                    saveBrokerToLocalCache(tukangName, tukangPhone, finalIncentive);
                 }
-                if (typeof data.storeBlocked !== 'undefined') setStoreBlockedState(data.storeBlocked);
+                if (typeof data.storeBlocked !== 'undefined' || typeof data.limitWarning !== 'undefined') {
+                    setStoreBlockedState(Boolean(data.storeBlocked || data.limitWarning));
+                }
 
-                currentLoadedTrx.status = 'VERIFIED';
+                currentLoadedTrx.status = data.status || 'VERIFIED';
                 currentLoadedTrx.strukNo = strukNo;
-                currentLoadedTrx.cashierName = activeShiftSession.namaKasir;
+                currentLoadedTrx.cashierName = data.cashierName || activeShiftSession.namaKasir;
                 currentLoadedTrx.noBroker = isNoBroker;
                 currentLoadedTrx.tukangName = tukangName;
                 currentLoadedTrx.tukangPhone = tukangPhone;
-                currentLoadedTrx.incentiveVal = incentiveVal;
-                currentLoadedTrx.kasirBonusVal = kasirBonusVal;
-                currentLoadedTrx.creatorFeeVal = creatorFeeVal;
+                currentLoadedTrx.incentiveVal = finalIncentive;
+                currentLoadedTrx.bonusKasir = finalKasirBonus;
+                currentLoadedTrx.kasirBonusVal = finalKasirBonus;
+                currentLoadedTrx.creatorVal = pickNumeric(data.creatorVal, creatorFeeVal);
 
                 renderTrxDetails(currentLoadedTrx, false);
-                alert(`✅ Transaksi berhasil diverifikasi! Bonus Shift bertambah Rp ${kasirBonusVal.toLocaleString('id-ID')}.`);
+                alert(`✅ Transaksi berhasil diverifikasi! Bonus Shift bertambah Rp ${finalKasirBonus.toLocaleString('id-ID')}.`);
             } catch (err) {
                 alert("❌ Gangguan jaringan: " + err.message);
                 btn.disabled = false;
