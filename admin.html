@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:,">
     <title>Dashboard Admin - Mitra Bangunan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -103,12 +104,13 @@
         });
 
         function escapeHtml(str) {
-            return String(str || '').replace(/[&<>"]/g, function(m) {
-                if (m === '&') return '&';
-                if (m === '<') return '<';
-                if (m === '>') return '>';
-                return '"';
-            }).replace(/\x27/g, ''');
+            const sq = String.fromCharCode(39);
+            return String(str == null ? '' : str)
+                .replace(/&/g, '&')
+                .replace(/</g, '<')
+                .replace(/>/g, '>')
+                .replace(/"/g, '"')
+                .split(sq).join('&#' + '39;');
         }
 
         async function loadAdminReport() {
