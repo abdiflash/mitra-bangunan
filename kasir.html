@@ -402,7 +402,7 @@
             if (!skemaInput) return activeStoreSkema || SKEMA_FALLBACK.SKEMA_1;
             if (typeof skemaInput === 'object') {
                 const base = SKEMA_FALLBACK[String(skemaInput.code || '').toUpperCase()] || SKEMA_FALLBACK.SKEMA_1;
-                return { ...base, ...skemaInput };
+                return Object.assign({}, base, skemaInput);
             }
             const key = String(skemaInput).trim().toUpperCase();
             return SKEMA_FALLBACK[key] || SKEMA_FALLBACK.SKEMA_1;
@@ -577,9 +577,12 @@
         }
 
         function escapeHtml(str) {
-            return String(str || '').replace(/[&<>"']/g, m => ({
-                '&': '&', '<': '<', '>': '>', '"': '"', "'": '''
-            }[m]));
+            return String(str || '').replace(/[&<>"]/g, function(m) {
+                if (m === '&') return '&';
+                if (m === '<') return '<';
+                if (m === '>') return '>';
+                return '"';
+            }).replace(/\x27/g, '&' + '#39;');
         }
 
         function toggleNoBrokerMode() {
@@ -605,7 +608,7 @@
             }
 
             let html = matches.map(b => `
-                <button type="button" onclick="selectRegisteredBroker('${escapeHtml(b.nama)}', '${escapeHtml(b.hp)}')"
+                <button type="button" data-nama="${escapeHtml(b.nama)}" data-hp="${escapeHtml(b.hp)}" onclick="selectRegisteredBroker(this.dataset.nama, this.dataset.hp)"
                         class="w-full text-left px-3 py-2.5 hover:bg-slate-800 flex items-center justify-between gap-2 transition">
                     <div>
                         <strong class="text-xs text-white block">${escapeHtml(b.nama)}</strong>
