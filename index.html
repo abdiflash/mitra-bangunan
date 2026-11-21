@@ -69,9 +69,14 @@
 
         <!-- STEP 1: PILIH TOKO MITRA & MODE INSENTIF -->
         <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 space-y-4">
-            <div class="flex items-center gap-2 border-b border-slate-100 pb-2.5">
-                <span class="w-6 h-6 rounded-full bg-teal-100 text-teal-700 text-xs font-extrabold flex items-center justify-center">1</span>
-                <h2 class="font-extrabold text-sm sm:text-base text-slate-900">Pilih Toko Mitra & Mode Insentif</h2>
+            <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5 flex-wrap">
+                <div class="flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-teal-100 text-teal-700 text-xs font-extrabold flex items-center justify-center">1</span>
+                    <h2 class="font-extrabold text-sm sm:text-base text-slate-900">Pilih Toko Mitra & Mode Insentif</h2>
+                </div>
+                <span id="storeSkemaBadge" class="hidden text-[10px] font-extrabold bg-teal-100 text-teal-800 border border-teal-200 px-2.5 py-0.5 rounded-full">
+                    SKEMA_1 • Manfaat 1%
+                </span>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -92,7 +97,7 @@
                     </div>
                 </div>
 
-                <!-- Mode Insentif Cards (Otomatis menyesuaikan persentase dari skema toko) -->
+                <!-- Mode Insentif Cards -->
                 <div>
                     <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Pilih Mode Manfaat / Diskon</label>
                     <div class="grid grid-cols-2 gap-2">
@@ -102,7 +107,7 @@
                                 <span class="text-[10px] font-extrabold uppercase text-teal-800 bg-teal-200 px-1.5 py-0.5 rounded">Pemilik Rumah</span>
                                 <input type="radio" name="modeIncentive" value="DISKON_NOTA" checked class="accent-teal-600 w-4 h-4">
                             </div>
-                            <strong id="labelModeNotaTitle" class="text-xs text-slate-900 font-bold block">Diskon Nota 1%</strong>
+                            <strong id="modeNotaTitle" class="text-xs text-slate-900 font-bold block">Diskon Nota 1%</strong>
                             <p class="text-[10px] text-slate-600 leading-tight">Harga di nota langsung dipotong kasir toko.</p>
                         </label>
 
@@ -112,7 +117,7 @@
                                 <span class="text-[10px] font-extrabold uppercase text-amber-800 bg-amber-200 px-1.5 py-0.5 rounded">Tukang / Broker</span>
                                 <input type="radio" name="modeIncentive" value="CASHBACK_TUKANG" class="accent-amber-600 w-4 h-4">
                             </div>
-                            <strong id="labelModeCashbackTitle" class="text-xs text-slate-900 font-bold block">Komisi Tunai 1%</strong>
+                            <strong id="modeCashbackTitle" class="text-xs text-slate-900 font-bold block">Komisi Tunai 1%</strong>
                             <p class="text-[10px] text-slate-600 leading-tight">Nota utuh untuk klien + komisi cair dari kasir.</p>
                         </label>
                     </div>
@@ -139,6 +144,7 @@
                     <span class="w-6 h-6 rounded-full bg-teal-100 text-teal-700 text-xs font-extrabold flex items-center justify-center">2</span>
                     <h2 class="font-extrabold text-sm sm:text-base text-slate-900">Hitung Material Bangunan</h2>
                 </div>
+                <!-- Tombol Tambah Material Manual & Preset -->
                 <div class="flex items-center gap-2 flex-wrap text-xs">
                     <button onclick="openCustomMaterialModal()" class="bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs px-3 py-1.5 rounded-xl shadow transition flex items-center gap-1.5">
                         <i class="fa-solid fa-plus-circle text-amber-400"></i> Tambah Material Manual / Custom
@@ -553,7 +559,7 @@
                 <h3 class="font-extrabold text-sm sm:text-base flex items-center gap-2">
                     <i class="fa-solid fa-qrcode text-amber-400"></i> Invoice Penawaran & QR Code Diskon
                 </h3>
-                <button onclick="closeModal('modalCart')" class="text-slate-400 hover:text-white text-2xl font-bold">&times;</button>
+                <button onclick="closeModal('modalCart')" class="text-slate-400 hover:text-white text-2xl font-bold">×</button>
             </div>
 
             <div class="p-4 sm:p-6 overflow-y-auto space-y-4 text-xs sm:text-sm">
@@ -644,7 +650,7 @@
                 <h3 class="font-extrabold text-sm sm:text-base flex items-center gap-2">
                     <i class="fa-solid fa-magnifying-glass text-amber-400"></i> Cari & Tambah Barang Toko
                 </h3>
-                <button onclick="closeModal('customMaterialModal')" class="text-slate-400 hover:text-white text-2xl font-bold">&times;</button>
+                <button onclick="closeModal('customMaterialModal')" class="text-slate-400 hover:text-white text-2xl font-bold">×</button>
             </div>
 
             <div class="p-5 space-y-4 overflow-y-auto custom-scroll">
@@ -700,27 +706,23 @@
     </div>
 
     <script>
+        // HARDCODED BACKEND API V7.0 - TANPA CONFIG MANUAL
         const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxsQQMYsvWk6R3AkPhkEURDsxFaEyUnqwFyCv500uPYvK0Y0RhPvaHXgw5OcvYeH_tC/exec";
 
-        const DEFAULT_SCHEME = {
-            code: 'SKEMA_1',
-            label: 'Skema 1 (2% Lengkap)',
-            totalRate: 0.02,
-            totalPercent: '2%',
-            incentiveRate: 0.01,
-            incentivePercent: '1%',
-            creatorRate: 0.008,
-            creatorPercent: '0,8%',
-            kasirRate: 0.002,
-            kasirPercent: '0,2%'
+        // Referensi Skema V7.0 (Fallback bila offline)
+        const SKEMA_FALLBACK = {
+            SKEMA_1: { code: 'SKEMA_1', label: 'Skema 1 (Reguler)', incentiveRate: 0.01, creatorRate: 0.008, kasirRate: 0.002, incentivePctText: '1%' },
+            SKEMA_2: { code: 'SKEMA_2', label: 'Skema 2 (Mitra Plus)', incentiveRate: 0.015, creatorRate: 0.012, kasirRate: 0.003, incentivePctText: '1,5%' },
+            SKEMA_3: { code: 'SKEMA_3', label: 'Skema 3 (Prioritas)', incentiveRate: 0.02, creatorRate: 0.016, kasirRate: 0.004, incentivePctText: '2%' }
         };
 
+        let activeStoreSkema = SKEMA_FALLBACK.SKEMA_1;
+
         let storesList = JSON.parse(localStorage.getItem('mb_stores_cache')) || [
-            { id: 'majujayamakmur-001-jkt', name: 'TB. Maju Jaya Makmur 1', address: 'Jl. Raya Bangunan No. 88 Jakarta', wa: '6282113866890', scheme: DEFAULT_SCHEME },
-            { id: 'majujayamakmur-002-jkt', name: 'TB. Maju Jaya Makmur 2', address: 'Jl. Raya Budi Luhur No. 128 Pekalongan', wa: '6282113866890', scheme: DEFAULT_SCHEME }
+            { id: 'majujayamakmur-001-jkt', name: 'TB. Maju Jaya Makmur 1', address: 'Jl. Raya Bangunan No. 88 Jakarta', wa: '6282113866890', skema: 'SKEMA_1' },
+            { id: 'majujayamakmur-002-jkt', name: 'TB. Maju Jaya Makmur 2', address: 'Jl. Raya Budi Luhur No. 128 Pekalongan', wa: '6282113866890', skema: 'SKEMA_1' }
         ];
 
-        let activeStoreScheme = DEFAULT_SCHEME;
         let activeStoreCatalog = [];
         let selectedCustomItem = null;
         let currentCart = [];
@@ -740,6 +742,29 @@
             }
         }
 
+        function resolveStoreSkemaObj(store) {
+            if (store && store.skemaDetail && store.skemaDetail.incentiveRate) {
+                return store.skemaDetail;
+            }
+            const code = (store && store.skema) ? String(store.skema).trim().toUpperCase() : 'SKEMA_1';
+            return SKEMA_FALLBACK[code] || SKEMA_FALLBACK.SKEMA_1;
+        }
+
+        function updateSkemaLabelsUI() {
+            const pct = activeStoreSkema.incentivePctText || '1%';
+            const skemaCode = activeStoreSkema.code || 'SKEMA_1';
+
+            const badge = document.getElementById('storeSkemaBadge');
+            if (badge) {
+                badge.innerText = `${skemaCode} • Manfaat ${pct}`;
+                badge.classList.remove('hidden');
+            }
+            const notaTitle = document.getElementById('modeNotaTitle');
+            const cbTitle = document.getElementById('modeCashbackTitle');
+            if (notaTitle) notaTitle.innerText = `Diskon Nota ${pct}`;
+            if (cbTitle) cbTitle.innerText = `Komisi Tunai ${pct}`;
+        }
+
         async function loadStoresFromGASBackground() {
             try {
                 const res = await fetch(`${GAS_WEB_APP_URL}?action=getStores`);
@@ -749,12 +774,6 @@
                     localStorage.setItem('mb_stores_cache', JSON.stringify(data.stores));
                 }
             } catch(e) { console.log('Menggunakan data cache toko.'); }
-        }
-
-        function updateSchemeLabelsUI() {
-            const pct = activeStoreScheme.incentivePercent || '1%';
-            document.getElementById('labelModeNotaTitle').innerText = `Diskon Nota ${pct}`;
-            document.getElementById('labelModeCashbackTitle').innerText = `Komisi Tunai ${pct}`;
         }
 
         function applyStoreLockLogic() {
@@ -769,6 +788,7 @@
 
             const select = document.getElementById('selectStore');
 
+            // SKENARIO A: Pelanggan membuka via Link Cabang Spesifik
             if (rawTarget && rawTarget !== '') {
                 const matchedStore = storesList.find(s => {
                     const idVal = (s.id || '').toLowerCase();
@@ -781,6 +801,7 @@
                     select.value = matchedStore.id;
                     select.disabled = true;
                     select.classList.add('bg-slate-200', 'cursor-not-allowed', 'opacity-90');
+                    
                     onStoreChange();
                 } else {
                     select.innerHTML = `<option value="">-- Toko Tidak Ditemukan --</option>`;
@@ -789,10 +810,13 @@
                     document.getElementById('storeAddressHint').innerHTML = 
                         `<span class="text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Link toko tidak valid. Harap scan QR Code resmi toko!</span>`;
                 }
-            } else {
+            } 
+            // SKENARIO B: Pelanggan membuka URL Utama tanpa link cabang
+            else {
                 select.innerHTML = `<option value="">-- Akses Terkunci: Scan QR Code Toko --</option>`;
                 select.disabled = true;
                 select.classList.add('bg-slate-200', 'cursor-not-allowed');
+                
                 document.getElementById('storeAddressHint').innerHTML = 
                     `<span class="text-amber-700 font-bold"><i class="fa-solid fa-lock text-amber-600"></i> Silakan scan QR Code di meja kasir toko mitra untuk membuka kalkulator!</span>`;
             }
@@ -843,8 +867,8 @@
             const catalogStatus = document.getElementById('storeCatalogStatus');
 
             if (store) {
-                activeStoreScheme = store.scheme || DEFAULT_SCHEME;
-                updateSchemeLabelsUI();
+                activeStoreSkema = resolveStoreSkemaObj(store);
+                updateSkemaLabelsUI();
                 hint.innerHTML = `<i class="fa-solid fa-location-dot text-teal-600"></i> ${store.address} (WA: ${store.wa || '-'})`;
             }
 
@@ -1440,14 +1464,14 @@
                             <td class="p-2 text-center font-bold text-slate-700">${it.qty} ${it.unit}</td>
                             <td class="p-2 text-right">Rp ${it.price.toLocaleString('id-ID')}</td>
                             <td class="p-2 text-right font-bold text-teal-700">Rp ${it.total.toLocaleString('id-ID')}</td>
-                            <td class="p-2 text-center"><button onclick="removeItem(${idx})" class="text-red-500 hover:text-red-700 font-black p-1">&times;</button></td>
+                            <td class="p-2 text-center"><button onclick="removeItem(${idx})" class="text-red-500 hover:text-red-700 font-black p-1">×</button></td>
                         </tr>
                     `;
                 });
             }
 
-            const rate = activeStoreScheme.incentiveRate || 0.01;
-            const pct = activeStoreScheme.incentivePercent || '1%';
+            const rate = activeStoreSkema.incentiveRate || 0.01;
+            const pctText = activeStoreSkema.incentivePctText || '1%';
 
             let subtotal = currentCart.reduce((a, b) => a + b.total, 0);
             document.getElementById('cartSubtotal').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
@@ -1459,16 +1483,16 @@
             const modeBadge = document.getElementById('dispCartModeBadge');
 
             if (selectedMode === 'DISKON_NOTA') {
-                lbl.innerText = `Diskon Nota (${pct}):`;
+                lbl.innerText = `Diskon Nota (${pctText}):`;
                 lbl.className = 'font-bold text-emerald-700';
                 val.innerText = `-Rp ${incentive.toLocaleString('id-ID')}`;
-                modeBadge.innerText = `Diskon Nota ${pct}`;
+                modeBadge.innerText = `Diskon Nota ${pctText} (${activeStoreSkema.code})`;
                 modeBadge.className = 'bg-teal-200 text-teal-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full inline-block mt-1';
             } else {
-                lbl.innerText = `Komisi Tunai Tukang (${pct}):`;
+                lbl.innerText = `Komisi Tunai Tukang (${pctText}):`;
                 lbl.className = 'font-bold text-amber-700';
                 val.innerText = `Rp ${incentive.toLocaleString('id-ID')} (Cair di Kasir)`;
-                modeBadge.innerText = `Komisi Tunai Tukang ${pct}`;
+                modeBadge.innerText = `Komisi Tunai Tukang ${pctText} (${activeStoreSkema.code})`;
                 modeBadge.className = 'bg-amber-200 text-amber-900 text-[10px] font-extrabold px-2 py-0.5 rounded-full inline-block mt-1';
             }
 
@@ -1508,12 +1532,13 @@
             }
 
             const storeId = document.getElementById('selectStore').value || 'ALL';
-            const pct = activeStoreScheme.incentivePercent || '1%';
+            const pctText = activeStoreSkema.incentivePctText || '1%';
             let subtotal = currentCart.reduce((a, b) => a + b.total, 0);
 
             let qrPayload = JSON.stringify({
                 trx: currentTrxId,
                 str: storeId,
+                skm: activeStoreSkema.code,
                 mode: selectedMode,
                 tot: subtotal,
                 items: currentCart.length
@@ -1527,6 +1552,7 @@
                             action: 'createTransaction',
                             trxId: currentTrxId,
                             storeId: storeId,
+                            skema: activeStoreSkema.code,
                             custName: document.getElementById('custName').value || 'Umum',
                             custPhone: document.getElementById('custPhone').value || '-',
                             items: currentCart,
@@ -1548,8 +1574,8 @@
 
             document.getElementById('qrTrxIdText').innerText = currentTrxId;
             document.getElementById('qrInstructionText').innerText = selectedMode === 'DISKON_NOTA'
-                ? `Tunjukkan QR ini ke Kasir Toko untuk menerima Potongan Nota ${pct}.`
-                : `Tunjukkan QR ini ke Kasir Toko. Nota dicetak utuh untuk klien + Kasir menyerahkan Komisi Tunai ${pct} ke Anda.`;
+                ? `Tunjukkan QR ini ke Kasir Toko untuk menerima Potongan Nota ${pctText}.`
+                : `Tunjukkan QR ini ke Kasir Toko. Nota dicetak utuh untuk klien + Kasir menyerahkan Komisi Tunai ${pctText} ke Anda.`;
         }
 
         function shareWA() {
@@ -1566,8 +1592,8 @@
             const custName = document.getElementById('custName').value.trim() || 'Umum';
             const custPhone = document.getElementById('custPhone').value.trim() || '-';
 
-            const rate = activeStoreScheme.incentiveRate || 0.01;
-            const pct = activeStoreScheme.incentivePercent || '1%';
+            const rate = activeStoreSkema.incentiveRate || 0.01;
+            const pctText = activeStoreSkema.incentivePctText || '1%';
 
             let subtotal = currentCart.reduce((a, b) => a + b.total, 0);
             let incentive = Math.round(subtotal * rate);
@@ -1576,9 +1602,9 @@
             let text = `*PENAWARAN MATERIAL - MITRA BANGUNAN*\n`;
             text += `===============================\n`;
             text += `*Kode QR / Trx ID:* ${currentTrxId}\n`;
-            text += `*Toko Tujuan:* ${storeName}\n`;
+            text += `*Toko Tujuan:* ${storeName} (${activeStoreSkema.code})\n`;
             text += `*Pemesan:* ${custName} (${custPhone})\n`;
-            text += `*Mode Manfaat:* ${selectedMode === 'DISKON_NOTA' ? `Diskon Nota Direct ${pct}` : `Komisi Tunai Tukang ${pct}`}\n`;
+            text += `*Mode Manfaat:* ${selectedMode === 'DISKON_NOTA' ? `Diskon Nota Direct ${pctText}` : `Komisi Tunai Tukang ${pctText}`}\n`;
             text += `===============================\n\n`;
             text += `*RINCIAN ITEM MATERIAL GABUNGAN:*\n`;
 
@@ -1589,10 +1615,10 @@
             text += `\n-------------------------------\n`;
             text += `*Subtotal:* Rp ${subtotal.toLocaleString('id-ID')}\n`;
             if (selectedMode === 'DISKON_NOTA') {
-                text += `*Diskon Nota (${pct}):* -Rp ${incentive.toLocaleString('id-ID')}\n`;
+                text += `*Diskon Nota (${pctText}):* -Rp ${incentive.toLocaleString('id-ID')}\n`;
                 text += `*GRAND TOTAL NOTA:* *Rp ${grandTotal.toLocaleString('id-ID')}*\n`;
             } else {
-                text += `*Komisi Tunai (${pct}):* Rp ${incentive.toLocaleString('id-ID')} _(Cair di Kasir)_\n`;
+                text += `*Komisi Tunai (${pctText}):* Rp ${incentive.toLocaleString('id-ID')} _(Cair di Kasir)_\n`;
                 text += `*GRAND TOTAL BAYAR:* *Rp ${grandTotal.toLocaleString('id-ID')}*\n`;
             }
             text += `-------------------------------\n\n`;
