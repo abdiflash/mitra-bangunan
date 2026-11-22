@@ -8,7 +8,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Grafik Pertumbuhan Omzet -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Pustaka Midtrans Snap JS (Production) -->
+    <script type="text/javascript" src="https://app.midtrans.com/snap/snap.js" data-client-key="Mid-client-DUMMY"></script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0B1120; }
         .custom-scroll::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -85,7 +88,7 @@
 
             <!-- BARIS 1: REMINDER KEWAJIBAN PEMBAYARAN (PRIORITAS TERTINGGI) -->
             <section class="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
-                <!-- A. REMINDER SETORAN PLATFORM (BCA / MIDTRANS + VERIFIKASI) -->
+                <!-- A. REMINDER SETORAN PLATFORM (MIDTRANS SNAP & TRANSFER BCA) -->
                 <div id="settlementAlertCard" class="bg-slate-900 border border-amber-500/40 rounded-2xl p-4 shadow-lg flex flex-col justify-between gap-3">
                     <div class="flex items-start justify-between gap-3">
                         <div class="space-y-1">
@@ -98,7 +101,7 @@
                                     <i class="fa-solid fa-clock mr-1"></i>Verifikasi Diajukan
                                 </span>
                             </div>
-                            <p class="text-[11px] text-slate-400">Limit kredit Rp 500.000. Lunasi via BCA / Midtrans agar kasir tetap aktif.</p>
+                            <p class="text-[11px] text-slate-400">Limit kredit Rp 500.000. Lunasi via Midtrans atau Transfer BCA agar kasir tetap aktif.</p>
                         </div>
                         <div class="text-right shrink-0">
                             <span class="text-[10px] text-slate-400 block">Tagihan Terutang</span>
@@ -119,7 +122,7 @@
                     <div class="flex items-center justify-between gap-2 pt-0.5">
                         <span id="platformPendingNote" class="text-[10px] text-sky-300 font-mono truncate"></span>
                         <button onclick="openPlatformPaymentModal()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs px-3.5 py-2 rounded-xl shadow transition inline-flex items-center gap-1.5 shrink-0 ml-auto">
-                            <i class="fa-solid fa-building-columns"></i> Bayar (BCA / Midtrans)
+                            <i class="fa-solid fa-bolt"></i> Bayar (Midtrans / BCA)
                         </button>
                     </div>
                 </div>
@@ -221,12 +224,10 @@
                 </div>
 
                 <div id="analyticsCollapsibleBody" class="grid grid-cols-1 lg:grid-cols-3 gap-4 pt-1">
-                    <!-- Grafik Omzet Compact -->
                     <div class="lg:col-span-2 relative h-48 w-full bg-slate-950/60 border border-slate-800/80 rounded-xl p-2.5">
                         <canvas id="omzetGrowthChart"></canvas>
                     </div>
 
-                    <!-- Top 3 Pembawa Proyek Compact -->
                     <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3 flex flex-col justify-between space-y-2">
                         <div class="flex items-center justify-between">
                             <span class="text-[11px] font-extrabold text-amber-400 uppercase tracking-wider">
@@ -350,12 +351,11 @@
 
             <!-- TAB 2: KASIR, VERIFIKASI BONUS & LOG SELFIE (LEBAR PENUH & COMPACT) -->
             <section id="tabPanel-cashiers" class="owner-tab-panel hidden space-y-4">
-                <!-- Panel 1: Tabel Kasir & Verifikasi Pembayaran Bonus -->
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-xl">
                     <div class="flex flex-wrap items-center justify-between gap-2">
                         <div>
                             <h3 class="text-sm font-extrabold text-white">Daftar Kasir & Verifikasi Pembayaran Bonus</h3>
-                            <p class="text-[11px] text-slate-400">Alur: <strong>1. Bayar & Kirim WA</strong> (otomatis awalan <code class="text-emerald-400">62</code>) ➔ <strong>2. Kasir konfirmasi terima</strong> ➔ <strong>3. Klik Sah / Lunas</strong>.</p>
+                            <p class="text-[11px] text-slate-400">Alur: <strong>1. Bayar & Kirim WA</strong> (otomatis awalan <code class="text-emerald-400">62</code>) ➔ <strong>2. Kasir konfirmasi terima</strong> ➔ <strong>3. Klik Sah Lunas</strong>.</p>
                         </div>
                         <button onclick="openAddCashierModal()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-3.5 py-2 rounded-xl shadow transition inline-flex items-center gap-1.5">
                             <i class="fa-solid fa-user-plus"></i> + Daftarkan Kasir Baru
@@ -382,7 +382,6 @@
                     </div>
                 </div>
 
-                <!-- Panel 2: Log Absensi Selfie Shift (Compact 3-Column Grid) -->
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-xl">
                     <div class="flex flex-wrap items-center justify-between gap-2">
                         <div>
@@ -508,7 +507,7 @@
                 <div>
                     <label class="block text-[11px] font-semibold text-slate-300 mb-1">No. WhatsApp Kasir (Otomatis format 62) <span class="text-rose-400">*</span></label>
                     <input type="tel" id="newCashierPhone" placeholder="Contoh: 081234567890 atau 6281234567890" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-white font-mono focus:border-emerald-500 focus:outline-none">
-                    <span class="text-[10px] text-slate-400 mt-1 block">Digunakan untuk mengirim slip bonus & link verifikasi WA kasir.</span>
+                    <span class="text-[10px] text-slate-400 mt-1 block">Digunakan untuk mengirim slip bonus & verifikasi WA kasir.</span>
                 </div>
                 <div>
                     <label class="block text-[11px] font-semibold text-slate-300 mb-1">PIN Pribadi (4–6 Digit Angka) <span class="text-rose-400">*</span></label>
@@ -560,7 +559,7 @@
                 </div>
 
                 <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-2.5 text-[11px] text-amber-200">
-                    <i class="fa-solid fa-circle-info mr-1 text-amber-400"></i> Setelah WA terkirim, status kasir akan berubah menjadi <strong>Menunggu Verifikasi Kasir</strong> (belum Lunas) sampai kasir mengonfirmasi penerimaan dana.
+                    <i class="fa-solid fa-circle-info mr-1 text-amber-400"></i> Setelah WA terkirim, status kasir berubah menjadi <strong>Menunggu Verifikasi Kasir</strong> (belum Lunas) sampai kasir membalas konfirmasi penerimaan dana.
                 </div>
             </div>
             <div class="px-4 py-3 border-t border-slate-800 bg-slate-950 flex justify-end gap-2">
@@ -572,12 +571,12 @@
         </div>
     </div>
 
-    <!-- MODAL 3: PEMBAYARAN & VERIFIKASI SETORAN PLATFORM (TRANSFER BCA & MIDTRANS) -->
+    <!-- MODAL 3: PEMBAYARAN & VERIFIKASI SETORAN PLATFORM (MIDTRANS SNAP & TRANSFER BCA) -->
     <div id="modalPlatformPayment" onclick="closePlatformPaymentModal()" class="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div onclick="event.stopPropagation()" class="bg-slate-900 border border-amber-500/50 rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl">
             <div class="px-4 py-3 border-b border-slate-800 flex items-center justify-between bg-slate-950">
                 <strong class="text-xs font-extrabold text-amber-400 flex items-center gap-1.5">
-                    <i class="fa-solid fa-shield-check"></i> Pembayaran & Verifikasi Setoran Platform
+                    <i class="fa-solid fa-wallet"></i> Pembayaran & Verifikasi Setoran Platform
                 </strong>
                 <button onclick="closePlatformPaymentModal()" class="text-slate-400 hover:text-white text-lg font-bold">×</button>
             </div>
@@ -590,34 +589,53 @@
                         <strong id="platModalAmount" class="text-lg font-black text-amber-400 font-mono">Rp 0</strong>
                     </div>
                     <div class="text-right">
-                        <span class="text-[10px] text-slate-400 block">Kode Referensi Setoran:</span>
+                        <span class="text-[10px] text-slate-400 block">Kode Referensi:</span>
                         <strong id="platModalRefCode" class="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">-</strong>
                     </div>
                 </div>
 
-                <!-- Pilihan Metode: Transfer BCA vs Midtrans -->
+                <!-- Pilihan Metode: Midtrans Snap (Disarankan) vs Transfer Manual BCA -->
                 <div class="grid grid-cols-2 gap-2 bg-slate-950 p-1 rounded-xl border border-slate-800">
-                    <button onclick="switchPlatformPayMethod('BCA')" id="platMethodBtn-BCA" class="py-2 rounded-lg font-black text-xs bg-amber-500 text-slate-950 transition">
-                        <i class="fa-solid fa-building-columns mr-1"></i> Transfer Bank BCA
+                    <button onclick="switchPlatformPayMethod('MIDTRANS')" id="platMethodBtn-MIDTRANS" class="py-2 rounded-lg font-black text-xs bg-teal-500 text-slate-950 transition">
+                        <i class="fa-solid fa-bolt mr-1"></i> Midtrans (Instan)
                     </button>
-                    <button onclick="switchPlatformPayMethod('MIDTRANS')" id="platMethodBtn-MIDTRANS" class="py-2 rounded-lg font-bold text-xs text-slate-400 hover:text-white transition">
-                        <i class="fa-solid fa-qrcode mr-1"></i> Midtrans (QRIS / VA)
+                    <button onclick="switchPlatformPayMethod('BCA')" id="platMethodBtn-BCA" class="py-2 rounded-lg font-bold text-xs text-slate-400 hover:text-white transition">
+                        <i class="fa-solid fa-building-columns mr-1"></i> Transfer Bank BCA
                     </button>
                 </div>
 
-                <!-- PANEL A: TRANSFER BCA + VERIFIKASI -->
-                <div id="platMethodPanel-BCA" class="space-y-3">
+                <!-- PANEL A: MIDTRANS SNAP POPUP (ALGORITMA REFERENSI v10.4) -->
+                <div id="platMethodPanel-MIDTRANS" class="space-y-3">
+                    <div class="bg-teal-950/30 border border-teal-500/35 rounded-xl p-3.5 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-extrabold text-teal-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-qrcode"></i> Pembayaran Otomatis Midtrans
+                            </span>
+                            <span class="text-[10px] bg-teal-500/20 text-teal-200 px-2 py-0.5 rounded-full font-bold">Instan 24/7</span>
+                        </div>
+                        <p class="text-[11px] text-slate-300 leading-relaxed">
+                            Bayar menggunakan <strong>QRIS, GoPay, ShopeePay, atau Virtual Account Bank</strong>. Status setoran otomatis terverifikasi lunas dan limit kasir langsung terbuka.
+                        </p>
+                    </div>
+
+                    <button id="btnProcessMidtrans" onclick="submitPlatformMidtransPayment()" class="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs py-3 rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-qrcode"></i> Buka Pembayaran Midtrans
+                    </button>
+                </div>
+
+                <!-- PANEL B: TRANSFER MANUAL BCA + VERIFIKASI -->
+                <div id="platMethodPanel-BCA" class="hidden space-y-3">
                     <div class="bg-blue-950/30 border border-blue-500/30 rounded-xl p-3 space-y-2">
                         <div class="flex items-center justify-between">
                             <span class="text-[11px] font-bold text-blue-300">Rekening Tujuan Resmi (Bank BCA)</span>
                             <span class="text-[10px] bg-blue-500/20 text-blue-200 px-2 py-0.5 rounded font-bold">VERIFIKASI MANUAL</span>
                         </div>
-                        <div class="flex items-center justify-between bg-slate-950 border border-slate-800 rounded-lg px-3 py-2">
+                        <div class="flex items-center justify-between bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5">
                             <div>
-                                <strong id="bcaAccountNumber" class="text-sm font-mono font-black text-white tracking-wider">8735089123</strong>
-                                <span class="text-[10px] text-slate-400 block">a.n. Mitra Bangunan Platform</span>
+                                <span class="text-[10px] text-slate-400 block">Bank BCA • a.n. Leonardus Yesiabdi Luhur P.</span>
+                                <strong id="bcaAccountNumber" class="text-base font-mono font-black text-white tracking-wider">0125032619</strong>
                             </div>
-                            <button onclick="copyTextValue('8735089123', 'Nomor Rekening BCA')" class="bg-slate-800 hover:bg-slate-700 text-emerald-300 font-bold text-[11px] px-2.5 py-1.5 rounded-lg border border-slate-700">
+                            <button onclick="copyTextValue('0125032619', 'Nomor Rekening BCA')" class="bg-slate-800 hover:bg-slate-700 text-teal-300 font-bold text-[11px] px-2.5 py-1.5 rounded-lg border border-slate-700">
                                 <i class="fa-regular fa-copy mr-1"></i> Salin
                             </button>
                         </div>
@@ -639,30 +657,10 @@
                     </button>
                 </div>
 
-                <!-- PANEL B: MIDTRANS PAYMENT GATEWAY -->
-                <div id="platMethodPanel-MIDTRANS" class="hidden space-y-3">
-                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-extrabold text-white">Pembayaran Otomatis Midtrans</span>
-                            <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-bold">QRIS • VA BANK • E-WALLET</span>
-                        </div>
-                        <p class="text-[11px] text-slate-400">Sistem akan membuat kode tagihan Midtrans sesuai nominal terutang dan mencatat status verifikasi otomatis setelah pembayaran berhasil.</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-[11px] font-semibold text-slate-300 mb-1">Nama Penanggung Jawab Toko <span class="text-rose-400">*</span></label>
-                        <input type="text" id="midtransPayerName" placeholder="Nama pemilik / admin keuangan toko" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:border-amber-400 focus:outline-none">
-                    </div>
-
-                    <button id="btnProcessMidtrans" onclick="submitPlatformMidtransPayment()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs py-3 rounded-xl shadow-lg transition flex items-center justify-center gap-1.5">
-                        <i class="fa-solid fa-bolt"></i> Proses Pembayaran & Verifikasi Midtrans
-                    </button>
-                </div>
-
                 <!-- Riwayat Pengajuan Verifikasi Setoran Cabang -->
                 <div id="platformSettlementHistoryBox" class="pt-2 border-t border-slate-800 space-y-1.5">
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Status Pengajuan Verifikasi Terakhir:</span>
-                    <div id="platformSettlementHistoryList" class="text-[11px] text-slate-400 italic">Belum ada pengajuan verifikasi baru.</div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Status Pembayaran / Verifikasi Terakhir:</span>
+                    <div id="platformSettlementHistoryList" class="text-[11px] text-slate-400 italic">Belum ada pengajuan pembayaran baru.</div>
                 </div>
             </div>
         </div>
@@ -714,6 +712,8 @@
         localStorage.setItem('mb_gas_url', GAS_WEB_APP_URL);
         const LIMIT_BLOKIR_PLATFORM = 500000;
         const ADMIN_PLATFORM_WA = "6282113866890";
+        const PLATFORM_BCA_REK = "0125032619";
+        const PLATFORM_BCA_NAME = "Leonardus Yesiabdi Luhur P.";
 
         const SKEMA_V10 = {
             SKEMA_1: { code: 'SKEMA_1', label: 'SKEMA_1 (Default)', incentiveRate: 0.01, creatorRate: 0.008, kasirRate: 0.002, incentivePctText: '1%', creatorPctText: '0,8%', kasirPctText: '0,2%' },
@@ -1007,7 +1007,7 @@
         }
 
         /* -------------------------------------------------------------------------- */
-        /* PEMBAYARAN & VERIFIKASI SETORAN PLATFORM (BCA & MIDTRANS)                  */
+        /* PEMBAYARAN & VERIFIKASI SETORAN PLATFORM (MIDTRANS SNAP & TRANSFER BCA)    */
         /* -------------------------------------------------------------------------- */
         function getPlatformVerificationLog() {
             try {
@@ -1045,7 +1045,6 @@
                 card.className = 'bg-slate-900 border border-amber-500/40 rounded-2xl p-4 shadow-lg flex flex-col justify-between gap-3';
             }
 
-            // Cek status pengajuan verifikasi pembayaran platform
             const verifyLog = getPlatformVerificationLog();
             const verifyBadge = document.getElementById('platformVerifyBadge');
             const pendingNote = document.getElementById('platformPendingNote');
@@ -1065,22 +1064,25 @@
 
             document.getElementById('platModalAmount').innerText = `Rp ${amount.toLocaleString('id-ID')}`;
             document.getElementById('platModalRefCode').innerText = refCode;
-            switchPlatformPayMethod('BCA');
+            switchPlatformPayMethod('MIDTRANS');
 
             const verifyLog = getPlatformVerificationLog();
             const histList = document.getElementById('platformSettlementHistoryList');
             if (verifyLog) {
+                const isDone = verifyLog.status === 'LUNAS_MIDTRANS';
                 histList.innerHTML = `
-                    <div class="bg-sky-950/40 border border-sky-500/30 rounded-lg p-2.5 text-sky-200 not-italic flex items-center justify-between gap-2">
+                    <div class="${isDone ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-200' : 'bg-sky-950/40 border-sky-500/30 text-sky-200'} border rounded-lg p-2.5 not-italic flex items-center justify-between gap-2">
                         <div>
                             <strong class="block">${escapeHtml(verifyLog.method)} • Rp ${Number(verifyLog.amount).toLocaleString('id-ID')}</strong>
-                            <span class="text-[10px] font-mono text-sky-300">Ref: ${escapeHtml(verifyLog.refCode)} • ${escapeHtml(verifyLog.submittedAt)}</span>
+                            <span class="text-[10px] font-mono opacity-80">Ref: ${escapeHtml(verifyLog.refCode)} • ${escapeHtml(verifyLog.submittedAt)}</span>
                         </div>
-                        <span class="text-[9px] font-black bg-sky-500/20 text-sky-300 px-2 py-0.5 rounded">MENUNGGU VERIFIKASI</span>
+                        <span class="text-[9px] font-black ${isDone ? 'bg-emerald-500/20 text-emerald-300' : 'bg-sky-500/20 text-sky-300'} px-2 py-0.5 rounded">
+                            ${isDone ? 'LUNAS OTOMATIS' : 'MENUNGGU VERIFIKASI'}
+                        </span>
                     </div>
                 `;
             } else {
-                histList.innerHTML = `<span class="text-slate-500 italic">Belum ada pengajuan verifikasi baru.</span>`;
+                histList.innerHTML = `<span class="text-slate-500 italic">Belum ada pengajuan pembayaran baru.</span>`;
             }
 
             document.getElementById('modalPlatformPayment').classList.remove('hidden');
@@ -1091,16 +1093,87 @@
         }
 
         function switchPlatformPayMethod(method) {
-            const isBca = method === 'BCA';
-            document.getElementById('platMethodPanel-BCA').classList.toggle('hidden', !isBca);
-            document.getElementById('platMethodPanel-MIDTRANS').classList.toggle('hidden', isBca);
+            const isMidtrans = method === 'MIDTRANS';
+            document.getElementById('platMethodPanel-MIDTRANS').classList.toggle('hidden', !isMidtrans);
+            document.getElementById('platMethodPanel-BCA').classList.toggle('hidden', isMidtrans);
 
-            document.getElementById('platMethodBtn-BCA').className = isBca
+            document.getElementById('platMethodBtn-MIDTRANS').className = isMidtrans
+                ? 'py-2 rounded-lg font-black text-xs bg-teal-500 text-slate-950 transition'
+                : 'py-2 rounded-lg font-bold text-xs text-slate-400 hover:text-white transition';
+            document.getElementById('platMethodBtn-BCA').className = !isMidtrans
                 ? 'py-2 rounded-lg font-black text-xs bg-amber-500 text-slate-950 transition'
                 : 'py-2 rounded-lg font-bold text-xs text-slate-400 hover:text-white transition';
-            document.getElementById('platMethodBtn-MIDTRANS').className = !isBca
-                ? 'py-2 rounded-lg font-black text-xs bg-amber-500 text-slate-950 transition'
-                : 'py-2 rounded-lg font-bold text-xs text-slate-400 hover:text-white transition';
+        }
+
+        /* ALGORITMA PEMBAYARAN VIA MIDTRANS SNAP (REFERENSI v10.4) */
+        async function submitPlatformMidtransPayment() {
+            if (!activeStoreId) return alert("Sesi toko tidak aktif. Silakan muat ulang halaman!");
+
+            const amount = Math.round(cachedMetrics.unpaidPlatform || 0);
+            if (amount <= 0) {
+                return alert("Tidak ada setoran komisi terutang saat ini. Status toko Anda Aman!");
+            }
+
+            const btn = document.getElementById('btnProcessMidtrans');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menghubungkan Midtrans...`;
+
+            const refCode = document.getElementById('platModalRefCode').innerText.replace('VRF-', 'MID-');
+            const nowStr = new Date().toLocaleString('id-ID');
+
+            try {
+                const res = await fetch('https://edueasy.id/api-mitra-bangunan/create-qris.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        storeId: activeStoreId,
+                        amount: amount
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success && data.token) {
+                    closePlatformPaymentModal();
+                    if (window.snap) {
+                        window.snap.pay(data.token, {
+                            onSuccess: function(result) {
+                                localStorage.setItem(`MB_PLATFORM_VERIFY_${activeStoreId}`, JSON.stringify({
+                                    method: 'Midtrans Snap',
+                                    status: 'LUNAS_MIDTRANS',
+                                    amount,
+                                    refCode,
+                                    submittedAt: nowStr
+                                }));
+                                alert(`✅ Pembayaran Berhasil sebesar Rp ${amount.toLocaleString('id-ID')}!\nLimit kasir toko langsung dibuka.`);
+                                refreshAllOwnerData();
+                            },
+                            onPending: function(result) {
+                                localStorage.setItem(`MB_PLATFORM_VERIFY_${activeStoreId}`, JSON.stringify({
+                                    method: 'Midtrans (Menunggu Bayar)',
+                                    status: 'PENDING_MIDTRANS',
+                                    amount,
+                                    refCode,
+                                    submittedAt: nowStr
+                                }));
+                                alert("Menunggu Pembayaran Diselesaikan...");
+                                refreshAllOwnerData();
+                            },
+                            onError: function(result) {
+                                alert("Pembayaran Gagal!");
+                            }
+                        });
+                    } else if (data.redirect_url) {
+                        window.open(data.redirect_url, '_blank');
+                    }
+                } else {
+                    alert("Gagal membuat transaksi Midtrans: " + (data.message || "Unknown error"));
+                }
+            } catch (e) {
+                alert("Terjadi kesalahan koneksi server: " + e.toString());
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-qrcode"></i> Buka Pembayaran Midtrans`;
+            }
         }
 
         function submitPlatformBcaVerification() {
@@ -1115,6 +1188,7 @@
             const nowStr = new Date().toLocaleString('id-ID');
             const record = {
                 method: 'Transfer BCA',
+                status: 'MENUNGGU_VERIFIKASI',
                 amount,
                 refCode,
                 senderName,
@@ -1129,78 +1203,10 @@
                 `Toko: *${storeName}* (${activeStoreId})\n` +
                 `Kode Verifikasi: *${refCode}*\n` +
                 `Nominal Transfer: *Rp ${amount.toLocaleString('id-ID')}*\n` +
-                `Rekening Tujuan: BCA 8735089123\n` +
+                `Rekening Tujuan: *BCA ${PLATFORM_BCA_REK} a.n. ${PLATFORM_BCA_NAME}*\n` +
                 `Pengirim BCA: *${senderName}*\n` +
                 (transferNote ? `Catatan: ${transferNote}\n` : '') +
                 `\n_(Silakan lampirkan foto/screenshot bukti transfer BCA di bawah pesan ini agar Admin segera memverifikasi & mereset limit toko)_`;
-
-            closePlatformPaymentModal();
-            window.open(`https://api.whatsapp.com/send?phone=${ADMIN_PLATFORM_WA}&text=${encodeURIComponent(msg)}`, '_blank');
-        }
-
-        async function submitPlatformMidtransPayment() {
-            const amount = Math.round(cachedMetrics.unpaidPlatform || 0);
-            if (amount <= 0) return alert('Tidak ada tagihan terutang saat ini.');
-
-            const payerName = document.getElementById('midtransPayerName').value.trim();
-            if (!payerName) return alert('Isi nama penanggung jawab toko terlebih dahulu!');
-
-            const btn = document.getElementById('btnProcessMidtrans');
-            btn.disabled = true;
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menghubungkan Midtrans...`;
-
-            const refCode = document.getElementById('platModalRefCode').innerText.replace('VRF-', 'MID-');
-            const nowStr = new Date().toLocaleString('id-ID');
-
-            try {
-                // Coba panggil endpoint Midtrans pada backend jika tersedia
-                const res = await fetch(GAS_WEB_APP_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'createMidtransSettlement',
-                        storeId: activeStoreId,
-                        amount,
-                        refCode,
-                        payerName
-                    })
-                });
-                const data = await res.json();
-                if (data && data.redirect_url) {
-                    localStorage.setItem(`MB_PLATFORM_VERIFY_${activeStoreId}`, JSON.stringify({
-                        method: 'Midtrans',
-                        amount,
-                        refCode,
-                        senderName: payerName,
-                        submittedAt: nowStr
-                    }));
-                    updateSettlementCardUI(amount);
-                    closePlatformPaymentModal();
-                    window.open(data.redirect_url, '_blank');
-                    return;
-                }
-            } catch (e) {
-                // Fallback ke alur verifikasi Midtrans Invoice via Admin jika Snap URL belum dikonfigurasi di server
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = `<i class="fa-solid fa-bolt"></i> Proses Pembayaran & Verifikasi Midtrans`;
-            }
-
-            localStorage.setItem(`MB_PLATFORM_VERIFY_${activeStoreId}`, JSON.stringify({
-                method: 'Midtrans (QRIS/VA)',
-                amount,
-                refCode,
-                senderName: payerName,
-                submittedAt: nowStr
-            }));
-            updateSettlementCardUI(amount);
-
-            const storeName = activeStoreObj ? activeStoreObj.name : activeStoreId;
-            const msg = `*PERMINTAAN LINK PEMBAYARAN MIDTRANS (QRIS / VA)*\n\n` +
-                `Toko: *${storeName}* (${activeStoreId})\n` +
-                `Kode Invoice: *${refCode}*\n` +
-                `Nominal Setoran: *Rp ${amount.toLocaleString('id-ID')}*\n` +
-                `PIC Toko: *${payerName}*\n\n` +
-                `Mohon kirimkan link pembayaran Midtrans QRIS / Virtual Account untuk pelunasan setoran cabang kami.`;
 
             closePlatformPaymentModal();
             window.open(`https://api.whatsapp.com/send?phone=${ADMIN_PLATFORM_WA}&text=${encodeURIComponent(msg)}`, '_blank');
@@ -1568,7 +1574,6 @@
             const prev = ledger[kasirId] || { paidVerified: 0, pendingAmount: 0 };
             const nowStr = new Date().toLocaleString('id-ID');
 
-            // Simpan status MENUNGGU VERIFIKASI KASIR (BELUM LUNAS!)
             ledger[kasirId] = {
                 paidVerified: Number(prev.paidVerified || 0),
                 pendingAmount: sisa,
