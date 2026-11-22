@@ -52,7 +52,7 @@
             </div>
 
             <div class="flex items-center gap-2">
-                <button onclick="resetAllCalculator()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 border border-slate-200">
+                <button onclick="resetAllCalculator(false)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 border border-slate-200">
                     <i class="fa-solid fa-rotate-left text-amber-600"></i> <span class="hidden sm:inline">Penawaran Baru</span>
                 </button>
                 <button onclick="openModal('modalCart')" class="bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-2 relative">
@@ -144,7 +144,6 @@
                     <span class="w-6 h-6 rounded-full bg-teal-100 text-teal-700 text-xs font-extrabold flex items-center justify-center">2</span>
                     <h2 class="font-extrabold text-sm sm:text-base text-slate-900">Hitung Material Bangunan</h2>
                 </div>
-                <!-- Tombol Tambah Material Manual & Preset -->
                 <div class="flex items-center gap-2 flex-wrap text-xs">
                     <button onclick="openCustomMaterialModal()" class="bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs px-3 py-1.5 rounded-xl shadow transition flex items-center gap-1.5">
                         <i class="fa-solid fa-plus-circle text-amber-400"></i> Tambah Material Manual / Custom
@@ -577,7 +576,7 @@
                 </div>
 
                 <!-- Header Tabel & Tombol Tambah Barang Manual -->
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between flex-wrap gap-2">
                     <span class="font-bold text-xs text-slate-700">Rincian Barang Penawaran:</span>
                     <button onclick="openCustomMaterialModal()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold text-[11px] px-3 py-1.5 rounded-xl shadow transition inline-flex items-center gap-1.5">
                         <i class="fa-solid fa-plus text-amber-400"></i> Tambah Barang Manual
@@ -624,7 +623,7 @@
                 </div>
 
                 <!-- QR CODE DISPLAY AREA -->
-                <div id="qrContainerArea" class="bg-white border-2 border-dashed border-teal-300 rounded-2xl p-4 text-center space-y-2 relative">
+                <div id="qrContainerArea" class="bg-white border-2 border-dashed border-teal-300 rounded-2xl p-4 text-center space-y-2.5 relative">
                     <span class="bg-emerald-500 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full absolute -top-3 left-1/2 transform -translate-x-1/2 shadow-sm uppercase tracking-wider">
                         <i class="fa-solid fa-bolt"></i> Live Auto QR Code
                     </span>
@@ -633,6 +632,14 @@
                     <p id="qrInstructionText" class="text-xs text-slate-600 font-medium max-w-md mx-auto">
                         Tunjukkan QR Code ini ke Kasir Toko Bangunan Mitra untuk klaim diskon / komisi Anda.
                     </p>
+                    <div class="pt-2 flex flex-wrap justify-center gap-2">
+                        <button type="button" onclick="regenerateNewQrForCurrentCart()" class="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 font-bold text-[11px] px-3 py-1.5 rounded-xl transition inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-qrcode"></i> Ganti Kode QR Baru (Item Tetap)
+                        </button>
+                        <button type="button" onclick="startFreshQuoteFromModal()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold text-[11px] px-3 py-1.5 rounded-xl shadow transition inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-circle-plus"></i> Buat Penawaran Baru (Reset)
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -640,7 +647,7 @@
                 <button onclick="clearCart()" class="text-red-600 hover:text-red-700 font-bold text-xs px-3 py-2 flex items-center gap-1">
                     <i class="fa-solid fa-trash"></i> Kosongkan Keranjang
                 </button>
-                <div class="flex gap-2">
+                <div class="flex gap-2 flex-wrap">
                     <button onclick="shareWA()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center gap-2">
                         <i class="fa-brands fa-whatsapp text-sm"></i> Kirim Rincian ke WhatsApp
                     </button>
@@ -715,7 +722,6 @@
         const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxsQQMYsvWk6R3AkPhkEURDsxFaEyUnqwFyCv500uPYvK0Y0RhPvaHXgw5OcvYeH_tC/exec";
         const STORES_CACHE_KEY = 'mb_stores_cache_v10_4';
 
-        // Selaras dengan SKEMA_DEFAULT_CONFIG di Code.gs V10.3 & Panduan Skema
         const SKEMA_FALLBACK = {
             SKEMA_1: {
                 code: 'SKEMA_1',
@@ -797,7 +803,7 @@
         let lastSyncedSignature = '';
 
         window.addEventListener('DOMContentLoaded', async function() {
-            generateTrxId();
+            generateTrxId(true);
             applyStoreLockLogic();
             const updated = await loadStoresFromGASBackground();
             if (updated) {
@@ -805,9 +811,11 @@
             }
         });
 
-        function generateTrxId() {
-            if (!currentTrxId) {
-                currentTrxId = 'MB-' + Date.now().toString().slice(-6);
+        function generateTrxId(forceNew) {
+            if (forceNew || !currentTrxId) {
+                const ts = Date.now().toString().slice(-6);
+                const rand = Math.floor(10 + Math.random() * 90);
+                currentTrxId = 'MB-' + ts + rand;
             }
         }
 
@@ -955,27 +963,62 @@
             }
         }
 
-        function resetAllCalculator() {
-            if (currentCart.length > 0 && !confirm('Kosongkan keranjang dan buat penawaran baru?')) {
+        function resetCalculatorInputsPreserveDefaults() {
+            const zeroFields = [
+                'dinPanjang', 'dinLebar', 'dinTinggi', 'dinPintu', 'dinJendela', 'dinJmlGunungan', 'dinTinggiGunungan',
+                'kerPanjang', 'kerLebar', 'plfPanjang', 'plfLebar', 'besPanjang',
+                'atpPanjang', 'atpLebar', 'atpNok', 'btnPanjang', 'btnLebar',
+                'ponPanjang', 'pvgPanjang', 'pvgLebar', 'pbPanjang', 'pbLebar', 'pbTebal'
+            ];
+            zeroFields.forEach(function(id) {
+                const el = document.getElementById(id);
+                if (el) el.value = 0;
+            });
+            document.getElementById('atpOvertek').value = 0.8;
+            document.getElementById('atpSudut').value = 30;
+            document.getElementById('besJarak').value = 15;
+            document.getElementById('btnTebal').value = 12;
+            document.getElementById('ponAtas').value = 0.3;
+            document.getElementById('ponBawah').value = 0.6;
+            document.getElementById('ponTinggi').value = 0.6;
+            document.getElementById('customItemQty').value = 1;
+        }
+
+        function resetAllCalculator(skipConfirm) {
+            if (!skipConfirm && currentCart.length > 0 && !confirm('Kosongkan keranjang dan buat penawaran baru dengan kode QR baru?')) {
                 return;
             }
 
             currentCart = [];
             currentTrxId = '';
             lastSyncedSignature = '';
-            generateTrxId();
+            generateTrxId(true);
 
-            document.querySelectorAll('input[type="number"]').forEach(function(input) {
-                input.value = 0;
-            });
-
+            resetCalculatorInputsPreserveDefaults();
             document.getElementById('custName').value = '';
             document.getElementById('custPhone').value = '';
 
             renderCartModal();
             renderQrVisualOnly();
-            showToast('Penawaran Direset', 'Semua nilai input diisi 0 dan keranjang telah dikosongkan.');
+            showToast('Penawaran Baru Siap (' + currentTrxId + ')', 'Keranjang kosong & kode QR baru sudah disiapkan tanpa refresh.');
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function startFreshQuoteFromModal() {
+            resetAllCalculator(true);
+            closeModal('modalCart');
+        }
+
+        function regenerateNewQrForCurrentCart() {
+            if (currentCart.length === 0) {
+                alert('Keranjang masih kosong. Tambahkan material terlebih dahulu.');
+                return;
+            }
+            lastSyncedSignature = '';
+            generateTrxId(true);
+            renderQrVisualOnly();
+            syncTransactionToServer();
+            showToast('Kode QR Baru Dibuat!', 'Kode transaksi diperbarui menjadi ' + currentTrxId + ' tanpa menghapus item.');
         }
 
         function selectMode(mode) {
@@ -1207,10 +1250,6 @@
             document.getElementById('dinTinggi').value = t;
             showToast('Preset Diterapkan', 'Ruangan ' + p + 'x' + l + 'x' + t + 'm telah diset.');
         }
-
-        /* -------------------------------------------------------------------------- */
-        /* KALKULATOR MATERIAL                                                       */
-        /* -------------------------------------------------------------------------- */
 
         function calcDinding() {
             const p = parseFloat(document.getElementById('dinPanjang').value) || 0;
@@ -1640,15 +1679,15 @@
             addToCart(items, 'Pasir & Batu');
         }
 
-        /* -------------------------------------------------------------------------- */
-        /* MANAJEMEN PENAWARAN (CART & AUTOMATED QR)                                 */
-        /* -------------------------------------------------------------------------- */
-
         function addToCart(items, categoryLabel) {
             const label = categoryLabel || 'Material';
             if (!items || items.length === 0) {
                 alert('Silakan masukkan nilai ukuran yang lebih besar dari 0.');
                 return;
+            }
+
+            if (currentCart.length === 0) {
+                generateTrxId(true);
             }
 
             items.forEach(function(it) {
@@ -1674,7 +1713,7 @@
 
             renderCartModal();
             scheduleAutoUpdateQR();
-            showToast(label + ' Ditambahkan!', items.length + ' jenis item berhasil ditumpuk ke keranjang.');
+            showToast(label + ' Ditambahkan!', items.length + ' jenis item berhasil masuk ke penawaran (' + currentTrxId + ').');
         }
 
         function renderCartModal() {
@@ -1745,6 +1784,11 @@
 
         function removeItem(idx) {
             currentCart.splice(idx, 1);
+            if (currentCart.length === 0) {
+                currentTrxId = '';
+                lastSyncedSignature = '';
+                generateTrxId(true);
+            }
             renderCartModal();
             scheduleAutoUpdateQR();
         }
@@ -1754,14 +1798,14 @@
                 currentCart = [];
                 currentTrxId = '';
                 lastSyncedSignature = '';
-                generateTrxId();
+                generateTrxId(true);
                 renderCartModal();
                 renderQrVisualOnly();
             }
         }
 
         function renderQrVisualOnly() {
-            generateTrxId();
+            generateTrxId(false);
             const qrBox = document.getElementById('qrCodeBox');
             qrBox.innerHTML = '';
 
@@ -1853,7 +1897,7 @@
                 return;
             }
 
-            generateTrxId();
+            generateTrxId(false);
             syncTransactionToServer();
 
             const storeSelect = document.getElementById('selectStore').value;
