@@ -79,7 +79,7 @@
             <div class="space-y-1 max-w-md mx-auto">
                 <h2 class="text-base sm:text-lg font-black text-white">Terminal Kasir Terkunci (Wajib Absensi Shift)</h2>
                 <p class="text-xs text-slate-300 leading-relaxed">
-                    Setiap kasir yang bertugas wajib memilih nama akun, memasukkan <strong>PIN Pribadi</strong>, dan mengambil <strong>Selfie Live Kamera</strong> sebelum memindai QR transaksi.
+                    Setiap kasir yang bertugas wajib memilih nama akun, memasukkan <strong>PIN Pribadi</strong>, dan mengambil <strong>Selfie Live Kamera</strong> 1 kali di awal shift sebelum memindai QR transaksi.
                 </p>
             </div>
             <button onclick="openShiftLoginModal()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-6 py-3 rounded-xl shadow-lg transition inline-flex items-center gap-2 uppercase tracking-wider">
@@ -91,9 +91,12 @@
         <div id="terminalOperationalArea" class="hidden space-y-4">
 
             <div class="bg-emerald-950/50 border border-emerald-500/30 px-4 py-2.5 rounded-xl flex flex-wrap items-center justify-between gap-2 text-xs">
-                <div class="flex items-center gap-2 text-emerald-300">
+                <div class="flex items-center gap-2 text-emerald-300 flex-wrap">
                     <i class="fa-solid fa-circle-check text-emerald-400"></i>
-                    <span>Sesi Aktif: <strong id="bannerCashierName" class="text-white">-</strong> | Absen Masuk: <span id="bannerLoginTime" class="font-mono">-</span></span>
+                    <span>Sesi Shift Aktif: <strong id="bannerCashierName" class="text-white">-</strong> | Masuk: <span id="bannerLoginTime" class="font-mono">-</span></span>
+                    <span class="text-[10px] bg-emerald-500/15 text-emerald-200 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                        Siap scan berulang tanpa input PIN ulang
+                    </span>
                 </div>
                 <div class="flex items-center gap-2">
                     <span id="bannerLogId" class="text-[10px] font-mono bg-slate-900 text-slate-300 px-2 py-0.5 rounded border border-slate-700">LOG-000000</span>
@@ -110,7 +113,7 @@
             </div>
 
             <!-- CAMERA SCANNER & INPUT MANUAL -->
-            <section class="bg-slate-800/90 rounded-2xl p-4 sm:p-5 border border-slate-700 text-center space-y-4 shadow-2xl">
+            <section id="scannerSection" class="bg-slate-800/90 rounded-2xl p-4 sm:p-5 border border-slate-700 text-center space-y-4 shadow-2xl">
                 <h2 class="font-bold text-slate-200 text-xs sm:text-sm flex items-center justify-center gap-2">
                     <i class="fa-solid fa-qrcode text-emerald-400"></i> Pindai / Scan QR Invoice Pelanggan
                 </h2>
@@ -119,7 +122,7 @@
                     <div id="reader" class="w-full"></div>
                 </div>
 
-                <div class="flex justify-center gap-2">
+                <div class="flex justify-center gap-2 flex-wrap">
                     <button id="btnStartScan" onclick="startScanner()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-lg transition flex items-center gap-1.5">
                         <i class="fa-solid fa-camera"></i> Buka Kamera HP/PC
                     </button>
@@ -303,9 +306,14 @@
                     <input type="password" id="inputShiftPin" maxlength="6" inputmode="numeric" placeholder="••••" class="w-full bg-slate-900 border border-slate-600 rounded-xl p-2.5 text-sm text-white tracking-widest font-mono focus:border-emerald-500 focus:outline-none">
                 </div>
 
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">3. Keterangan Shift (Opsional)</label>
+                    <input type="text" id="inputShiftNote" placeholder="Contoh: Shift Pagi / Ganti Shift Siang" class="w-full bg-slate-900 border border-slate-600 rounded-xl p-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none">
+                </div>
+
                 <div class="space-y-2">
                     <div class="flex items-center justify-between">
-                        <label class="block text-xs font-bold text-slate-300">3. Selfie Absensi Wajah (Live Kamera)</label>
+                        <label class="block text-xs font-bold text-slate-300">4. Selfie Absensi Wajah (Live Kamera)</label>
                         <span class="text-[10px] text-amber-400 font-semibold"><i class="fa-solid fa-shield-halved"></i> Anti-Fake</span>
                     </div>
 
@@ -491,9 +499,12 @@
 
         function restoreShiftSession() {
             try {
-                const saved = JSON.parse(localStorage.getItem('MB_SHIFT_SESSION') || 'null');
-                if (saved && saved.storeId === activeStoreId && saved.shiftToken) {
+                const raw = localStorage.getItem('MB_SHIFT_SESSION') || sessionStorage.getItem('MB_SHIFT_SESSION') || 'null';
+                const saved = JSON.parse(raw);
+                const savedStore = String((saved && saved.storeId) || '').trim().toLowerCase();
+                if (saved && savedStore === activeStoreId && saved.shiftToken) {
                     activeShiftSession = saved;
+                    activeShiftSession.storeId = activeStoreId;
                     shiftTrxCount = Number(saved.shiftTrxCount || 0);
                     shiftTotalOmzet = Number(saved.shiftTotalOmzet || 0);
                     accumulatedKasirBonus = Number(saved.accumulatedKasirBonus || 0);
@@ -507,10 +518,13 @@
 
         function persistShiftSession() {
             if (!activeShiftSession) return;
+            activeShiftSession.storeId = activeStoreId;
             activeShiftSession.shiftTrxCount = shiftTrxCount;
             activeShiftSession.shiftTotalOmzet = shiftTotalOmzet;
             activeShiftSession.accumulatedKasirBonus = accumulatedKasirBonus;
-            localStorage.setItem('MB_SHIFT_SESSION', JSON.stringify(activeShiftSession));
+            const serialized = JSON.stringify(activeShiftSession);
+            localStorage.setItem('MB_SHIFT_SESSION', serialized);
+            sessionStorage.setItem('MB_SHIFT_SESSION', serialized);
         }
 
         function updateShiftCounterUI() {
@@ -547,6 +561,7 @@
             if (!confirm("Tutup sesi shift kasir saat ini?")) return;
             stopScanner();
             localStorage.removeItem('MB_SHIFT_SESSION');
+            sessionStorage.removeItem('MB_SHIFT_SESSION');
             activeShiftSession = null;
             shiftTrxCount = 0;
             shiftTotalOmzet = 0;
@@ -554,6 +569,30 @@
             updateShiftCounterUI();
             document.getElementById('resultSection').classList.add('hidden');
             lockTerminalUI();
+        }
+
+        function prepareNextTransaction(autoStartCamera = false) {
+            currentLoadedTrx = null;
+            compressedBase64Image = "";
+            document.getElementById('manualTrxId').value = "";
+            document.getElementById('inputStrukNo').value = "";
+            document.getElementById('inputFotoStruk').value = "";
+            document.getElementById('previewContainer').classList.add('hidden');
+            document.getElementById('btnFotoLabel').innerText = "Ambil Foto Struk (Sudah Diparaf)";
+            document.getElementById('resultSection').classList.add('hidden');
+
+            const scannerEl = document.getElementById('scannerSection');
+            if (scannerEl) {
+                scannerEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            if (autoStartCamera) {
+                startScanner();
+            } else {
+                setTimeout(() => {
+                    document.getElementById('manualTrxId')?.focus();
+                }, 150);
+            }
         }
 
         async function loadBrokerDirectory() {
@@ -586,13 +625,14 @@
         }
 
         function escapeHtml(str) {
+            const amp = String.fromCharCode(38);
             const sq = String.fromCharCode(39);
             return String(str == null ? '' : str)
-                .replace(/&/g, '&')
-                .replace(/</g, '<')
-                .replace(/>/g, '>')
-                .replace(/"/g, '"')
-                .split(sq).join('&#' + '39;');
+                .replace(/&/g, amp + 'amp;')
+                .replace(/</g, amp + 'lt;')
+                .replace(/>/g, amp + 'gt;')
+                .replace(/"/g, amp + 'quot;')
+                .split(sq).join(amp + '#39;');
         }
 
         function toggleNoBrokerMode() {
@@ -708,6 +748,9 @@
             stopScanner();
             capturedSelfieBase64 = "";
             document.getElementById('inputShiftPin').value = "";
+            document.getElementById('inputShiftNote').value = activeShiftSession
+                ? `Serah Terima dari ${activeShiftSession.namaKasir}`
+                : "";
             document.getElementById('selfieSnapshotPreview').classList.add('hidden');
             document.getElementById('selfieVideo').classList.add('hidden');
             document.getElementById('selfiePlaceholder').classList.remove('hidden');
@@ -751,46 +794,46 @@
         }
 
         async function startSelfieCamera() {
-    stopSelfieCamera();
+            stopSelfieCamera();
 
-    try {
-        let stream;
-        try {
-            stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
-                audio: false
-            });
-        } catch (firstErr) {
-            stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+            try {
+                let stream;
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
+                        audio: false
+                    });
+                } catch (firstErr) {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                }
+
+                selfieMediaStream = stream;
+                const video = document.getElementById('selfieVideo');
+                video.muted = true;
+                video.playsInline = true;
+                video.srcObject = stream;
+                video.classList.remove('hidden');
+
+                await new Promise((resolve) => {
+                    if (video.readyState >= 1) return resolve();
+                    video.onloadedmetadata = () => resolve();
+                });
+
+                try {
+                    await video.play();
+                } catch (playErr) {
+                    if (playErr.name !== 'AbortError') throw playErr;
+                }
+
+                document.getElementById('selfiePlaceholder').classList.add('hidden');
+                document.getElementById('selfieSnapshotPreview').classList.add('hidden');
+                document.getElementById('btnOpenSelfieCam').classList.add('hidden');
+                document.getElementById('btnCaptureSelfie').classList.remove('hidden');
+                document.getElementById('btnRetakeSelfie').classList.add('hidden');
+            } catch (err) {
+                alert("❌ Kamera tidak dapat diakses: " + err.message);
+            }
         }
-
-        selfieMediaStream = stream;
-        const video = document.getElementById('selfieVideo');
-        video.muted = true;
-        video.playsInline = true;
-        video.srcObject = stream;
-        video.classList.remove('hidden');
-
-        await new Promise((resolve) => {
-            if (video.readyState >= 1) return resolve();
-            video.onloadedmetadata = () => resolve();
-        });
-
-        try {
-            await video.play();
-        } catch (playErr) {
-            if (playErr.name !== 'AbortError') throw playErr;
-        }
-
-        document.getElementById('selfiePlaceholder').classList.add('hidden');
-        document.getElementById('selfieSnapshotPreview').classList.add('hidden');
-        document.getElementById('btnOpenSelfieCam').classList.add('hidden');
-        document.getElementById('btnCaptureSelfie').classList.remove('hidden');
-        document.getElementById('btnRetakeSelfie').classList.add('hidden');
-    } catch (err) {
-        alert("❌ Kamera tidak dapat diakses: " + err.message);
-    }
-}
 
         function stopSelfieCamera() {
             if (selfieMediaStream) {
@@ -839,6 +882,10 @@
             const selectedName = selectEl.options[selectEl.selectedIndex] ? selectEl.options[selectEl.selectedIndex].text : '';
             const pin = document.getElementById('inputShiftPin').value.trim();
             const prevCashier = activeShiftSession ? activeShiftSession.namaKasir : 'Belum Ada (Buka Shift)';
+            const customNote = document.getElementById('inputShiftNote').value.trim();
+            const keterangan = customNote || (activeShiftSession
+                ? `Ganti Shift dari ${activeShiftSession.namaKasir}`
+                : `Buka Shift (${activeStoreName})`);
 
             if (!kasirId) return alert("Pilih nama kasir Anda terlebih dahulu!");
             if (!pin || pin.length < 4) return alert("Masukkan PIN pribadi Anda (minimal 4 digit)!");
@@ -857,6 +904,7 @@
                         kasirId,
                         pin,
                         prevCashier,
+                        keterangan,
                         selfieBase64: capturedSelfieBase64,
                         terminalToken
                     })
@@ -875,6 +923,7 @@
                     shiftToken: data.shiftToken || ('SHF-' + Date.now()),
                     logId: data.logId || ('LOG-' + Date.now().toString().slice(-6)),
                     loginTime: data.loginTime || new Date().toLocaleTimeString('id-ID'),
+                    keterangan: data.keterangan || keterangan,
                     selfieThumb: capturedSelfieBase64,
                     shiftTrxCount: 0,
                     shiftTotalOmzet: 0,
@@ -1041,7 +1090,7 @@
             if (isVerified) {
                 instCard.className = 'p-4 rounded-xl border bg-emerald-950/50 border-emerald-500/40 text-emerald-200 space-y-1';
                 instTitle.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> Transaksi Sudah Diverifikasi (${trx.strukNo || trx.No_Struk || '-'})`;
-                instText.innerText = `Diverifikasi oleh ${trx.cashierName || trx.Nama_Kasir || '-'}.`;
+                instText.innerText = `Diverifikasi oleh ${trx.cashierName || trx.Nama_Kasir || '-'}. Klik "Transaksi Berikutnya" di bawah untuk langsung memindai QR berikutnya tanpa refresh.`;
             } else if (isDiskonNota) {
                 instCard.className = 'p-4 rounded-xl border bg-teal-950/40 border-teal-500/40 text-teal-200 space-y-1';
                 instTitle.innerHTML = `<i class="fa-solid fa-tag text-teal-400"></i> Mode Pemilik Rumah — Diskon Langsung di Nota (${skema.incentivePctText})`;
@@ -1085,6 +1134,8 @@
                     currentLoadedTrx.tukangPhone = tPhone;
                     btnsHtml += `<button onclick="sendBrokerVerificationWa()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs px-4 py-3 rounded-xl shadow-lg transition flex items-center gap-1.5"><i class="fa-brands fa-whatsapp text-sm"></i> Kirim Link Konfirmasi Komisi Tukang</button>`;
                 }
+                btnsHtml += `<button type="button" onclick="prepareNextTransaction(false)" class="bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs px-4 py-3 rounded-xl border border-slate-500 transition flex items-center gap-1.5"><i class="fa-solid fa-keyboard"></i> Input ID Berikutnya</button>`;
+                btnsHtml += `<button type="button" onclick="prepareNextTransaction(true)" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-4 py-3 rounded-xl shadow-lg transition flex items-center gap-1.5"><i class="fa-solid fa-camera"></i> Scan QR Berikutnya</button>`;
                 actionBtns.innerHTML = btnsHtml;
             } else {
                 authBox.classList.remove('hidden');
