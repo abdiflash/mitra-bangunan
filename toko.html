@@ -2168,4 +2168,1053 @@
                 const omzet = Number(t.grandTotal || 0);
                 const inc = pickNumeric(t.incentiveVal, Math.round(omzet * sk.incentiveRate));
                 const ksr = pickNumeric(t.kasirBonusVal, Math.round(omzet * sk.kasirRate));
-                const plt = pickNumeric(
+                const plt = pickNumeric(t.creatorFeeVal, Math.round(omzet * sk.creatorRate));
+                const isDiskon = isDiskonNotaTrx(t);
+                const verified = isVerifiedStatus(t);
+                const stUpper = String(t.status || 'PENDING').toUpperCase();
+
+                let statusBadge = `<span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-bold">${escapeHtml(stUpper)}</span>`;
+                if (stUpper.includes('REJECT') || stUpper.includes('TOLAK') || stUpper.includes('BATAL')) {
+                    statusBadge = `<span class="text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2 py-0.5 rounded-full font-bold">${escapeHtml(stUpper)}</span>`;
+                } else if (verified) {
+                    statusBadge = `<span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">${escapeHtml(stUpper)}</span>`;
+                }
+
+                const modeBadge = isDiskon
+                    ? `<span class="text-[10px] bg-teal-500/20 text-teal-300 border border-teal-500/30 px-1.5 py-0.5 rounded font-bold">DISKON NOTA</span>`
+                    : `<span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded font-bold">KOMISI TUKANG</span>`;
+
+                const actorName = isDiskon
+                    ? (t.custName || t.tukangName || 'Pembeli Langsung')
+                    : (t.tukangName || 'Tukang / Mandor');
+                const actorSub = isDiskon
+                    ? (t.custPhone ? formatDisplayWa(t.custPhone) : 'Potongan langsung di nota')
+                    : (t.tukangPhone || t.brokerPhone ? formatDisplayWa(t.tukangPhone || t.brokerPhone) : '-');
+
+                const rawStrukUrl = String(t.strukUrl || t.photoUrl || t.imageUrl || '').trim();
+                const hasStruk = rawStrukUrl && rawStrukUrl !== '-';
+
+                return `
+                    <tr class="hover:bg-slate-950/60 transition">
+                        <td class="p-2.5">
+                            <strong class="font-mono text-[11px] text-white block">${escapeHtml(t.id || '-')}</strong>
+                            <span class="text-[10px] text-slate-400">${escapeHtml(t.date || '-')}</span>
+                        </td>
+                        <td class="p-2.5">
+                            <span class="font-mono text-[11px] text-amber-300 block">No: ${escapeHtml(t.strukNo || '-')}</span>
+                            <span class="text-[10px] text-slate-400">Kasir: ${escapeHtml(t.cashierName || '-')}</span>
+                        </td>
+                        <td class="p-2.5">
+                            <div class="mb-0.5">${modeBadge}</div>
+                            <strong class="text-xs text-slate-200 block">${escapeHtml(actorName)}</strong>
+                            <span class="text-[10px] text-slate-400 font-mono">${escapeHtml(actorSub)}</span>
+                        </td>
+                        <td class="p-2.5 text-right font-mono font-bold text-white">
+                            Rp ${Math.round(omzet).toLocaleString('id-ID')}
+                        </td>
+                        <td class="p-2.5 text-right font-mono">
+                            <strong class="${isDiskon ? 'text-teal-400' : 'text-amber-400'} block">Rp ${Math.round(inc).toLocaleString('id-ID')}</strong>
+                            <span class="text-[9px] text-slate-500 block">Ksr: Rp ${Math.round(ksr).toLocaleString('id-ID')} • Plt: Rp ${Math.round(plt).toLocaleString('id-ID')}</span>
+                        </td>
+                        <td class="p-2.5 text-center">${statusBadge}</td>
+                        <td class="p-2.5 text-center">
+                            ${hasStruk
+                                ? `<button data-title="Struk ${escapeHtml(t.strukNo || t.id || '')}" data-url="${escapeHtml(rawStrukUrl)}" onclick="openImageModal(this.dataset.title, this.dataset.url)" class="bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 text-[11px] font-bold px-2.5 py-1 rounded-lg inline-flex items-center gap-1"><i class="fa-solid fa-receipt"></i> Lihat</button>`
+                                : `<span class="text-[10px] text-slate-600">-</span>`}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function exportTransactionsCsv() {
+            const filtered = getFilteredTransactions();
+            if (filtered.length === 0) {
+                alert('Tidak ada data transaksi pada filter saat ini untuk diekspor.');
+                return;
+            }
+            const headers = ['ID_Transaksi', 'Tanggal', 'No_Struk', 'Kasir', 'Kategori', 'Nama_Tukang_Pembeli', 'No_WA', 'Omzet', 'Potongan_Komisi', 'Bonus_Kasir', 'Fee_Platform', 'Status'];
+            const rows = filtered.map(t => {
+                const sk = resolveSkema(t.skemaDetail || t.skema || activeSkema);
+                const omzet = Number(t.grandTotal || 0);
+                const inc = pickNumeric(t.incentiveVal, Math.round(omzet * sk.incentiveRate));
+                const ksr = pickNumeric(t.kasirBonusVal, Math.round(omzet * sk.kasirRate));
+                const plt = pickNumeric(t.creatorFeeVal, Math.round(omzet * sk.creatorRate));
+                const isDiskon = isDiskonNotaTrx(t);
+                return [
+                    t.id || '',
+                    t.date || '',
+                    t.strukNo || '',
+                    t.cashierName || '',
+                    isDiskon ? 'DISKON_NOTA' : 'KOMISI_TUKANG',
+                    isDiskon ? (t.custName || t.tukangName || '') : (t.tukangName || ''),
+                    normalizeIndoWa(t.tukangPhone || t.brokerPhone || t.custPhone || ''),
+                    Math.round(omzet),
+                    Math.round(inc),
+                    Math.round(ksr),
+                    Math.round(plt),
+                    t.status || ''
+                ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(',');
+            });
+
+            const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Transaksi_${activeStoreId}_${new Date().toISOString().slice(0, 10)}.csv`;
+            link.click();
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* DIREKTORI TUKANG & PEMBELI LANGSUNG                                        */
+        /* -------------------------------------------------------------------------- */
+        function renderOwnerBrokersTable() {
+            const verifiedTrx = storeTransactions.filter(isVerifiedStatus);
+            const brokerMap = new Map();
+
+            storeBrokers.forEach(b => {
+                const phone = normalizeIndoWa(b.phone || b.noWa || b.tukangPhone || '');
+                const name = String(b.name || b.tukangName || 'Tukang').trim();
+                const key = phone || name.toLowerCase();
+                if (!key) return;
+                brokerMap.set(key, {
+                    name,
+                    phone,
+                    projects: Number(b.projects || b.totalTrx || 0),
+                    omzet: Number(b.totalOmzet || b.omzet || 0),
+                    komisi: Number(b.totalKomisi || b.komisi || 0),
+                    note: String(b.note || b.catatan || '-')
+                });
+            });
+
+            if (brokerMap.size === 0) {
+                verifiedTrx.filter(t => !isDiskonNotaTrx(t)).forEach(t => {
+                    const sk = resolveSkema(t.skemaDetail || t.skema || activeSkema);
+                    const omzet = Number(t.grandTotal || 0);
+                    const inc = pickNumeric(t.incentiveVal, Math.round(omzet * sk.incentiveRate));
+                    const phone = normalizeIndoWa(t.tukangPhone || t.brokerPhone || '');
+                    const name = String(t.tukangName || 'Tukang / Mandor').trim();
+                    const key = phone || name.toLowerCase();
+                    if (!brokerMap.has(key)) {
+                        brokerMap.set(key, { name, phone, projects: 0, omzet: 0, komisi: 0, note: '-' });
+                    }
+                    const entry = brokerMap.get(key);
+                    entry.projects += 1;
+                    entry.omzet += omzet;
+                    entry.komisi += inc;
+                });
+            }
+
+            const rankedBrokers = Array.from(brokerMap.values()).sort((a, b) => b.omzet - a.omzet);
+
+            // Update Hint di KPI & Top 3 di Analisa Pertumbuhan
+            const topHintEl = document.getElementById('kpiTopBrokerHint');
+            if (topHintEl) {
+                topHintEl.innerText = rankedBrokers.length > 0
+                    ? `Top Tukang: ${rankedBrokers[0].name} (Rp ${Math.round(rankedBrokers[0].omzet).toLocaleString('id-ID')})`
+                    : 'Top Tukang: -';
+            }
+
+            const compactListEl = document.getElementById('compactTopBrokersList');
+            if (compactListEl) {
+                if (rankedBrokers.length === 0) {
+                    compactListEl.innerHTML = `<p class="text-[11px] text-slate-500 italic">Belum ada data tukang pembawa proyek.</p>`;
+                } else {
+                    compactListEl.innerHTML = rankedBrokers.slice(0, 3).map((b, idx) => `
+                        <div class="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-2 flex items-center justify-between gap-2">
+                            <div class="min-w-0">
+                                <span class="text-[10px] font-black text-amber-400 mr-1">#${idx + 1}</span>
+                                <strong class="text-xs text-white truncate">${escapeHtml(b.name)}</strong>
+                                <span class="text-[10px] text-slate-400 block">${b.projects} proyek</span>
+                            </div>
+                            <strong class="text-xs font-mono text-emerald-400 shrink-0">Rp ${Math.round(b.omzet).toLocaleString('id-ID')}</strong>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            // Render Tabel Utama Direktori Tukang
+            const tbody = document.getElementById('ownerBrokersTableBody');
+            const q = (document.getElementById('filterBrokerOwnerInput').value || '').toLowerCase().trim();
+            const filteredBrokers = rankedBrokers.filter(b =>
+                !q || b.name.toLowerCase().includes(q) || b.phone.includes(q)
+            );
+
+            if (filteredBrokers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500">Belum ada data tukang / mandor pembawa proyek.</td></tr>`;
+            } else {
+                tbody.innerHTML = filteredBrokers.map((b, idx) => {
+                    const storeName = activeStoreObj ? activeStoreObj.name : activeStoreId;
+                    const waText = encodeURIComponent(`Halo Pak ${b.name}, terima kasih telah mempercayakan belanja material proyek di *${storeName}*. Total omzet proyek Bapak sudah Rp ${Math.round(b.omzet).toLocaleString('id-ID')}. Jika ada kebutuhan proyek baru silakan kabari kami!`);
+                    return `
+                        <tr class="hover:bg-slate-950/60">
+                            <td class="p-3">
+                                <span class="text-[10px] font-black bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded mr-1.5">#${idx + 1}</span>
+                                <strong class="text-white">${escapeHtml(b.name)}</strong>
+                            </td>
+                            <td class="p-3 font-mono text-slate-300">${escapeHtml(formatDisplayWa(b.phone))}</td>
+                            <td class="p-3 text-center font-bold text-white">${b.projects}</td>
+                            <td class="p-3 text-right font-mono font-bold text-emerald-400">Rp ${Math.round(b.omzet).toLocaleString('id-ID')}</td>
+                            <td class="p-3 text-right font-mono text-amber-300">Rp ${Math.round(b.komisi).toLocaleString('id-ID')}</td>
+                            <td class="p-3 text-slate-400 text-[11px]">${escapeHtml(b.note || '-')}</td>
+                            <td class="p-3 text-center">
+                                ${b.phone
+                                    ? `<a href="https://api.whatsapp.com/send?phone=${b.phone}&text=${waText}" target="_blank" rel="noopener noreferrer" class="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold px-2.5 py-1 rounded-lg inline-flex items-center gap-1"><i class="fa-brands fa-whatsapp"></i> Sapa WA</a>`
+                                    : `<span class="text-slate-600">-</span>`}
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            // Render Rekap Pembeli Langsung (Mode Diskon Nota)
+            const homeBody = document.getElementById('ownerHomeownersTableBody');
+            const buyerMap = new Map();
+            verifiedTrx.filter(isDiskonNotaTrx).forEach(t => {
+                const sk = resolveSkema(t.skemaDetail || t.skema || activeSkema);
+                const omzet = Number(t.grandTotal || 0);
+                const inc = pickNumeric(t.incentiveVal, Math.round(omzet * sk.incentiveRate));
+                const bName = String(t.custName || t.tukangName || 'Pembeli Langsung').trim();
+                const key = bName.toLowerCase();
+                if (!buyerMap.has(key)) {
+                    buyerMap.set(key, { name: bName, count: 0, omzet: 0, diskon: 0, lastDate: t.date || '-' });
+                }
+                const entry = buyerMap.get(key);
+                entry.count += 1;
+                entry.omzet += omzet;
+                entry.diskon += inc;
+                if (t.date) entry.lastDate = t.date;
+            });
+
+            const buyersList = Array.from(buyerMap.values()).sort((a, b) => b.omzet - a.omzet);
+            if (buyersList.length === 0) {
+                homeBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">Belum ada transaksi diskon nota.</td></tr>`;
+            } else {
+                homeBody.innerHTML = buyersList.map(b => `
+                    <tr class="hover:bg-slate-950/60">
+                        <td class="p-3 font-bold text-white">${escapeHtml(b.name)}</td>
+                        <td class="p-3 text-center text-slate-300">${b.count}x</td>
+                        <td class="p-3 text-right font-mono font-bold text-white">Rp ${Math.round(b.omzet).toLocaleString('id-ID')}</td>
+                        <td class="p-3 text-right font-mono text-teal-400">Rp ${Math.round(b.diskon).toLocaleString('id-ID')}</td>
+                        <td class="p-3 text-right text-[11px] text-slate-400">${escapeHtml(b.lastDate)}</td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* NAVIGASI TAB, LINK KASIR & REKAP TUTUP BUKU HARIAN                         */
+        /* -------------------------------------------------------------------------- */
+        function switchOwnerTab(tabKey) {
+            document.querySelectorAll('.owner-tab-panel').forEach(panel => panel.classList.add('hidden'));
+            const activePanel = document.getElementById(`tabPanel-${tabKey}`);
+            if (activePanel) activePanel.classList.remove('hidden');
+
+            document.querySelectorAll('.owner-tab-btn').forEach(btn => {
+                btn.className = 'owner-tab-btn bg-slate-800 text-slate-300 hover:bg-slate-700 font-bold text-xs px-3.5 py-2 rounded-xl transition';
+            });
+            const activeBtn = document.getElementById(`tabBtn-${tabKey}`);
+            if (activeBtn) {
+                activeBtn.className = 'owner-tab-btn bg-amber-500 text-slate-950 font-black text-xs px-3.5 py-2 rounded-xl transition';
+            }
+        }
+
+        function copyKasirTerminalLink() {
+            if (!activeStoreId) return alert("Pilih cabang toko terlebih dahulu!");
+            const baseUrl = window.location.href.split('?')[0].replace(/toko\.html$/i, 'kasir.html');
+            const kasirUrl = `${baseUrl}?s=${encodeURIComponent(activeStoreId)}`;
+            copyTextValue(kasirUrl, 'Link Terminal Kasir');
+        }
+
+        let latestDailyClosingSummaryText = "";
+
+        function openDailyClosingModal() {
+            const now = new Date();
+            const todayStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+            const todayTrx = storeTransactions.filter(t => {
+                if (!isVerifiedStatus(t)) return false;
+                const d = parseTrxDateObj(t.date);
+                return d && d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+            });
+
+            let omzet = 0, diskon = 0, komisi = 0, kasir = 0, platform = 0;
+            todayTrx.forEach(t => {
+                const sk = resolveSkema(t.skemaDetail || t.skema || activeSkema);
+                const g = Number(t.grandTotal || 0);
+                const inc = pickNumeric(t.incentiveVal, Math.round(g * sk.incentiveRate));
+                const ksr = pickNumeric(t.kasirBonusVal, Math.round(g * sk.kasirRate));
+                const plt = pickNumeric(t.creatorFeeVal, Math.round(g * sk.creatorRate));
+                omzet += g;
+                kasir += ksr;
+                platform += plt;
+                if (isDiskonNotaTrx(t)) diskon += inc;
+                else komisi += inc;
+            });
+
+            const storeName = activeStoreObj ? activeStoreObj.name : activeStoreId;
+            latestDailyClosingSummaryText =
+                `*REKAP TUTUP BUKU HARIAN*\n` +
+                `Toko: *${storeName}*\n` +
+                `Tanggal: *${todayStr}*\n\n` +
+                `• Transaksi Sah: *${todayTrx.length} Trx*\n` +
+                `• Total Omzet QR: *Rp ${Math.round(omzet).toLocaleString('id-ID')}*\n` +
+                `• Diskon Nota: *Rp ${Math.round(diskon).toLocaleString('id-ID')}*\n` +
+                `• Komisi Tukang: *Rp ${Math.round(komisi).toLocaleString('id-ID')}*\n` +
+                `• Bonus Kasir: *Rp ${Math.round(kasir).toLocaleString('id-ID')}*\n` +
+                `• Fee Platform: *Rp ${Math.round(platform).toLocaleString('id-ID')}*`;
+
+            document.getElementById('dailyClosingBody').innerHTML = `
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2">
+                    <div class="flex justify-between text-slate-400"><span>Cabang Toko:</span><strong class="text-white">${escapeHtml(storeName)}</strong></div>
+                    <div class="flex justify-between text-slate-400"><span>Tanggal Tutup Buku:</span><strong class="text-amber-300 font-mono">${todayStr}</strong></div>
+                    <div class="flex justify-between text-slate-400"><span>Transaksi Sah Hari Ini:</span><strong class="text-emerald-400 font-mono">${todayTrx.length} Trx</strong></div>
+                </div>
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2 font-mono">
+                    <div class="flex justify-between"><span class="text-slate-400 font-sans">Total Omzet QR:</span><strong class="text-white text-sm">Rp ${Math.round(omzet).toLocaleString('id-ID')}</strong></div>
+                    <div class="flex justify-between"><span class="text-slate-400 font-sans">Diskon Nota Pembeli:</span><strong class="text-teal-400">Rp ${Math.round(diskon).toLocaleString('id-ID')}</strong></div>
+                    <div class="flex justify-between"><span class="text-slate-400 font-sans">Komisi Tukang/Broker:</span><strong class="text-amber-400">Rp ${Math.round(komisi).toLocaleString('id-ID')}</strong></div>
+                    <div class="flex justify-between"><span class="text-slate-400 font-sans">Hak Bonus Kasir:</span><strong class="text-blue-400">Rp ${Math.round(kasir).toLocaleString('id-ID')}</strong></div>
+                    <div class="flex justify-between border-t border-slate-800 pt-1.5"><span class="text-slate-400 font-sans">Fee Platform Hari Ini:</span><strong class="text-slate-200">Rp ${Math.round(platform).toLocaleString('id-ID')}</strong></div>
+                </div>
+            `;
+            document.getElementById('modalDailyClosing').classList.remove('hidden');
+        }
+
+        function closeDailyClosingModal() {
+            document.getElementById('modalDailyClosing').classList.add('hidden');
+        }
+
+        function shareDailyClosingWA() {
+            if (!latestDailyClosingSummaryText) return;
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(latestDailyClosingSummaryText)}`, '_blank');
+        }
+
+        /* ========================================================================== */
+        /* MODUL UPLOAD XLS/XLSX/CSV & MANAJEMEN HARGA MATERIAL TOKO                  */
+        /* ========================================================================== */
+        const DEFAULT_STANDARD_53_MATERIALS = [
+            // 1. Pondasi (6)
+            { kode: 'STD-001', kategori: 'Pondasi', nama: 'Batu Kali / Batu Belah', spesifikasi: 'Batu belah pondasi standar', satuan: 'm3', harga: 280000, tipe: 'STANDARD_53' },
+            { kode: 'STD-002', kategori: 'Pondasi', nama: 'Pasir Pasang / Pasir Urug', spesifikasi: 'Pasir pasang sungai bersih', satuan: 'm3', harga: 270000, tipe: 'STANDARD_53' },
+            { kode: 'STD-003', kategori: 'Pondasi', nama: 'Semen Portland 50kg', spesifikasi: 'PCC 50kg (Tiga Roda / Gresik)', satuan: 'sak', harga: 68000, tipe: 'STANDARD_53' },
+            { kode: 'STD-004', kategori: 'Pondasi', nama: 'Besi Beton Polos 8mm', spesifikasi: 'SNI Panjang 12m', satuan: 'batang', harga: 52000, tipe: 'STANDARD_53' },
+            { kode: 'STD-005', kategori: 'Pondasi', nama: 'Besi Beton Ulir 10mm', spesifikasi: 'SNI Panjang 12m', satuan: 'batang', harga: 82000, tipe: 'STANDARD_53' },
+            { kode: 'STD-006', kategori: 'Pondasi', nama: 'Kawat Bendrat / Kawat Beton', spesifikasi: 'Kawat ikat besi standar', satuan: 'kg', harga: 22000, tipe: 'STANDARD_53' },
+
+            // 2. Cor Dak (7)
+            { kode: 'STD-007', kategori: 'Cor Dak', nama: 'Batu Split / Koral Cor 1-2', spesifikasi: 'Batu pecah mesin 1/2 cm', satuan: 'm3', harga: 310000, tipe: 'STANDARD_53' },
+            { kode: 'STD-008', kategori: 'Cor Dak', nama: 'Pasir Cor / Pasir Beton', spesifikasi: 'Pasir beton kasar SNI', satuan: 'm3', harga: 300000, tipe: 'STANDARD_53' },
+            { kode: 'STD-009', kategori: 'Cor Dak', nama: 'Besi Beton Ulir 13mm', spesifikasi: 'SNI Panjang 12m', satuan: 'batang', harga: 138000, tipe: 'STANDARD_53' },
+            { kode: 'STD-010', kategori: 'Cor Dak', nama: 'Wiremesh M8 (2.1m x 5.4m)', spesifikasi: 'Besi ulir 8mm SNI', satuan: 'lembar', harga: 620000, tipe: 'STANDARD_53' },
+            { kode: 'STD-011', kategori: 'Cor Dak', nama: 'Bondek Galvalum 0.75mm', spesifikasi: 'Lebar efektif 1m', satuan: 'm1', harga: 135000, tipe: 'STANDARD_53' },
+            { kode: 'STD-012', kategori: 'Cor Dak', nama: 'Multiplek Bekisting 9mm', spesifikasi: 'Ukuran 122cm x 244cm', satuan: 'lembar', harga: 125000, tipe: 'STANDARD_53' },
+            { kode: 'STD-013', kategori: 'Cor Dak', nama: 'Kasau Kayu Bekisting 4/6', spesifikasi: 'Kayu meranti / borneo 4m', satuan: 'batang', harga: 35000, tipe: 'STANDARD_53' },
+
+            // 3. Dinding (8)
+            { kode: 'STD-014', kategori: 'Dinding', nama: 'Bata Ringan Hebel 7.5cm', spesifikasi: 'Ukuran 60x20x7.5cm (111 pcs/m3)', satuan: 'm3', harga: 630000, tipe: 'STANDARD_53' },
+            { kode: 'STD-015', kategori: 'Dinding', nama: 'Bata Ringan Hebel 10cm', spesifikasi: 'Ukuran 60x20x10cm (83 pcs/m3)', satuan: 'm3', harga: 630000, tipe: 'STANDARD_53' },
+            { kode: 'STD-016', kategori: 'Dinding', nama: 'Bata Merah Press', spesifikasi: 'Bata merah bakar standar', satuan: 'pcs', harga: 950, tipe: 'STANDARD_53' },
+            { kode: 'STD-017', kategori: 'Dinding', nama: 'Batako Press Semen', spesifikasi: 'Ukuran 40x20x10cm', satuan: 'pcs', harga: 3500, tipe: 'STANDARD_53' },
+            { kode: 'STD-018', kategori: 'Dinding', nama: 'Semen Mortar Perekat Hebel 40kg', spesifikasi: 'Thinbed MU-380 / Powerbond', satuan: 'sak', harga: 92000, tipe: 'STANDARD_53' },
+            { kode: 'STD-019', kategori: 'Dinding', nama: 'Semen Mortar Plesteran 40kg', spesifikasi: 'Plester instan MU-301', satuan: 'sak', harga: 68000, tipe: 'STANDARD_53' },
+            { kode: 'STD-020', kategori: 'Dinding', nama: 'Semen Mortar Acian 40kg', spesifikasi: 'Acian abu/putih MU-200', satuan: 'sak', harga: 85000, tipe: 'STANDARD_53' },
+            { kode: 'STD-021', kategori: 'Dinding', nama: 'Besi Kolom Praktis 6mm', spesifikasi: 'Besi beton 6mm SNI 12m', satuan: 'batang', harga: 34000, tipe: 'STANDARD_53' },
+
+            // 4. Atap (7)
+            { kode: 'STD-022', kategori: 'Atap', nama: 'Kanal C Baja Ringan C75.75', spesifikasi: 'Galvalum SNI Panjang 6m', satuan: 'batang', harga: 92000, tipe: 'STANDARD_53' },
+            { kode: 'STD-023', kategori: 'Atap', nama: 'Reng Baja Ringan 0.45mm', spesifikasi: 'Galvalum SNI Panjang 6m', satuan: 'batang', harga: 44000, tipe: 'STANDARD_53' },
+            { kode: 'STD-024', kategori: 'Atap', nama: 'Genteng Metal Pasir 2x4', spesifikasi: 'Tebal 0.30mm anti karat', satuan: 'lembar', harga: 48000, tipe: 'STANDARD_53' },
+            { kode: 'STD-025', kategori: 'Atap', nama: 'Spandek Galvalum Polos 0.30mm', spesifikasi: 'Lebar efektif 1m', satuan: 'm1', harga: 54000, tipe: 'STANDARD_53' },
+            { kode: 'STD-026', kategori: 'Atap', nama: 'Spandek Pasir Peredam 0.35mm', spesifikasi: 'Lebar efektif 1m', satuan: 'm1', harga: 72000, tipe: 'STANDARD_53' },
+            { kode: 'STD-027', kategori: 'Atap', nama: 'Nok / Bubungan Genteng Metal', spesifikasi: 'Panjang 80cm berpasir', satuan: 'pcs', harga: 32000, tipe: 'STANDARD_53' },
+            { kode: 'STD-028', kategori: 'Atap', nama: 'Sekrup Roofing Baja Ringan 12x20', spesifikasi: 'Self drilling screw + karet', satuan: 'pcs', harga: 350, tipe: 'STANDARD_53' },
+
+            // 5. Lantai (6)
+            { kode: 'STD-029', kategori: 'Lantai', nama: 'Keramik Lantai 40x40 Polos/Motif', spesifikasi: 'KW1 (1 dus = 1 m2 / 6 keping)', satuan: 'dus', harga: 58000, tipe: 'STANDARD_53' },
+            { kode: 'STD-030', kategori: 'Lantai', nama: 'Granit Tile 60x60 Polished', spesifikasi: 'Homogeneous tile (1 dus = 1.44 m2)', satuan: 'dus', harga: 155000, tipe: 'STANDARD_53' },
+            { kode: 'STD-031', kategori: 'Lantai', nama: 'Keramik Dinding Kamar Mandi 25x40', spesifikasi: 'KW1 (1 dus = 1 m2)', satuan: 'dus', harga: 62000, tipe: 'STANDARD_53' },
+            { kode: 'STD-032', kategori: 'Lantai', nama: 'Semen Nat Keramik 1kg', spesifikasi: 'AM / Sika berbagai warna', satuan: 'bungkus', harga: 15000, tipe: 'STANDARD_53' },
+            { kode: 'STD-033', kategori: 'Lantai', nama: 'Perekat Keramik / Granit 25kg', spesifikasi: 'Tile adhesive MU-400 / Sika', satuan: 'sak', harga: 110000, tipe: 'STANDARD_53' },
+            { kode: 'STD-034', kategori: 'Lantai', nama: 'Plint Granit 10x60', spesifikasi: 'Lis dinding lantai bevel', satuan: 'pcs', harga: 18000, tipe: 'STANDARD_53' },
+
+            // 6. Paving Block (4)
+            { kode: 'STD-035', kategori: 'Paving Block', nama: 'Paving Block Bata T6cm K250', spesifikasi: '20x10x6cm (44 pcs/m2)', satuan: 'm2', harga: 88000, tipe: 'STANDARD_53' },
+            { kode: 'STD-036', kategori: 'Paving Block', nama: 'Paving Block Hexagon T6cm', spesifikasi: 'Segi enam press hidrolik', satuan: 'm2', harga: 95000, tipe: 'STANDARD_53' },
+            { kode: 'STD-037', kategori: 'Paving Block', nama: 'Kanstin Beton Pembatas', spesifikasi: 'Ukuran 40x20x10cm', satuan: 'pcs', harga: 24000, tipe: 'STANDARD_53' },
+            { kode: 'STD-038', kategori: 'Paving Block', nama: 'Abu Batu / Pasir Urug Paving', spesifikasi: 'Alas perata paving block', satuan: 'm3', harga: 250000, tipe: 'STANDARD_53' },
+
+            // 7. Cat (5)
+            { kode: 'STD-039', kategori: 'Cat', nama: 'Cat Tembok Interior 25kg (Pail)', spesifikasi: 'Catylac / Vinilex / Nippon', satuan: 'pail', harga: 640000, tipe: 'STANDARD_53' },
+            { kode: 'STD-040', kategori: 'Cat', nama: 'Cat Tembok Interior 5kg (Galon)', spesifikasi: 'Catylac / Vinilex / Nippon', satuan: 'galon', harga: 145000, tipe: 'STANDARD_53' },
+            { kode: 'STD-041', kategori: 'Cat', nama: 'Cat Tembok Eksterior Weatherproof 2.5L', spesifikasi: 'Dulux Weathershield / Mowilex', satuan: 'kaleng', harga: 245000, tipe: 'STANDARD_53' },
+            { kode: 'STD-042', kategori: 'Cat', nama: 'Cat Dasar Alkali Sealer 2.5L', spesifikasi: 'Primer anti lembab & jamur', satuan: 'kaleng', harga: 135000, tipe: 'STANDARD_53' },
+            { kode: 'STD-043', kategori: 'Cat', nama: 'Plamir Tembok / Dempul 5kg', spesifikasi: 'Matex Putty / RJ London', satuan: 'galon', harga: 65000, tipe: 'STANDARD_53' },
+
+            // 8. Pipa & Sanitasi (5)
+            { kode: 'STD-044', kategori: 'Pipa & Sanitasi', nama: 'Pipa PVC AW 1/2 Inch (4m)', spesifikasi: 'Rucika / Wavin air bersih', satuan: 'batang', harga: 28000, tipe: 'STANDARD_53' },
+            { kode: 'STD-045', kategori: 'Pipa & Sanitasi', nama: 'Pipa PVC AW 3/4 Inch (4m)', spesifikasi: 'Rucika / Wavin air bersih', satuan: 'batang', harga: 36000, tipe: 'STANDARD_53' },
+            { kode: 'STD-046', kategori: 'Pipa & Sanitasi', nama: 'Pipa PVC D 3 Inch (4m)', spesifikasi: 'Rucika / Wavin air kotor', satuan: 'batang', harga: 82000, tipe: 'STANDARD_53' },
+            { kode: 'STD-047', kategori: 'Pipa & Sanitasi', nama: 'Pipa PVC D 4 Inch (4m)', spesifikasi: 'Rucika / Wavin saluran utama', satuan: 'batang', harga: 128000, tipe: 'STANDARD_53' },
+            { kode: 'STD-048', kategori: 'Pipa & Sanitasi', nama: 'Lem Pipa PVC Kaleng 400gr', spesifikasi: 'Isarplas / Rucika TrueGlue', satuan: 'kaleng', harga: 52000, tipe: 'STANDARD_53' },
+
+            // 9. Kelistrikan (5)
+            { kode: 'STD-049', kategori: 'Kelistrikan', nama: 'Kabel NYM 2x1.5mm (Roll 50m)', spesifikasi: 'Eterna / Supreme SNI LMK', satuan: 'roll', harga: 385000, tipe: 'STANDARD_53' },
+            { kode: 'STD-050', kategori: 'Kelistrikan', nama: 'Kabel NYM 3x2.5mm (Roll 50m)', spesifikasi: 'Eterna / Supreme SNI LMK', satuan: 'roll', harga: 645000, tipe: 'STANDARD_53' },
+            { kode: 'STD-051', kategori: 'Kelistrikan', nama: 'Pipa Conduit Listrik 20mm (2.9m)', spesifikasi: 'Clipsal / Boss putih', satuan: 'batang', harga: 11500, tipe: 'STANDARD_53' },
+            { kode: 'STD-052', kategori: 'Kelistrikan', nama: 'Stop Kontak Tanam + Inbow Dus', spesifikasi: 'Broco / Panasonic SNI', satuan: 'pcs', harga: 24000, tipe: 'STANDARD_53' },
+            { kode: 'STD-053', kategori: 'Kelistrikan', nama: 'Saklar Tunggal / Seri Tanam', spesifikasi: 'Broco / Panasonic SNI', satuan: 'pcs', harga: 21000, tipe: 'STANDARD_53' }
+        ];
+
+        let storeCatalogItems = [];
+        let catalogHasUnsavedChanges = false;
+
+        function cloneDefaultStandardMaterials() {
+            return DEFAULT_STANDARD_53_MATERIALS.map(item => ({
+                kode: item.kode,
+                kategori: item.kategori,
+                nama: item.nama,
+                spesifikasi: item.spesifikasi,
+                satuan: item.satuan,
+                harga: Number(item.harga || 0),
+                tipe: 'STANDARD_53',
+                isModified: false
+            }));
+        }
+
+        function normalizeCatalogItem(raw, fallbackIdx = 1) {
+            const rawCode = String(
+                raw.kode || raw.code || raw.Kode_Material || raw.Kode || raw.id || ''
+            ).trim().toUpperCase();
+            const isStdCode = rawCode.startsWith('STD-');
+            const rawTipe = String(raw.tipe || raw.type || raw.Tipe || '').trim().toUpperCase();
+            const tipe = (rawTipe === 'STANDARD_53' || isStdCode) ? 'STANDARD_53' : 'CUSTOM_TOKO';
+            const kode = rawCode || `CST-${String(fallbackIdx).padStart(3, '0')}`;
+
+            return {
+                kode,
+                kategori: String(raw.kategori || raw.category || raw.Kategori || 'Umum').trim() || 'Umum',
+                nama: String(raw.nama || raw.name || raw.Nama_Material || raw.Nama || '').trim(),
+                spesifikasi: String(raw.spesifikasi || raw.spec || raw.merk || raw.Spesifikasi_Merk || '').trim(),
+                satuan: String(raw.satuan || raw.unit || raw.Satuan || 'pcs').trim() || 'pcs',
+                harga: Math.max(0, Math.round(Number(raw.harga ?? raw.price ?? raw.Harga_Satuan_Toko ?? raw.Harga ?? 0) || 0)),
+                tipe,
+                isModified: Boolean(raw.isModified)
+            };
+        }
+
+        function mergeServerCatalogWithStandard(serverList) {
+            const normalized = serverList
+                .map((item, idx) => normalizeCatalogItem(item, idx + 1))
+                .filter(item => item.nama);
+
+            // Jika server sudah menyimpan katalog lengkap toko, gunakan langsung sambil menjaga struktur standar
+            if (normalized.length >= 10) {
+                return normalized;
+            }
+
+            // Jika server hanya menyimpan sebagian item override/custom, gabungkan dengan 53 material standar
+            const map = new Map();
+            cloneDefaultStandardMaterials().forEach(std => {
+                map.set(std.kode.toUpperCase(), std);
+            });
+
+            normalized.forEach(item => {
+                const key = item.kode.toUpperCase();
+                if (map.has(key)) {
+                    const existing = map.get(key);
+                    existing.harga = item.harga;
+                    if (item.spesifikasi) existing.spesifikasi = item.spesifikasi;
+                    if (item.satuan) existing.satuan = item.satuan;
+                    if (item.kategori) existing.kategori = item.kategori;
+                    if (item.nama) existing.nama = item.nama;
+                } else {
+                    map.set(key, item);
+                }
+            });
+
+            return Array.from(map.values());
+        }
+
+        function setCatalogDirtyState(isDirty, customSummary = '') {
+            catalogHasUnsavedChanges = Boolean(isDirty);
+            const banner = document.getElementById('catalogUnsavedBanner');
+            const summaryEl = document.getElementById('catalogUnsavedSummary');
+            const saveBtn = document.getElementById('btnSaveStoreCatalog');
+
+            if (banner) {
+                banner.classList.toggle('hidden', !catalogHasUnsavedChanges);
+            }
+            if (summaryEl && customSummary) {
+                summaryEl.innerText = customSummary;
+            } else if (summaryEl && catalogHasUnsavedChanges) {
+                summaryEl.innerText = 'Ada perubahan harga / item katalog yang belum disimpan ke database.';
+            }
+            if (saveBtn) {
+                saveBtn.classList.toggle('ring-2', catalogHasUnsavedChanges);
+                saveBtn.classList.toggle('ring-amber-400', catalogHasUnsavedChanges);
+            }
+        }
+
+        async function loadStoreCatalog() {
+            const tbody = document.getElementById('storeCatalogTableBody');
+            const storeTagEl = document.getElementById('catalogStoreIdTag');
+            if (storeTagEl) storeTagEl.innerText = activeStoreId || '-';
+
+            if (!activeStoreId) {
+                storeCatalogItems = cloneDefaultStandardMaterials();
+                populateCatalogCategoryFilter();
+                renderCatalogTable();
+                return;
+            }
+
+            if (tbody) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin mr-1.5 text-amber-400"></i> Memuat katalog harga material toko...</td></tr>`;
+            }
+
+            let loadedList = null;
+
+            try {
+                const url = `${GAS_WEB_APP_URL}?action=getStoreCatalog&storeId=${encodeURIComponent(activeStoreId)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                const rawArr = Array.isArray(data)
+                    ? data
+                    : (data.catalog || data.items || data.materials || data.data || []);
+
+                if (Array.isArray(rawArr) && rawArr.length > 0) {
+                    loadedList = mergeServerCatalogWithStandard(rawArr);
+                    localStorage.setItem(`MB_STORE_CATALOG_${activeStoreId}`, JSON.stringify(loadedList));
+                }
+            } catch (err) {
+                console.warn('Fallback ke cache/default katalog:', err);
+            }
+
+            if (!loadedList) {
+                try {
+                    const cachedRaw = localStorage.getItem(`MB_STORE_CATALOG_${activeStoreId}`);
+                    if (cachedRaw) {
+                        const parsed = JSON.parse(cachedRaw);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            loadedList = mergeServerCatalogWithStandard(parsed);
+                        }
+                    }
+                } catch (e) { /* abaikan error parse localStorage */ }
+            }
+
+            storeCatalogItems = loadedList || cloneDefaultStandardMaterials();
+            setCatalogDirtyState(false);
+            populateCatalogCategoryFilter();
+            renderCatalogTable();
+        }
+
+        function discardCatalogChanges() {
+            if (!confirm('Batalkan perubahan yang belum disimpan dan muat ulang daftar harga dari database?')) return;
+            loadStoreCatalog();
+        }
+
+        function populateCatalogCategoryFilter() {
+            const sel = document.getElementById('filterCatalogCategory');
+            if (!sel) return;
+            const prev = sel.value || 'ALL';
+            const cats = Array.from(new Set(storeCatalogItems.map(i => i.kategori).filter(Boolean))).sort();
+            sel.innerHTML = `<option value="ALL">Semua Kategori (${cats.length})</option>` +
+                cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+            sel.value = cats.includes(prev) ? prev : 'ALL';
+        }
+
+        function updateCatalogBadges(filteredCount) {
+            const total = storeCatalogItems.length;
+            const stdCount = storeCatalogItems.filter(i => i.tipe === 'STANDARD_53').length;
+            const customCount = total - stdCount;
+
+            const totalEl = document.getElementById('catalogTotalBadge');
+            const stdEl = document.getElementById('catalogStdBadge');
+            const customEl = document.getElementById('catalogCustomBadge');
+            const infoEl = document.getElementById('catalogFilteredCountInfo');
+
+            if (totalEl) totalEl.innerText = `${total} Item`;
+            if (stdEl) stdEl.innerText = `${stdCount} Standar`;
+            if (customEl) customEl.innerText = `${customCount} Custom`;
+            if (infoEl) infoEl.innerText = `${filteredCount} dari ${total} item ditampilkan`;
+        }
+
+        function renderCatalogTable() {
+            const tbody = document.getElementById('storeCatalogTableBody');
+            if (!tbody) return;
+
+            const catFilter = document.getElementById('filterCatalogCategory')?.value || 'ALL';
+            const typeFilter = document.getElementById('filterCatalogType')?.value || 'ALL';
+            const q = (document.getElementById('filterCatalogSearch')?.value || '').toLowerCase().trim();
+
+            const indexed = storeCatalogItems.map((item, idx) => ({ item, idx }));
+            const filtered = indexed.filter(({ item }) => {
+                if (catFilter !== 'ALL' && item.kategori !== catFilter) return false;
+                if (typeFilter !== 'ALL' && item.tipe !== typeFilter) return false;
+                if (!q) return true;
+                return item.kode.toLowerCase().includes(q) ||
+                    item.kategori.toLowerCase().includes(q) ||
+                    item.nama.toLowerCase().includes(q) ||
+                    item.spesifikasi.toLowerCase().includes(q) ||
+                    item.satuan.toLowerCase().includes(q);
+            });
+
+            updateCatalogBadges(filtered.length);
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">Tidak ada material yang sesuai dengan filter pencarian.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(({ item, idx }) => {
+                const isStd = item.tipe === 'STANDARD_53';
+                const tipeBadge = isStd
+                    ? `<span class="text-[9px] font-bold bg-teal-500/15 text-teal-300 border border-teal-500/30 px-1.5 py-0.5 rounded">STD</span>`
+                    : `<span class="text-[9px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded">CUSTOM</span>`;
+
+                const rowHighlight = item.isModified ? 'bg-amber-950/20' : 'hover:bg-slate-950/60';
+
+                return `
+                    <tr class="${rowHighlight} transition">
+                        <td class="p-2.5 align-top">
+                            <span class="font-mono text-[11px] font-bold ${isStd ? 'text-teal-300' : 'text-amber-300'} block">${escapeHtml(item.kode)}</span>
+                            ${item.isModified ? `<span class="text-[9px] text-amber-400 font-semibold">• Diubah</span>` : ''}
+                        </td>
+                        <td class="p-2.5 align-top">
+                            <span class="text-xs font-semibold text-slate-200 block mb-1">${escapeHtml(item.kategori)}</span>
+                            ${tipeBadge}
+                        </td>
+                        <td class="p-2.5 align-top space-y-1 min-w-[220px]">
+                            <input type="text"
+                                value="${escapeHtml(item.nama)}"
+                                onchange="onCatalogFieldEdit(${idx}, 'nama', this.value)"
+                                class="w-full bg-slate-950/80 border border-slate-800 hover:border-slate-700 focus:border-amber-400 rounded-lg px-2 py-1 text-xs font-bold text-white focus:outline-none">
+                            <input type="text"
+                                value="${escapeHtml(item.spesifikasi)}"
+                                placeholder="Spesifikasi / merk lokal..."
+                                onchange="onCatalogFieldEdit(${idx}, 'spesifikasi', this.value)"
+                                class="w-full bg-slate-950/50 border border-slate-800/80 hover:border-slate-700 focus:border-amber-400 rounded-lg px-2 py-0.5 text-[11px] text-slate-400 focus:text-slate-200 focus:outline-none">
+                        </td>
+                        <td class="p-2.5 align-top">
+                            <input type="text"
+                                value="${escapeHtml(item.satuan)}"
+                                onchange="onCatalogFieldEdit(${idx}, 'satuan', this.value)"
+                                class="w-20 bg-slate-950 border border-slate-800 hover:border-slate-700 focus:border-amber-400 rounded-lg px-2 py-1 text-xs text-center text-slate-200 focus:outline-none">
+                        </td>
+                        <td class="p-2.5 align-top text-right">
+                            <div class="inline-flex items-center justify-end gap-1 bg-slate-950 border ${item.isModified ? 'border-amber-500/60' : 'border-slate-700'} rounded-lg px-2 py-1 focus-within:border-emerald-400">
+                                <span class="text-[10px] text-slate-500 font-mono">Rp</span>
+                                <input type="number"
+                                    min="0"
+                                    step="100"
+                                    value="${Math.round(Number(item.harga || 0))}"
+                                    onchange="onCatalogFieldEdit(${idx}, 'harga', this.value)"
+                                    class="w-28 bg-transparent text-right font-mono font-bold text-xs text-emerald-300 focus:outline-none">
+                            </div>
+                        </td>
+                        <td class="p-2.5 align-top text-center">
+                            <button onclick="deleteCatalogItem(${idx})" class="bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 text-[11px] font-bold px-2 py-1 rounded-lg transition" title="Hapus item dari katalog toko">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function onCatalogFieldEdit(index, field, rawValue) {
+            const item = storeCatalogItems[index];
+            if (!item) return;
+
+            if (field === 'harga') {
+                const parsed = Math.max(0, Math.round(Number(rawValue) || 0));
+                if (item.harga === parsed) return;
+                item.harga = parsed;
+            } else if (field === 'nama') {
+                const clean = String(rawValue || '').trim();
+                if (!clean) {
+                    alert('Nama material tidak boleh kosong!');
+                    renderCatalogTable();
+                    return;
+                }
+                item.nama = clean;
+            } else if (field === 'satuan') {
+                item.satuan = String(rawValue || '').trim() || 'pcs';
+            } else if (field === 'spesifikasi') {
+                item.spesifikasi = String(rawValue || '').trim();
+            }
+
+            item.isModified = true;
+            setCatalogDirtyState(true);
+            renderCatalogTable();
+        }
+
+        function deleteCatalogItem(index) {
+            const item = storeCatalogItems[index];
+            if (!item) return;
+            if (!confirm(`Hapus "${item.nama}" (${item.kode}) dari daftar harga toko?`)) return;
+
+            storeCatalogItems.splice(index, 1);
+            setCatalogDirtyState(true, `Item "${item.nama}" dihapus. Klik "Simpan ke Database" untuk menerapkan.`);
+            populateCatalogCategoryFilter();
+            renderCatalogTable();
+        }
+
+        function generateNextCustomCatalogCode() {
+            let maxNum = 0;
+            storeCatalogItems.forEach(item => {
+                const m = String(item.kode || '').match(/^CST-(\d+)$/i);
+                if (m) {
+                    const n = parseInt(m[1], 10);
+                    if (n > maxNum) maxNum = n;
+                }
+            });
+            return `CST-${String(maxNum + 1).padStart(3, '0')}`;
+        }
+
+        function openAddCatalogItemModal() {
+            document.getElementById('newCatCode').value = '';
+            document.getElementById('newCatCategory').value = '';
+            document.getElementById('newCatName').value = '';
+            document.getElementById('newCatSpec').value = '';
+            document.getElementById('newCatUnit').value = '';
+            document.getElementById('newCatPrice').value = '';
+            document.getElementById('modalAddCatalogItem').classList.remove('hidden');
+        }
+
+        function closeAddCatalogItemModal() {
+            document.getElementById('modalAddCatalogItem').classList.add('hidden');
+        }
+
+        function confirmAddCatalogItem() {
+            const rawCode = document.getElementById('newCatCode').value.trim().toUpperCase();
+            const kategori = document.getElementById('newCatCategory').value.trim() || 'Umum';
+            const nama = document.getElementById('newCatName').value.trim();
+            const spesifikasi = document.getElementById('newCatSpec').value.trim();
+            const satuan = document.getElementById('newCatUnit').value.trim();
+            const harga = Math.round(Number(document.getElementById('newCatPrice').value) || 0);
+
+            if (!nama) return alert('Nama Material wajib diisi!');
+            if (!satuan) return alert('Satuan wajib diisi (contoh: sak, m3, dus, batang, pcs)!');
+            if (harga < 0) return alert('Harga satuan tidak boleh negatif!');
+
+            const kode = rawCode || generateNextCustomCatalogCode();
+            if (storeCatalogItems.some(i => i.kode.toUpperCase() === kode)) {
+                return alert(`Kode Material "${kode}" sudah ada di daftar! Gunakan kode lain atau kosongkan agar dibuat otomatis.`);
+            }
+
+            storeCatalogItems.unshift({
+                kode,
+                kategori,
+                nama,
+                spesifikasi,
+                satuan,
+                harga,
+                tipe: kode.startsWith('STD-') ? 'STANDARD_53' : 'CUSTOM_TOKO',
+                isModified: true
+            });
+
+            closeAddCatalogItemModal();
+            setCatalogDirtyState(true, `Item baru "${nama}" (${kode}) ditambahkan. Klik "Simpan ke Database" untuk menyimpan.`);
+            populateCatalogCategoryFilter();
+            renderCatalogTable();
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* EKSPOR & IMPOR EXCEL (.XLSX / .XLS / .CSV) HARGA MATERIAL                  */
+        /* -------------------------------------------------------------------------- */
+        function downloadCatalogExcel() {
+            if (typeof XLSX === 'undefined') {
+                return alert('Pustaka Excel (SheetJS) belum termuat. Periksa koneksi internet lalu muat ulang halaman.');
+            }
+            if (storeCatalogItems.length === 0) {
+                return alert('Belum ada data material untuk diunduh.');
+            }
+
+            const rows = storeCatalogItems.map(item => ({
+                Kode_Material: item.kode,
+                Kategori: item.kategori,
+                Nama_Material: item.nama,
+                Spesifikasi_Merk: item.spesifikasi,
+                Satuan: item.satuan,
+                Harga_Satuan_Toko: Math.round(Number(item.harga || 0)),
+                Tipe: item.tipe
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(rows);
+            ws['!cols'] = [
+                { wch: 15 },
+                { wch: 18 },
+                { wch: 36 },
+                { wch: 34 },
+                { wch: 12 },
+                { wch: 20 },
+                { wch: 15 }
+            ];
+
+            const guideRows = [
+                { Panduan: '1. Ubah angka pada kolom Harga_Satuan_Toko sesuai harga jual toko Anda (angka saja tanpa Rp/titik).' },
+                { Panduan: '2. Anda juga dapat menyesuaikan kolom Spesifikasi_Merk sesuai merk yang tersedia di toko.' },
+                { Panduan: '3. Untuk menambah item baru toko, tambahkan baris di bawah dengan Kode_Material kosong atau CST-xxx.' },
+                { Panduan: '4. Simpan file (.xlsx / .xls / .csv), lalu unggah kembali di menu Upload XLS/XLSX dan klik Simpan ke Database.' }
+            ];
+            const wsGuide = XLSX.utils.json_to_sheet(guideRows);
+            wsGuide['!cols'] = [{ wch: 95 }];
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Harga_Material_Toko');
+            XLSX.utils.book_append_sheet(wb, wsGuide, 'Panduan_Pengisian');
+
+            const storeSlug = (activeStoreId || 'toko').replace(/[^a-z0-9_-]/gi, '_');
+            const dateSlug = new Date().toISOString().slice(0, 10);
+            XLSX.writeFile(wb, `Harga_Material_${storeSlug}_${dateSlug}.xlsx`);
+        }
+
+        function handleCatalogDrop(event) {
+            event.preventDefault();
+            const dropZone = document.getElementById('catalogDropZone');
+            if (dropZone) {
+                dropZone.classList.remove('border-emerald-400', 'bg-emerald-950/20');
+            }
+            const files = event.dataTransfer && event.dataTransfer.files;
+            if (!files || files.length === 0) return;
+            processCatalogExcelFile(files[0]);
+        }
+
+        function handleCatalogExcelUpload(event) {
+            const files = event.target && event.target.files;
+            if (!files || files.length === 0) return;
+            const file = files[0];
+            processCatalogExcelFile(file, () => {
+                event.target.value = '';
+            });
+        }
+
+        function parseExcelPrice(rawVal) {
+            if (rawVal === undefined || rawVal === null || rawVal === '') return NaN;
+            if (typeof rawVal === 'number') {
+                return isNaN(rawVal) ? NaN : Math.max(0, Math.round(rawVal));
+            }
+            let str = String(rawVal).trim();
+            if (!str) return NaN;
+            str = str.replace(/rp/gi, '').replace(/\s+/g, '');
+
+            // Format Rupiah Indonesia: 68.500 atau 1.250.000,00
+            if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(str)) {
+                str = str.split(',')[0].replace(/\./g, '');
+            } else if (/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(str)) {
+                // Format ribuan koma: 68,500 atau 1,250,000.00
+                str = str.split('.')[0].replace(/,/g, '');
+            } else {
+                str = str.replace(/[^0-9.-]/g, '');
+            }
+
+            const num = Number(str);
+            return isNaN(num) ? NaN : Math.max(0, Math.round(num));
+        }
+
+        function normalizeExcelRowKeys(rowObj) {
+            const mapped = {};
+            Object.keys(rowObj || {}).forEach(origKey => {
+                const normKey = String(origKey)
+                    .toLowerCase()
+                    .trim()
+                    .replace(/[^a-z0-9]+/g, '_')
+                    .replace(/^_+|_+$/g, '');
+                mapped[normKey] = rowObj[origKey];
+            });
+            return mapped;
+        }
+
+        function processCatalogExcelFile(file, onDone) {
+            if (typeof XLSX === 'undefined') {
+                alert('Pustaka pembaca Excel (SheetJS) belum termuat. Periksa koneksi internet Anda.');
+                if (onDone) onDone();
+                return;
+            }
+
+            const ext = (file.name.split('.').pop() || '').toLowerCase();
+            if (!['xlsx', 'xls', 'csv'].includes(ext)) {
+                alert('Format file tidak didukung. Unggah file berformat .xlsx, .xls, atau .csv.');
+                if (onDone) onDone();
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    if (!firstSheetName) {
+                        throw new Error('File Excel tidak memiliki sheet data.');
+                    }
+
+                    const sheet = workbook.Sheets[firstSheetName];
+                    const rawRows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+                    if (!Array.isArray(rawRows) || rawRows.length === 0) {
+                        throw new Error('Sheet pertama pada file Excel kosong.');
+                    }
+
+                    const byCodeMap = new Map();
+                    const byNameMap = new Map();
+                    storeCatalogItems.forEach((item, idx) => {
+                        byCodeMap.set(item.kode.toUpperCase(), idx);
+                        byNameMap.set(item.nama.toLowerCase(), idx);
+                    });
+
+                    let updatedCount = 0;
+                    let addedCount = 0;
+                    let skippedCount = 0;
+
+                    rawRows.forEach(rawRow => {
+                        const r = normalizeExcelRowKeys(rawRow);
+                        const kodeRaw = String(r.kode_material ?? r.kode ?? r.code ?? r.id ?? '').trim().toUpperCase();
+                        const kategoriRaw = String(r.kategori ?? r.category ?? r.kelompok ?? '').trim();
+                        const namaRaw = String(r.nama_material ?? r.nama ?? r.name ?? r.material ?? r.nama_barang ?? '').trim();
+                        const specRaw = String(r.spesifikasi_merk ?? r.spesifikasi ?? r.merk ?? r.spec ?? r.keterangan ?? '').trim();
+                        const satuanRaw = String(r.satuan ?? r.unit ?? '').trim();
+                        const hargaVal = parseExcelPrice(
+                            r.harga_satuan_toko ?? r.harga_satuan ?? r.harga ?? r.price ?? r.harga_toko ?? r.nominal
+                        );
+
+                        if (!kodeRaw && !namaRaw) {
+                            skippedCount += 1;
+                            return;
+                        }
+
+                        let targetIdx = undefined;
+                        if (kodeRaw && byCodeMap.has(kodeRaw)) {
+                            targetIdx = byCodeMap.get(kodeRaw);
+                        } else if (namaRaw && byNameMap.has(namaRaw.toLowerCase())) {
+                            targetIdx = byNameMap.get(namaRaw.toLowerCase());
+                        }
+
+                        if (targetIdx !== undefined) {
+                            const existing = storeCatalogItems[targetIdx];
+                            let changed = false;
+
+                            if (!isNaN(hargaVal) && existing.harga !== hargaVal) {
+                                existing.harga = hargaVal;
+                                changed = true;
+                            }
+                            if (kategoriRaw && existing.kategori !== kategoriRaw) {
+                                existing.kategori = kategoriRaw;
+                                changed = true;
+                            }
+                            if (namaRaw && existing.nama !== namaRaw) {
+                                existing.nama = namaRaw;
+                                changed = true;
+                            }
+                            if (specRaw && existing.spesifikasi !== specRaw) {
+                                existing.spesifikasi = specRaw;
+                                changed = true;
+                            }
+                            if (satuanRaw && existing.satuan !== satuanRaw) {
+                                existing.satuan = satuanRaw;
+                                changed = true;
+                            }
+
+                            if (changed) {
+                                existing.isModified = true;
+                                updatedCount += 1;
+                            }
+                        } else if (namaRaw) {
+                            const newKode = kodeRaw || generateNextCustomCatalogCode();
+                            const newItem = {
+                                kode: newKode,
+                                kategori: kategoriRaw || 'Umum',
+                                nama: namaRaw,
+                                spesifikasi: specRaw,
+                                satuan: satuanRaw || 'pcs',
+                                harga: isNaN(hargaVal) ? 0 : hargaVal,
+                                tipe: newKode.startsWith('STD-') ? 'STANDARD_53' : 'CUSTOM_TOKO',
+                                isModified: true
+                            };
+                            storeCatalogItems.push(newItem);
+                            const newIdx = storeCatalogItems.length - 1;
+                            byCodeMap.set(newKode.toUpperCase(), newIdx);
+                            byNameMap.set(namaRaw.toLowerCase(), newIdx);
+                            addedCount += 1;
+                        } else {
+                            skippedCount += 1;
+                        }
+                    });
+
+                    if (updatedCount === 0 && addedCount === 0) {
+                        alert(`File "${file.name}" berhasil dibaca, namun tidak ada perubahan harga atau item baru yang terdeteksi (${skippedCount} baris dilewati).`);
+                    } else {
+                        const summaryMsg = `File "${file.name}" berhasil diimpor: ${updatedCount} item diperbarui, ${addedCount} item baru ditambahkan. Klik "Simpan ke Database" untuk menerbitkan ke kalkulator pembeli.`;
+                        setCatalogDirtyState(true, summaryMsg);
+                        populateCatalogCategoryFilter();
+                        renderCatalogTable();
+                        alert(`✅ Impor Excel Berhasil!\n• Diperbarui: ${updatedCount} item\n• Ditambahkan: ${addedCount} item baru\n\nJangan lupa klik tombol hijau "Simpan ke Database" agar harga langsung aktif di halaman pembeli.`);
+                    }
+                } catch (err) {
+                    alert('❌ Gagal membaca file Excel: ' + (err.message || String(err)));
+                } finally {
+                    if (onDone) onDone();
+                }
+            };
+
+            reader.onerror = function() {
+                alert('❌ Gagal membuka file dari perangkat Anda.');
+                if (onDone) onDone();
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        async function saveStoreCatalogToServer() {
+            if (!activeStoreId) return alert('Pilih cabang toko terlebih dahulu!');
+
+            const btn = document.getElementById('btnSaveStoreCatalog');
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...`;
+
+            const cleanCatalog = storeCatalogItems.map((item, idx) => ({
+                kode: String(item.kode || `CST-${String(idx + 1).padStart(3, '0')}`).trim().toUpperCase(),
+                kategori: String(item.kategori || 'Umum').trim(),
+                nama: String(item.nama || '').trim(),
+                spesifikasi: String(item.spesifikasi || '').trim(),
+                satuan: String(item.satuan || 'pcs').trim(),
+                harga: Math.max(0, Math.round(Number(item.harga || 0))),
+                tipe: item.tipe === 'STANDARD_53' ? 'STANDARD_53' : 'CUSTOM_TOKO'
+            })).filter(i => i.nama);
+
+            // Simpan cache lokal terlebih dahulu agar data aman
+            localStorage.setItem(`MB_STORE_CATALOG_${activeStoreId}`, JSON.stringify(cleanCatalog));
+
+            try {
+                const res = await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'saveStoreCatalog',
+                        storeId: activeStoreId,
+                        ownerPin: verifiedOwnerPin,
+                        catalog: cleanCatalog,
+                        items: cleanCatalog
+                    })
+                });
+                const data = await res.json();
+
+                if (!data.success) {
+                    alert('❌ Gagal menyimpan katalog ke server: ' + (data.message || 'Error tidak diketahui'));
+                    return;
+                }
+
+                storeCatalogItems = cleanCatalog.map(item => Object.assign({}, item, { isModified: false }));
+                setCatalogDirtyState(false);
+                populateCatalogCategoryFilter();
+                renderCatalogTable();
+                alert(`✅ Database harga material toko (${storeCatalogItems.length} item) berhasil disimpan ke server dan langsung aktif di kalkulator pembeli!`);
+            } catch (err) {
+                alert('❌ Gangguan koneksi saat menyimpan ke server: ' + (err.message || String(err)));
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        }
+    </script>
+</body>
+</html>
