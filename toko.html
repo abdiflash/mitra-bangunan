@@ -1,0 +1,1903 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:,">
+    <title>Dashboard Pemilik Toko - Mitra Bangunan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Chart.js untuk Grafik Pertumbuhan Omzet -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0B1120; }
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 999px; }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen pb-14">
+
+    <!-- TOP HEADER -->
+    <header class="bg-slate-900/95 backdrop-blur border-b border-slate-800 sticky top-0 z-30 shadow-xl">
+        <div class="max-w-6xl mx-auto px-4 py-3.5 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center text-slate-950 font-black text-lg shadow-lg shadow-amber-500/20 shrink-0">
+                    <i class="fa-solid fa-store"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <h1 class="font-extrabold text-sm sm:text-base text-white">Portal Pemilik Toko</h1>
+                        <span id="ownerSkemaBadge" class="text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 px-2.5 py-0.5 rounded-full">SKEMA_1</span>
+                    </div>
+                    <p id="ownerStoreSubtitle" class="text-[11px] text-amber-400 font-semibold">Menghubungkan ke server...</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 flex-wrap">
+                <select id="storeSelectorDropdown" onchange="onSelectStoreChange()" class="bg-slate-800 border border-slate-700 text-xs font-bold text-white rounded-xl px-3 py-2 focus:border-amber-400 focus:outline-none">
+                    <option value="">Memuat Cabang Toko...</option>
+                </select>
+                <button onclick="openDailyClosingModal()" class="bg-slate-800 hover:bg-slate-700 border border-amber-500/40 text-amber-300 font-bold text-xs px-3 py-2 rounded-xl transition inline-flex items-center gap-1.5">
+                    <i class="fa-solid fa-clipboard-check"></i> <span class="hidden sm:inline">Tutup Buku</span>
+                </button>
+                <button onclick="copyKasirTerminalLink()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-emerald-300 font-bold text-xs px-3 py-2 rounded-xl transition inline-flex items-center gap-1.5">
+                    <i class="fa-solid fa-link"></i> <span class="hidden sm:inline">Link Kasir</span>
+                </button>
+                <button onclick="refreshAllOwnerData()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs px-3.5 py-2 rounded-xl transition inline-flex items-center gap-1.5 shadow-lg">
+                    <i class="fa-solid fa-rotate"></i> Refresh
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 mt-5 space-y-5">
+
+        <!-- BANNER INFO / ERROR SERVER -->
+        <div id="serverNoticeBanner" class="hidden bg-rose-950/90 border border-rose-500 text-rose-200 p-4 rounded-2xl space-y-1 shadow-xl">
+            <div class="flex items-center gap-2 text-rose-300 font-bold text-xs">
+                <i class="fa-solid fa-triangle-exclamation text-base text-rose-400"></i>
+                <span id="serverNoticeTitle">Peringatan Koneksi Server</span>
+            </div>
+            <p id="serverNoticeDetail" class="text-[11px] text-rose-200 font-mono break-all"></p>
+        </div>
+
+        <!-- GERBANG LOGIN PIN PEMILIK TOKO -->
+        <section id="ownerPinGate" class="hidden bg-slate-900 border-2 border-amber-500/50 rounded-2xl p-6 max-w-md mx-auto text-center space-y-4 shadow-2xl">
+            <div class="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center text-2xl mx-auto">
+                <i class="fa-solid fa-key"></i>
+            </div>
+            <div class="space-y-1">
+                <h2 class="text-base font-black text-white">Verifikasi PIN Pemilik Toko</h2>
+                <p id="pinGateStoreName" class="text-xs text-amber-400 font-bold">-</p>
+                <p class="text-[11px] text-slate-400">Masukkan PIN Pemilik Toko sesuai data di sheet <code class="text-slate-200">Toko_Mitra</code>.</p>
+            </div>
+            <input type="password" id="inputOwnerPin" maxlength="8" inputmode="numeric" onkeypress="if(event.key==='Enter') verifyOwnerPin()" placeholder="Masukkan PIN Pemilik..." class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-center text-base font-mono tracking-widest text-white focus:border-amber-400 focus:outline-none">
+            <button onclick="verifyOwnerPin()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs py-3 rounded-xl shadow-lg transition uppercase tracking-wider">
+                Buka Dashboard Toko
+            </button>
+        </section>
+
+        <!-- KONTEN DASHBOARD UTAMA PEMILIK TOKO -->
+        <div id="ownerDashboardContent" class="hidden space-y-5">
+
+            <!-- BANNER SKEMA KEMITRAAN -->
+            <section class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border border-slate-700/80 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-wrap items-center justify-between gap-4">
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] uppercase tracking-wider font-bold text-slate-400">Konfigurasi Skema Aktif</span>
+                        <span id="skemaLabelBadge" class="text-xs font-extrabold text-emerald-400">SKEMA_1 (Default)</span>
+                    </div>
+                    <p id="ownerStoreAddress" class="text-xs text-slate-300">Rincian persentase insentif & biaya layanan otomatis pada setiap transaksi QR terverifikasi:</p>
+                </div>
+                <div class="grid grid-cols-3 gap-2.5 w-full sm:w-auto">
+                    <div class="bg-slate-950/80 border border-amber-500/30 px-3.5 py-2 rounded-xl text-center">
+                        <span class="text-[10px] text-amber-300 block font-semibold">Diskon / Tukang</span>
+                        <strong id="skemaIncentiveText" class="text-sm font-black text-amber-400 font-mono">1%</strong>
+                    </div>
+                    <div class="bg-slate-950/80 border border-blue-500/30 px-3.5 py-2 rounded-xl text-center">
+                        <span class="text-[10px] text-blue-300 block font-semibold">Bonus Kasir</span>
+                        <strong id="skemaKasirText" class="text-sm font-black text-blue-400 font-mono">0,2%</strong>
+                    </div>
+                    <div class="bg-slate-950/80 border border-slate-700 px-3.5 py-2 rounded-xl text-center">
+                        <span class="text-[10px] text-slate-400 block font-semibold">Fee Platform</span>
+                        <strong id="skemaCreatorText" class="text-sm font-black text-slate-200 font-mono">0,8%</strong>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PANEL KEWAJIBAN SALDO (KASIR & PLATFORM - WAJIB DIBAYARKAN) -->
+            <section class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <!-- 1. SALDO KOMISI KASIR (WAJIB DIBAYARKAN) -->
+                <div class="bg-slate-900 border-2 border-blue-500/40 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col justify-between space-y-3">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-black uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/40 px-2 py-0.5 rounded-full">
+                                Wajib Dibayarkan ke Kasir
+                            </span>
+                            <h2 class="text-sm font-extrabold text-white pt-1">
+                                <i class="fa-solid fa-user-check text-blue-400 mr-1"></i> Saldo Komisi / Bonus Kasir
+                            </h2>
+                            <p class="text-[11px] text-slate-400">Akumulasi insentif verifikasi struk yang menjadi hak kasir toko.</p>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <span class="text-[10px] text-slate-400 block">Total Hak Kasir:</span>
+                            <strong id="kpiTotalKasirBonus" class="text-lg sm:text-xl font-black text-blue-400 font-mono">Rp 0</strong>
+                        </div>
+                    </div>
+
+                    <div id="cashierPayableSummaryList" class="bg-slate-950/90 border border-slate-800 rounded-xl p-2.5 space-y-1.5 text-xs max-h-28 overflow-y-auto custom-scroll">
+                        <p class="text-slate-500 text-[11px] italic">Memuat rincian hak per kasir...</p>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-1 gap-2">
+                        <span id="kpiKasirSubLabel" class="text-[11px] text-slate-400">Insentif verifikasi (0,2%)</span>
+                        <button onclick="switchOwnerTab('cashiers')" class="bg-blue-500 hover:bg-blue-400 text-slate-950 font-black text-xs px-3.5 py-2 rounded-xl shadow transition inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-money-bill-wave"></i> Kelola & Bayar Kasir
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. SALDO KOMISI PLATFORM (WAJIB DIBAYARKAN) -->
+                <div id="settlementAlertCard" class="bg-slate-900 border-2 border-amber-500/40 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col justify-between space-y-3">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full">
+                                    Wajib Dibayarkan ke Platform
+                                </span>
+                                <span id="storeStatusBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">TERMINAL AKTIF</span>
+                            </div>
+                            <h2 class="text-sm font-extrabold text-white pt-1">
+                                <i class="fa-solid fa-wallet text-amber-400 mr-1"></i> Saldo Komisi Terutang Platform
+                            </h2>
+                            <p class="text-[11px] text-slate-400">Limit kredit Rp 500.000. Jika penuh, terminal <code class="text-slate-200">kasir.html</code> otomatis terkunci.</p>
+                        </div>
+
+                        <div class="text-right shrink-0">
+                            <span class="text-[10px] text-slate-400 block">Tagihan Terutang:</span>
+                            <strong id="unpaidPlatformAmount" class="text-lg sm:text-xl font-black text-amber-400 font-mono">Rp 0</strong>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between text-[10px] text-slate-400">
+                            <span id="limitUsageLabel">Terpakai 0% dari limit Rp 500.000</span>
+                            <span id="remainingOmzetCapacity" class="text-emerald-400 font-semibold">Sisa kuota omzet: Rp 62.500.000</span>
+                        </div>
+                        <div class="w-full bg-slate-950 rounded-full h-2.5 border border-slate-800 overflow-hidden">
+                            <div id="limitProgressBar" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-end gap-2 pt-1">
+                        <button onclick="infoSetoranPlatform()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-bold text-xs px-3 py-2 rounded-xl transition">
+                            Info Rekening
+                        </button>
+                        <button id="btnPayMidtrans" onclick="konfirmasiBayarPlatformWA()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-3.5 py-2 rounded-xl shadow-lg transition inline-flex items-center gap-1.5">
+                            <i class="fa-brands fa-whatsapp text-sm"></i> Konfirmasi Setoran via WA
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- KPI SUMMARY CARDS (PEMISAHAN TEGAS DISKON NOTA VS KOMISI TUKANG) -->
+            <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] text-slate-400 font-semibold">Total Omzet Aplikasi</span>
+                        <i class="fa-solid fa-chart-line text-emerald-400 text-xs"></i>
+                    </div>
+                    <strong id="kpiTotalOmzet" class="text-lg sm:text-xl font-black text-white mt-1 block font-mono">Rp 0</strong>
+                    <span id="kpiTotalTrxCount" class="text-[10px] text-emerald-400 font-semibold mt-1 block">0 Transaksi Sah</span>
+                </div>
+
+                <div class="bg-slate-900 border border-teal-500/30 rounded-2xl p-4 shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] text-teal-300 font-bold">1. Diskon Nota (Pemilik Rumah)</span>
+                        <span class="text-[9px] font-bold bg-teal-500/20 text-teal-300 px-1.5 py-0.5 rounded">POTONGAN</span>
+                    </div>
+                    <strong id="kpiDiskonNotaTotal" class="text-lg sm:text-xl font-black text-teal-400 mt-1 block font-mono">Rp 0</strong>
+                    <span id="kpiDiskonNotaSub" class="text-[10px] text-slate-400 mt-1 block">0 transaksi • Omzet Rp 0</span>
+                </div>
+
+                <div class="bg-slate-900 border border-amber-500/30 rounded-2xl p-4 shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] text-amber-300 font-bold">2. Komisi Tunai Tukang / Broker</span>
+                        <span class="text-[9px] font-bold bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded">PROYEK</span>
+                    </div>
+                    <strong id="kpiKomisiTukangTotal" class="text-lg sm:text-xl font-black text-amber-400 mt-1 block font-mono">Rp 0</strong>
+                    <span id="kpiKomisiTukangSub" class="text-[10px] text-slate-400 mt-1 block">0 proyek • Omzet Rp 0</span>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] text-slate-400 font-semibold">Pembawa Proyek Aktif</span>
+                        <i class="fa-solid fa-helmet-safety text-amber-400 text-xs"></i>
+                    </div>
+                    <strong id="kpiBrokerCount" class="text-lg sm:text-xl font-black text-white mt-1 block font-mono">0 Tukang</strong>
+                    <span id="kpiTopBrokerHint" class="text-[10px] text-amber-300 font-semibold mt-1 block truncate">Belum ada tukang tercatat</span>
+                </div>
+            </section>
+
+            <!-- GRAFIK PERTUMBUHAN OMZET & SIMULATOR ROI KEUNTUNGAN TOKO -->
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-chart-column text-amber-400"></i> Grafik Pertumbuhan Omzet Aplikasi
+                            </h3>
+                            <p class="text-[11px] text-slate-400">Perbandingan omzet dari <span class="text-teal-400 font-semibold">Pemilik Rumah (Diskon Nota)</span> vs <span class="text-amber-400 font-semibold">Tukang/Broker (Proyek)</span></p>
+                        </div>
+                        <div class="bg-slate-950 p-1 rounded-xl border border-slate-800 flex gap-1 text-[11px] font-bold">
+                            <button onclick="setChartPeriod('daily')" id="chartBtn-daily" class="px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950">7 Hari Terakhir</button>
+                            <button onclick="setChartPeriod('monthly')" id="chartBtn-monthly" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white">Per Bulan</button>
+                        </div>
+                    </div>
+
+                    <div class="relative h-60 w-full">
+                        <canvas id="omzetGrowthChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-b from-slate-900 to-slate-950 border border-emerald-500/30 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col justify-between space-y-3">
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                            Analisa Keuntungan Toko
+                        </span>
+                        <h3 class="text-sm font-extrabold text-white pt-1">Estimasi Laba Bersih dari Aplikasi</h3>
+                        <p class="text-[11px] text-slate-400">Hitung keuntungan bersih yang toko peroleh setelah dipotong diskon, komisi tukang, kasir & platform.</p>
+                    </div>
+
+                    <div class="space-y-2.5 bg-slate-900/90 border border-slate-800 rounded-xl p-3 text-xs">
+                        <div class="flex items-center justify-between">
+                            <label for="storeMarginSelect" class="text-slate-300 font-semibold">Asumsi Margin Toko:</label>
+                            <select id="storeMarginSelect" onchange="updateStoreRoiCard()" class="bg-slate-950 border border-slate-700 text-emerald-300 font-mono font-bold text-xs rounded-lg px-2 py-1 focus:outline-none">
+                                <option value="0.08">8% (Semen/Besi)</option>
+                                <option value="0.12" selected>12% (Rata-rata Toko)</option>
+                                <option value="0.15">15% (Keramik/Cat)</option>
+                                <option value="0.20">20% (Aksesoris/Pipa)</option>
+                            </select>
+                        </div>
+                        <div class="flex justify-between text-slate-400">
+                            <span>Est. Laba Kotor Omzet QR:</span>
+                            <strong id="roiGrossProfit" class="text-white font-mono">Rp 0</strong>
+                        </div>
+                        <div class="flex justify-between text-slate-400">
+                            <span>Total Biaya Program (2%):</span>
+                            <strong id="roiTotalCost" class="text-rose-400 font-mono">-Rp 0</strong>
+                        </div>
+                        <div class="pt-2 border-t border-slate-800 flex justify-between items-center">
+                            <span class="font-bold text-emerald-300">Laba Bersih Ekstra:</span>
+                            <strong id="roiNetProfit" class="text-base font-black text-emerald-400 font-mono">+Rp 0</strong>
+                        </div>
+                    </div>
+
+                    <p class="text-[10px] text-slate-400 leading-relaxed">
+                        <i class="fa-solid fa-shield-halved text-emerald-400 mr-1"></i> Tanpa biaya langganan bulanan. Toko hanya berbagi komisi saat uang belanja benar-benar masuk ke laci kasir.
+                    </p>
+                </div>
+            </section>
+
+            <!-- NAVIGATION TABS -->
+            <div class="flex flex-wrap gap-2 border-b border-slate-800 pb-2">
+                <button onclick="switchOwnerTab('trx')" id="tabBtn-trx" class="owner-tab-btn bg-amber-500 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl transition">
+                    <i class="fa-solid fa-receipt mr-1"></i> Riwayat Transaksi & Audit Struk
+                </button>
+                <button onclick="switchOwnerTab('brokers')" id="tabBtn-brokers" class="owner-tab-btn bg-slate-800 text-slate-300 hover:bg-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl transition">
+                    <i class="fa-solid fa-helmet-safety mr-1"></i> Peringkat Pembawa Proyek & Pelanggan
+                </button>
+                <button onclick="switchOwnerTab('cashiers')" id="tabBtn-cashiers" class="owner-tab-btn bg-slate-800 text-slate-300 hover:bg-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl transition">
+                    <i class="fa-solid fa-users-gear mr-1"></i> Akun Kasir, Bonus & Absensi Selfie
+                </button>
+            </div>
+
+            <!-- TAB 1: RIWAYAT TRANSAKSI (DENGAN FILTER BULAN/TAHUN + PAGINATION) -->
+            <section id="tabPanel-trx" class="owner-tab-panel bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xl">
+                <!-- Baris 1: Filter Kategori & Periode Bulan/Tahun -->
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex flex-wrap items-center gap-1.5">
+                        <button onclick="setTrxModeFilter('ALL')" id="trxFilter-ALL" class="trx-mode-btn bg-amber-500 text-slate-950 font-black text-[11px] px-3 py-1.5 rounded-xl transition">
+                            Semua
+                        </button>
+                        <button onclick="setTrxModeFilter('DISKON_NOTA')" id="trxFilter-DISKON_NOTA" class="trx-mode-btn bg-slate-800 text-teal-300 hover:bg-slate-700 font-bold text-[11px] px-3 py-1.5 rounded-xl transition">
+                            <i class="fa-solid fa-tag mr-1"></i> Diskon Nota
+                        </button>
+                        <button onclick="setTrxModeFilter('KOMISI_TUKANG')" id="trxFilter-KOMISI_TUKANG" class="trx-mode-btn bg-slate-800 text-amber-300 hover:bg-slate-700 font-bold text-[11px] px-3 py-1.5 rounded-xl transition">
+                            <i class="fa-solid fa-helmet-safety mr-1"></i> Komisi Tukang
+                        </button>
+                    </div>
+
+                    <!-- Filter Bulan, Tahun & Pencarian -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <select id="filterTrxMonth" onchange="resetTrxPageAndRender()" class="bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-white focus:border-amber-400 focus:outline-none">
+                            <option value="ALL">Semua Bulan</option>
+                            <option value="01">Januari</option>
+                            <option value="02">Februari</option>
+                            <option value="03">Maret</option>
+                            <option value="04">April</option>
+                            <option value="05">Mei</option>
+                            <option value="06">Juni</option>
+                            <option value="07">Juli</option>
+                            <option value="08">Agustus</option>
+                            <option value="09">September</option>
+                            <option value="10">Oktober</option>
+                            <option value="11">November</option>
+                            <option value="12">Desember</option>
+                        </select>
+
+                        <select id="filterTrxYear" onchange="resetTrxPageAndRender()" class="bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-white focus:border-amber-400 focus:outline-none">
+                            <option value="ALL">Semua Tahun</option>
+                        </select>
+
+                        <button onclick="setCurrentMonthFilter()" class="bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 text-[11px] font-bold px-2.5 py-1.5 rounded-xl" title="Filter Bulan Ini">
+                            Bulan Ini
+                        </button>
+
+                        <input type="text" id="filterTrxInput" oninput="resetTrxPageAndRender()" placeholder="Cari ID / Struk / Pembeli..." class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:border-amber-400 focus:outline-none">
+
+                        <button onclick="exportTransactionsCsv()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold px-3 py-1.5 rounded-xl">
+                            <i class="fa-solid fa-file-csv text-emerald-400 mr-1"></i> CSV
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Ringkasan Periode Terfilter -->
+                <div id="trxPeriodSummaryBar" class="bg-slate-950/90 border border-slate-800 rounded-xl px-3.5 py-2 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                    <span class="text-slate-400">Menampilkan <strong id="trxFilteredCountText" class="text-white">0</strong> transaksi sesuai filter</span>
+                    <span class="text-slate-400">Total Omzet Periode Ini: <strong id="trxFilteredOmzetText" class="text-emerald-400 font-mono">Rp 0</strong></span>
+                </div>
+
+                <!-- Tabel Transaksi -->
+                <div class="overflow-x-auto border border-slate-800 rounded-xl">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-950 text-slate-400 border-b border-slate-800">
+                            <tr>
+                                <th class="p-3">ID & Waktu</th>
+                                <th class="p-3">Struk & Kasir</th>
+                                <th class="p-3">Kategori & Pembawa Proyek</th>
+                                <th class="p-3 text-right">Omzet</th>
+                                <th class="p-3 text-right">Rincian Potongan / Komisi</th>
+                                <th class="p-3 text-center">Status</th>
+                                <th class="p-3 text-center">Bukti Struk</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ownerTrxTableBody" class="divide-y divide-slate-800/80 text-slate-300">
+                            <tr><td colspan="7" class="p-6 text-center text-slate-500">Memuat data transaksi...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Kontrol Halaman (Pagination) -->
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-1 text-xs">
+                    <div class="flex items-center gap-2 text-slate-400">
+                        <span>Tampilkan:</span>
+                        <select id="trxPageSizeSelect" onchange="resetTrxPageAndRender()" class="bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white font-bold">
+                            <option value="15" selected>15 baris</option>
+                            <option value="30">30 baris</option>
+                            <option value="50">50 baris</option>
+                        </select>
+                        <span id="trxPageRangeInfo" class="text-[11px]">0–0 dari 0</span>
+                    </div>
+
+                    <div class="flex items-center gap-1.5">
+                        <button id="btnTrxPrevPage" onclick="changeTrxPage(-1)" class="bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:pointer-events-none text-slate-200 font-bold px-3 py-1.5 rounded-lg border border-slate-700">
+                            <i class="fa-solid fa-chevron-left mr-1"></i> Sebelumnya
+                        </button>
+                        <span id="trxPageIndicator" class="px-2.5 py-1 bg-slate-950 border border-slate-800 rounded-lg font-mono text-[11px] text-amber-400">Hal 1 / 1</span>
+                        <button id="btnTrxNextPage" onclick="changeTrxPage(1)" class="bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:pointer-events-none text-slate-200 font-bold px-3 py-1.5 rounded-lg border border-slate-700">
+                            Berikutnya <i class="fa-solid fa-chevron-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: PERINGKAT PEMBAWA PROYEK (TUKANG/BROKER & PELANGGAN) -->
+            <section id="tabPanel-brokers" class="owner-tab-panel hidden space-y-4">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-3 shadow-xl">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-trophy text-amber-400"></i> Peringkat Pembawa Proyek Terbesar (Tukang / Mandor / Broker)
+                            </h3>
+                            <p class="text-[11px] text-slate-400">Diurutkan otomatis berdasarkan total omzet proyek yang dibawa ke toko.</p>
+                        </div>
+                        <input type="text" id="filterBrokerOwnerInput" oninput="renderOwnerBrokersTable()" placeholder="Cari nama / HP tukang..." class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:border-amber-400 focus:outline-none">
+                    </div>
+
+                    <div id="topBrokersCardsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <p class="text-xs text-slate-500 col-span-full italic">Belum ada data tukang pembawa proyek.</p>
+                    </div>
+
+                    <div class="overflow-x-auto border border-slate-800 rounded-xl mt-2">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-950 text-slate-400 border-b border-slate-800">
+                                <tr>
+                                    <th class="p-3">Peringkat & Nama Tukang</th>
+                                    <th class="p-3">No. HP / WhatsApp</th>
+                                    <th class="p-3 text-center">Jumlah Proyek</th>
+                                    <th class="p-3 text-right">Total Omzet Dibawa</th>
+                                    <th class="p-3 text-right">Total Komisi Diterima</th>
+                                    <th class="p-3">Catatan Pemilik Toko</th>
+                                    <th class="p-3 text-center">Follow-Up</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ownerBrokersTableBody" class="divide-y divide-slate-800 text-slate-300">
+                                <tr><td colspan="7" class="p-6 text-center text-slate-500">Memuat direktori tukang...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-3 shadow-xl">
+                    <div>
+                        <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-house-user text-teal-400"></i> Rekap Pembeli Langsung / Pemilik Rumah (Mode Diskon Nota)
+                        </h3>
+                        <p class="text-[11px] text-slate-400">Daftar pelanggan yang menggunakan diskon nota langsung (tidak dihitung sebagai komisi broker).</p>
+                    </div>
+                    <div class="overflow-x-auto border border-slate-800 rounded-xl">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-950 text-slate-400 border-b border-slate-800">
+                                <tr>
+                                    <th class="p-3">Nama Pemesan / Proyek</th>
+                                    <th class="p-3 text-center">Frekuensi Belanja</th>
+                                    <th class="p-3 text-right">Total Belanja</th>
+                                    <th class="p-3 text-right">Total Diskon Nota</th>
+                                    <th class="p-3 text-right">Transaksi Terakhir</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ownerHomeownersTableBody" class="divide-y divide-slate-800 text-slate-300">
+                                <tr><td colspan="5" class="p-4 text-center text-slate-500">Belum ada transaksi diskon nota.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: MANAJEMEN KASIR, PEMBAYARAN BONUS & AUDIT SELFIE RINGKAS -->
+            <section id="tabPanel-cashiers" class="owner-tab-panel hidden space-y-4">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-3 shadow-xl h-fit">
+                        <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-user-plus text-emerald-400"></i> Daftarkan Akun Kasir Baru
+                        </h3>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-300 mb-1">Nama Lengkap Kasir <span class="text-rose-400">*</span></label>
+                            <input type="text" id="newCashierName" placeholder="Contoh: Rina Marlina" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-300 mb-1">No. HP / Rekening</label>
+                            <input type="text" id="newCashierPhone" placeholder="Contoh: 081234567890" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-white font-mono focus:border-emerald-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-300 mb-1">PIN Pribadi (4–6 Digit Angka) <span class="text-rose-400">*</span></label>
+                            <input type="text" id="newCashierPin" maxlength="6" inputmode="numeric" placeholder="Contoh: 123456" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-emerald-300 font-mono tracking-widest focus:border-emerald-500 focus:outline-none">
+                        </div>
+                        <button id="btnAddCashier" onclick="addNewStoreCashier()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs py-3 rounded-xl shadow-lg transition">
+                            <i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Akun Kasir
+                        </button>
+                    </div>
+
+                    <div class="lg:col-span-2 space-y-4">
+                        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-3 shadow-xl">
+                            <div>
+                                <h3 class="text-sm font-extrabold text-white">Daftar Kasir & Kewajiban Pembayaran Bonus</h3>
+                                <p class="text-[11px] text-slate-400">Bonus kasir wajib dibayarkan pemilik toko sesuai akumulasi verifikasi struk yang sah.</p>
+                            </div>
+                            <div class="overflow-x-auto border border-slate-800 rounded-xl">
+                                <table class="w-full text-left text-xs">
+                                    <thead class="bg-slate-950 text-slate-400 border-b border-slate-800">
+                                        <tr>
+                                            <th class="p-3">ID & Nama Kasir</th>
+                                            <th class="p-3">No. HP / Rekening</th>
+                                            <th class="p-3 text-right">Total Hak Bonus</th>
+                                            <th class="p-3 text-right">Sudah Dibayar</th>
+                                            <th class="p-3 text-right">Sisa Wajib Bayar</th>
+                                            <th class="p-3 text-center">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ownerCashiersTableBody" class="divide-y divide-slate-800 text-slate-300">
+                                        <tr><td colspan="6" class="p-4 text-center text-slate-500">Memuat daftar kasir...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- AUDIT LOG ABSENSI SELFIE SHIFT (RINGKAS + FILTER + SCROLL TERKUNCI) -->
+                        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-3 shadow-xl">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <div>
+                                    <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+                                        <i class="fa-solid fa-camera text-amber-400"></i> Audit Log Absensi Selfie Shift
+                                    </h3>
+                                    <p class="text-[11px] text-slate-400">Klik foto wajah kasir untuk memperbesar bukti buka shift.</p>
+                                </div>
+
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <select id="filterShiftCashier" onchange="resetShiftPageAndRender()" class="bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-white focus:border-amber-400 focus:outline-none">
+                                        <option value="ALL">Semua Kasir</option>
+                                    </select>
+                                    <select id="filterShiftMonth" onchange="resetShiftPageAndRender()" class="bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-white focus:border-amber-400 focus:outline-none">
+                                        <option value="ALL">Semua Bulan</option>
+                                        <option value="01">Jan</option>
+                                        <option value="02">Feb</option>
+                                        <option value="03">Mar</option>
+                                        <option value="04">Apr</option>
+                                        <option value="05">Mei</option>
+                                        <option value="06">Jun</option>
+                                        <option value="07">Jul</option>
+                                        <option value="08">Agu</option>
+                                        <option value="09">Sep</option>
+                                        <option value="10">Okt</option>
+                                        <option value="11">Nov</option>
+                                        <option value="12">Des</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Container Tinggi Terbatas agar tidak memanjang ke bawah -->
+                            <div id="shiftSelfieLogsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[360px] overflow-y-auto custom-scroll pr-1">
+                                <p class="text-xs text-slate-500 col-span-full">Belum ada catatan absensi shift.</p>
+                            </div>
+
+                            <!-- Navigasi Halaman Selfie Log -->
+                            <div class="flex items-center justify-between pt-2 border-t border-slate-800/80 text-[11px]">
+                                <span id="shiftLogCountInfo" class="text-slate-400">0 catatan shift</span>
+                                <div class="flex items-center gap-1.5">
+                                    <button id="btnShiftPrev" onclick="changeShiftPage(-1)" class="bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:pointer-events-none text-slate-200 font-bold px-2.5 py-1 rounded-lg border border-slate-700">
+                                        < Prev
+                                    </button>
+                                    <span id="shiftPageIndicator" class="px-2 py-1 bg-slate-950 border border-slate-800 rounded-lg font-mono text-amber-400">1/1</span>
+                                    <button id="btnShiftNext" onclick="changeShiftPage(1)" class="bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:pointer-events-none text-slate-200 font-bold px-2.5 py-1 rounded-lg border border-slate-700">
+                                        Next >
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- MODAL PREVIEW FOTO (DENGAN FALLBACK & LINK GOOGLE DRIVE) -->
+    <div id="modalImagePreview" onclick="closeImageModal()" class="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div onclick="event.stopPropagation()" class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl">
+            <div class="px-4 py-3 border-b border-slate-800 flex items-center justify-between gap-2">
+                <strong id="modalImageTitle" class="text-xs font-bold text-white truncate">Preview Bukti Foto</strong>
+                <button onclick="closeImageModal()" class="text-slate-400 hover:text-white text-xl font-bold leading-none">×</button>
+            </div>
+            <div class="p-4 bg-slate-950 flex flex-col items-center justify-center min-h-[220px] space-y-3">
+                <img id="modalImageEl" src="" alt="Bukti Foto" class="max-h-[65vh] rounded-xl object-contain">
+                <p id="modalImageErrorHint" class="hidden text-xs text-amber-300 text-center">
+                    Pratinjau langsung dibatasi browser. Klik tombol di bawah untuk membuka foto asli di Google Drive:
+                </p>
+            </div>
+            <div class="px-4 py-2.5 border-t border-slate-800 bg-slate-900 flex items-center justify-between">
+                <a id="modalImageOriginalLink" href="#" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1.5">
+                    <i class="fa-solid fa-up-right-from-square"></i> Buka Foto Asli di Google Drive
+                </a>
+                <button onclick="closeImageModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs px-3 py-1.5 rounded-lg">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL REKAP TUTUP BUKU HARIAN -->
+    <div id="modalDailyClosing" onclick="closeDailyClosingModal()" class="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div onclick="event.stopPropagation()" class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
+            <div class="px-4 py-3 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+                <strong class="text-xs font-extrabold text-amber-400 flex items-center gap-1.5">
+                    <i class="fa-solid fa-clipboard-check"></i> Rekap Tutup Buku Hari Ini
+                </strong>
+                <button onclick="closeDailyClosingModal()" class="text-slate-400 hover:text-white text-lg font-bold">×</button>
+            </div>
+            <div id="dailyClosingBody" class="p-4 space-y-3 text-xs">
+            </div>
+            <div class="px-4 py-3 border-t border-slate-800 bg-slate-950 flex justify-end gap-2">
+                <button onclick="closeDailyClosingModal()" class="bg-slate-800 text-slate-300 font-bold text-xs px-3 py-2 rounded-xl">Tutup</button>
+                <button onclick="shareDailyClosingWA()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-4 py-2 rounded-xl inline-flex items-center gap-1.5">
+                    <i class="fa-brands fa-whatsapp"></i> Kirim Rekap ke WA Saya
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxsQQMYsvWk6R3AkPhkEURDsxFaEyUnqwFyCv500uPYvK0Y0RhPvaHXgw5OcvYeH_tC/exec";
+        localStorage.setItem('mb_gas_url', GAS_WEB_APP_URL);
+        const LIMIT_BLOKIR_PLATFORM = 500000;
+        const ADMIN_PLATFORM_WA = "6282113866890";
+
+        const SKEMA_V10 = {
+            SKEMA_1: { code: 'SKEMA_1', label: 'SKEMA_1 (Default)', incentiveRate: 0.01, creatorRate: 0.008, kasirRate: 0.002, incentivePctText: '1%', creatorPctText: '0,8%', kasirPctText: '0,2%' },
+            SKEMA_2: { code: 'SKEMA_2', label: 'SKEMA_2 (1% + Kasir)', incentiveRate: 0.005, creatorRate: 0.004, kasirRate: 0.001, incentivePctText: '0,5%', creatorPctText: '0,4%', kasirPctText: '0,1%' },
+            SKEMA_3: { code: 'SKEMA_3', label: 'SKEMA_3 (1% Non-Kasir)', incentiveRate: 0.005, creatorRate: 0.005, kasirRate: 0, incentivePctText: '0,5%', creatorPctText: '0,5%', kasirPctText: '0%' }
+        };
+
+        let allStores = [];
+        let activeStoreId = "";
+        let activeStoreObj = null;
+        let activeSkema = SKEMA_V10.SKEMA_1;
+        let verifiedOwnerPin = "";
+
+        let storeTransactions = [];
+        let storeCashiers = [];
+        let storeShiftLogs = [];
+        let storeBrokers = [];
+
+        let trxModeFilter = 'ALL';
+        let trxCurrentPage = 1;
+        let shiftCurrentPage = 1;
+        const SHIFT_PAGE_SIZE = 6;
+
+        let chartPeriod = 'daily';
+        let omzetChartInstance = null;
+
+        let cachedMetrics = {
+            totalOmzet: 0,
+            totalTrxCount: 0,
+            diskonNotaVal: 0,
+            diskonNotaOmzet: 0,
+            diskonNotaCount: 0,
+            komisiTukangVal: 0,
+            komisiTukangOmzet: 0,
+            komisiTukangCount: 0,
+            totalKasirBonus: 0,
+            totalPlatformFee: 0,
+            unpaidPlatform: 0
+        };
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            activeStoreId = (params.get('s') || params.get('storeId') || params.get('store') || localStorage.getItem('MB_OWNER_STORE_ID') || '').trim().toLowerCase();
+            await loadStoresList();
+        });
+
+        function showServerNotice(title, detail) {
+            document.getElementById('serverNoticeTitle').innerText = title;
+            document.getElementById('serverNoticeDetail').innerText = detail;
+            document.getElementById('serverNoticeBanner').classList.remove('hidden');
+        }
+
+        function pickNumeric(val, fallback) {
+            if (val !== undefined && val !== null && val !== '' && !isNaN(Number(val))) {
+                return Number(val);
+            }
+            return fallback;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* HELPER URL FOTO GOOGLE DRIVE (MENGATASI IKON GAMBAR RUSAK DI BROWSER)       */
+        /* -------------------------------------------------------------------------- */
+
+        function extractDriveFileId(rawUrl) {
+            const url = String(rawUrl || '').trim();
+            if (!url || url === '-') return '';
+            const match = url.match(/(?:\/d\/|[?&]id=)([a-zA-Z0-9_-]{20,})/);
+            return (match && match[1]) ? match[1] : '';
+        }
+
+        function normalizeDriveImageUrl(rawUrl, size = 'w1000') {
+            const url = String(rawUrl || '').trim();
+            if (!url || url === '-') return '';
+            if (url.startsWith('data:image/')) return url;
+            const fileId = extractDriveFileId(url);
+            if (fileId) {
+                return `https://drive.google.com/thumbnail?id=${fileId}&sz=${size}`;
+            }
+            return url;
+        }
+
+        function openImageModal(title, rawUrl) {
+            const cleanRaw = String(rawUrl || '').trim();
+            const thumbUrl = normalizeDriveImageUrl(cleanRaw, 'w1200');
+            const fileId = extractDriveFileId(cleanRaw);
+
+            const imgEl = document.getElementById('modalImageEl');
+            const errHint = document.getElementById('modalImageErrorHint');
+            const origLink = document.getElementById('modalImageOriginalLink');
+
+            document.getElementById('modalImageTitle').innerText = title;
+            errHint.classList.add('hidden');
+            imgEl.classList.remove('hidden');
+            origLink.href = cleanRaw || thumbUrl || '#';
+
+            imgEl.dataset.fallbackTried = '0';
+            imgEl.onerror = function() {
+                if (fileId && imgEl.dataset.fallbackTried === '0') {
+                    imgEl.dataset.fallbackTried = '1';
+                    imgEl.src = `https://lh3.googleusercontent.com/d/${fileId}`;
+                } else {
+                    imgEl.classList.add('hidden');
+                    errHint.classList.remove('hidden');
+                }
+            };
+
+            imgEl.src = thumbUrl;
+            document.getElementById('modalImagePreview').classList.remove('hidden');
+        }
+
+        function closeImageModal() {
+            document.getElementById('modalImagePreview').classList.add('hidden');
+            document.getElementById('modalImageEl').src = "";
+        }
+
+        function normalizeStoresPayload(data) {
+            const rawList = Array.isArray(data) ? data : (data.stores || data.data || data.toko || []);
+            if (!Array.isArray(rawList)) return [];
+            return rawList.map(item => ({
+                id: String(item.id || item.ID_Toko || item.storeId || '').trim(),
+                name: String(item.name || item.Nama_Toko || item.storeName || '').trim(),
+                alamat: String(item.address || item.alamat || item.Alamat || '').trim(),
+                noWa: String(item.wa || item.noWa || item.No_WA || '').trim(),
+                hasPin: item.hasPin !== undefined ? Boolean(item.hasPin) : true,
+                skema: String(item.skema || item.Skema_Toko || item.skemaToko || 'SKEMA_1').trim().toUpperCase(),
+                skemaDetail: item.skemaDetail || null,
+                unpaidPlatformFee: Number(item.unpaidPlatformFee || item.unpaidCommission || 0),
+                isBlocked: Boolean(item.isBlocked)
+            })).filter(s => s.id);
+        }
+
+        function resolveSkema(skemaInput) {
+            if (!skemaInput) return SKEMA_V10.SKEMA_1;
+            if (typeof skemaInput === 'object') {
+                const base = SKEMA_V10[String(skemaInput.code || '').toUpperCase()] || SKEMA_V10.SKEMA_1;
+                return Object.assign({}, base, skemaInput);
+            }
+            return SKEMA_V10[String(skemaInput).trim().toUpperCase()] || SKEMA_V10.SKEMA_1;
+        }
+
+        function escapeHtml(str) {
+            const amp = String.fromCharCode(38);
+            const sq = String.fromCharCode(39);
+            return String(str == null ? '' : str)
+                .replace(/&/g, amp + 'amp;')
+                .replace(/</g, amp + 'lt;')
+                .replace(/>/g, amp + 'gt;')
+                .replace(/"/g, amp + 'quot;')
+                .split(sq).join(amp + '#039;');
+        }
+
+        function isVerifiedStatus(t) {
+            const st = String(t.status || '').toUpperCase();
+            return st.includes('VERIFIED') || st.includes('SELESAI') || st.includes('LUNAS') || st.includes('MENUNGGU_TUKANG') || st.includes('DITERIMA');
+        }
+
+        function isDiskonNotaTrx(t) {
+            return String(t.modeIncentive || '').toUpperCase() === 'DISKON_NOTA' || Boolean(t.noBroker);
+        }
+
+        function parseTrxDateObj(rawDate) {
+            if (!rawDate) return null;
+            const str = String(rawDate).trim();
+            const idMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+            if (idMatch) {
+                return new Date(Number(idMatch[3]), Number(idMatch[2]) - 1, Number(idMatch[1]));
+            }
+            const isoMatch = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+            if (isoMatch) {
+                return new Date(Number(isoMatch[1]), Number(isoMatch[2]) - 1, Number(isoMatch[3]));
+            }
+            const parsed = new Date(str);
+            return isNaN(parsed.getTime()) ? null : parsed;
+        }
+
+        async function loadStoresList() {
+            const dropdown = document.getElementById('storeSelectorDropdown');
+            try {
+                const res = await fetch(`${GAS_WEB_APP_URL}?action=getStores`);
+                const rawText = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(rawText);
+                } catch (e) {
+                    throw new Error("Server mengembalikan HTML (bukan JSON). Pastikan Code.gs sudah di-deploy dengan akses 'Anyone'.");
+                }
+
+                allStores = normalizeStoresPayload(data);
+                if (allStores.length > 0) {
+                    dropdown.innerHTML = allStores.map(s =>
+                        `<option value="${escapeHtml(s.id)}">${escapeHtml(s.name)} (${escapeHtml(s.skema)})</option>`
+                    ).join('');
+
+                    const found = allStores.find(s => s.id.toLowerCase() === activeStoreId) || allStores[0];
+                    activeStoreId = found.id.toLowerCase();
+                    dropdown.value = found.id;
+                    localStorage.setItem('MB_OWNER_STORE_ID', activeStoreId);
+                    await selectAndCheckOwnerAccess(found);
+                } else {
+                    dropdown.innerHTML = `<option value="">Belum ada toko terdaftar</option>`;
+                    showServerNotice("Data Toko Kosong", `Response getStores: ${rawText.slice(0, 200)}`);
+                }
+            } catch (err) {
+                dropdown.innerHTML = `<option value="">Gagal memuat toko</option>`;
+                showServerNotice("Gagal Memuat Data Toko", err.message || String(err));
+            }
+        }
+
+        async function onSelectStoreChange() {
+            const selectedId = document.getElementById('storeSelectorDropdown').value;
+            if (!selectedId) return;
+            activeStoreId = selectedId.toLowerCase();
+            localStorage.setItem('MB_OWNER_STORE_ID', activeStoreId);
+            const found = allStores.find(s => s.id.toLowerCase() === activeStoreId);
+            if (found) await selectAndCheckOwnerAccess(found);
+        }
+
+        async function selectAndCheckOwnerAccess(store) {
+            applyStoreHeaderInfo(store);
+            const savedPin = sessionStorage.getItem(`MB_OWNER_PIN_${store.id.toLowerCase()}`) || '';
+            if (store.hasPin && !savedPin) {
+                verifiedOwnerPin = '';
+                document.getElementById('pinGateStoreName').innerText = `${store.name} (${store.id})`;
+                document.getElementById('ownerPinGate').classList.remove('hidden');
+                document.getElementById('ownerDashboardContent').classList.add('hidden');
+                return;
+            }
+            verifiedOwnerPin = savedPin;
+            const ok = await refreshAllOwnerData();
+            if (ok) {
+                document.getElementById('ownerPinGate').classList.add('hidden');
+                document.getElementById('ownerDashboardContent').classList.remove('hidden');
+            }
+        }
+
+        async function verifyOwnerPin() {
+            if (!activeStoreObj) return;
+            const inputPin = document.getElementById('inputOwnerPin').value.trim();
+            if (!inputPin) return alert("Masukkan PIN Pemilik Toko!");
+
+            verifiedOwnerPin = inputPin;
+            const ok = await refreshAllOwnerData();
+            if (!ok) {
+                verifiedOwnerPin = '';
+                return;
+            }
+
+            sessionStorage.setItem(`MB_OWNER_PIN_${activeStoreObj.id.toLowerCase()}`, inputPin);
+            document.getElementById('inputOwnerPin').value = '';
+            document.getElementById('ownerPinGate').classList.add('hidden');
+            document.getElementById('ownerDashboardContent').classList.remove('hidden');
+        }
+
+        function applyStoreHeaderInfo(store) {
+            activeStoreObj = store;
+            activeSkema = resolveSkema(store.skemaDetail || store.skema);
+
+            document.getElementById('ownerStoreSubtitle').innerText = `${store.name} • ID: ${store.id}`;
+            document.getElementById('ownerStoreAddress').innerText = store.alamat ? `Alamat: ${store.alamat} | WA: ${store.noWa || '-'}` : 'Rincian persentase insentif & biaya layanan otomatis:';
+            document.getElementById('ownerSkemaBadge').innerText = activeSkema.code;
+            document.getElementById('skemaLabelBadge').innerText = activeSkema.label;
+            document.getElementById('skemaIncentiveText').innerText = activeSkema.incentivePctText;
+            document.getElementById('skemaKasirText').innerText = activeSkema.kasirPctText;
+            document.getElementById('skemaCreatorText').innerText = activeSkema.creatorPctText;
+            document.getElementById('kpiKasirSubLabel').innerText = activeSkema.kasirRate === 0
+                ? 'Skema Non-Kasir (0%)'
+                : `Tarif insentif verifikasi (${activeSkema.kasirPctText})`;
+
+            updateSettlementCardUI(Number(store.unpaidPlatformFee || 0), Boolean(store.isBlocked));
+        }
+
+        function updateSettlementCardUI(unpaidAmount, forceBlocked = false) {
+            cachedMetrics.unpaidPlatform = unpaidAmount;
+            const isBlocked = forceBlocked || unpaidAmount >= LIMIT_BLOKIR_PLATFORM;
+            const pct = Math.min(100, Math.round((unpaidAmount / LIMIT_BLOKIR_PLATFORM) * 100));
+            const remainingFee = Math.max(0, LIMIT_BLOKIR_PLATFORM - unpaidAmount);
+            const creatorRate = activeSkema.creatorRate || 0.008;
+            const remainingOmzet = creatorRate > 0 ? Math.round(remainingFee / creatorRate) : 0;
+
+            document.getElementById('unpaidPlatformAmount').innerText = `Rp ${Math.round(unpaidAmount).toLocaleString('id-ID')}`;
+            document.getElementById('limitUsageLabel').innerText = `Terpakai ${pct}% dari limit Rp 500.000`;
+            document.getElementById('remainingOmzetCapacity').innerText = isBlocked
+                ? 'Kuota omzet habis — lunasi untuk buka kunci'
+                : `Sisa kuota omzet: Rp ${remainingOmzet.toLocaleString('id-ID')}`;
+
+            const bar = document.getElementById('limitProgressBar');
+            bar.style.width = `${pct}%`;
+            bar.className = `h-full transition-all duration-500 ${isBlocked ? 'bg-rose-500' : (pct >= 75 ? 'bg-amber-500' : 'bg-emerald-500')}`;
+
+            const statusBadge = document.getElementById('storeStatusBadge');
+            const card = document.getElementById('settlementAlertCard');
+            if (isBlocked) {
+                statusBadge.innerText = 'KASIR DIBLOKIR (LIMIT TERLAMPAUI)';
+                statusBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40';
+                card.className = 'bg-rose-950/30 border-2 border-rose-500/60 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col justify-between space-y-3';
+            } else {
+                statusBadge.innerText = 'TERMINAL AKTIF';
+                statusBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+                card.className = 'bg-slate-900 border-2 border-amber-500/40 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col justify-between space-y-3';
+            }
+        }
+
+        async function refreshAllOwnerData() {
+            if (!activeStoreId) return false;
+            try {
+                const url = `${GAS_WEB_APP_URL}?action=getStoreDashboard&storeId=${encodeURIComponent(activeStoreId)}&pin=${encodeURIComponent(verifiedOwnerPin)}&allTime=1`;
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (!data.success) {
+                    if (data.requirePin) {
+                        sessionStorage.removeItem(`MB_OWNER_PIN_${activeStoreId}`);
+                        document.getElementById('pinGateStoreName').innerText = `${activeStoreObj ? activeStoreObj.name : activeStoreId}`;
+                        document.getElementById('ownerPinGate').classList.remove('hidden');
+                        document.getElementById('ownerDashboardContent').classList.add('hidden');
+                        if (verifiedOwnerPin) alert("❌ PIN Pemilik Toko salah!");
+                        return false;
+                    }
+                    showServerNotice("Gagal Memuat Dashboard", data.message || "Error tidak diketahui");
+                    return false;
+                }
+
+                if (data.store && data.store.skemaDetail) {
+                    activeStoreObj.skema = data.store.skema;
+                    activeStoreObj.skemaDetail = data.store.skemaDetail;
+                    applyStoreHeaderInfo(activeStoreObj);
+                }
+
+                storeTransactions = Array.isArray(data.transactions) ? data.transactions : [];
+                storeCashiers = Array.isArray(data.cashiers) ? data.cashiers : [];
+                storeShiftLogs = Array.isArray(data.shiftLogs) ? data.shiftLogs : [];
+                storeBrokers = Array.isArray(data.brokers) ? data.brokers : [];
+
+                if (data.kpi) {
+                    updateSettlementCardUI(Number(data.kpi.totalTerutangPlatform || 0), Boolean(data.kpi.limitWarning || data.kpi.isBlocked));
+                }
+
+                populateAvailableYearsDropdown();
+                populateShiftCashierFilterDropdown();
+                recalculateDashboardKpis(data.kpi);
+                renderTransactionsTable();
+                renderCashiersTable();
+                renderShiftLogsGrid();
+                renderOwnerBrokersTable();
+                renderOmzetGrowthChart();
+                return true;
+            } catch (e) {
+                showServerNotice("Gangguan Koneksi Server", e.message || String(e));
+                return false;
+            }
+        }
+
+        function populateAvailableYearsDropdown() {
+            const yearSel = document.getElementById('filterTrxYear');
+            if (!yearSel) return;
+            const prevVal = yearSel.value || 'ALL';
+            const yearsSet = new Set([String(new Date().getFullYear())]);
+            storeTransactions.forEach(t => {
+                const d = parseTrxDateObj(t.date);
+                if (d) yearsSet.add(String(d.getFullYear()));
+            });
+            const sortedYears = Array.from(yearsSet).sort((a, b) => Number(b) - Number(a));
+            yearSel.innerHTML = `<option value="ALL">Semua Tahun</option>` +
+                sortedYears.map(y => `<option value="${y}">${y}</option>`).join('');
+            yearSel.value = sortedYears.includes(prevVal) ? prevVal : 'ALL';
+        }
+
+        function populateShiftCashierFilterDropdown() {
+            const sel = document.getElementById('filterShiftCashier');
+            if (!sel) return;
+            const prevVal = sel.value || 'ALL';
+            const namesSet = new Set();
+            storeCashiers.forEach(c => { if (c.namaKasir) namesSet.add(String(c.namaKasir).trim()); });
+            storeShiftLogs.forEach(l => { if (l.namaKasir) namesSet.add(String(l.namaKasir).trim()); });
+
+            const sortedNames = Array.from(namesSet).sort();
+            sel.innerHTML = `<option value="ALL">Semua Kasir</option>` +
+                sortedNames.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+            sel.value = sortedNames.includes(prevVal) ? prevVal : 'ALL';
+        }
+
+        function recalculateDashboardKpis(serverKpi) {
+            const verifiedTrx = storeTransactions.filter(isVerifiedStatus);
+
+            let totalOmzet = 0;
+            let diskonNotaVal = 0, diskonNotaOmzet = 0, diskonNotaCount = 0;
+            let komisiTukangVal = 0, komisiTukangOmzet = 0, komisiTukangCount = 0;
+            let totalKasir = 0, totalPlatform = 0;
+
+            verifiedTrx.forEach(t => {
+                const sk = resolveSkema(t.skemaDetail || t.skema || activeSkema);
+                const omzet = Number(t.grandTotal || 0);
+                const inc = pickNumeric(t.incentiveVal, Math.round(omzet * sk.incentiveRate));
+                const ksr = pickNumeric(t.kasirBonusVal, Math.round(omzet * sk.kasirRate));
+                const plt = pickNumeric(t.creatorFeeVal, Math.round(omzet * sk.creatorRate));
+
+                totalOmzet += omzet;
+                totalKasir += ksr;
+                totalPlatform += plt;
+
+                if (isDiskonNotaTrx(t)) {
+                    diskonNotaVal += inc;
+                    diskonNotaOmzet += omzet;
+                    diskonNotaCount += 1;
+                } else {
+                    komisiTukangVal += inc;
+                    komisiTukangOmzet += omzet;
+                    komisiTukangCount += 1;
+                }
+            });
+
+            if (serverKpi && verifiedTrx.length === 0) {
+                totalOmzet = Number(serverKpi.totalOmzet || 0);
+                totalKasir = Number(serverKpi.totalBonusKasir || 0);
+            }
+
+            cachedMetrics.totalOmzet = totalOmzet;
+            cachedMetrics.totalTrxCount = verifiedTrx.length;
+            cachedMetrics.diskonNotaVal = diskonNotaVal;
+            cachedMetrics.diskonNotaOmzet = diskonNotaOmzet;
+            cachedMetrics.diskonNotaCount = diskonNotaCount;
+            cachedMetrics.komisiTukangVal = komisiTukangVal;
+            cachedMetrics.komisiTukangOmzet = komisiTukangOmzet;
+            cachedMetrics.komisiTukangCount = komisiTukangCount;
+            cachedMetrics.totalKasirBonus = totalKasir;
+            cachedMetrics.totalPlatformFee = totalPlatform;
+
+            document.getElementById('kpiTotalOmzet').innerText = `Rp ${Math.round(totalOmzet).toLocaleString('id-ID')}`;
+            document.getElementById('kpiTotalTrxCount').innerText = `${verifiedTrx.length} Transaksi Sah`;
+
+            document.getElementById('kpiDiskonNotaTotal').innerText = `Rp ${Math.round(diskonNotaVal).toLocaleString('id-ID')}`;
+            document.getElementById('kpiDiskonNotaSub').innerText = `${diskonNotaCount} transaksi • Omzet Rp ${Math.round(diskonNotaOmzet).toLocaleString('id-ID')}`;
+
+            document.getElementById('kpiKomisiTukangTotal').innerText = `Rp ${Math.round(komisiTukangVal).toLocaleString('id-ID')}`;
+            document.getElementById('kpiKomisiTukangSub').innerText = `${komisiTukangCount} proyek • Omzet Rp ${Math.round(komisiTukangOmzet).toLocaleString('id-ID')}`;
+
+            document.getElementById('kpiTotalKasirBonus').innerText = `Rp ${Math.round(totalKasir).toLocaleString('id-ID')}`;
+            document.getElementById('kpiBrokerCount').innerText = `${storeBrokers.length} Tukang`;
+
+            updateStoreRoiCard();
+        }
+
+        function updateStoreRoiCard() {
+            const marginRate = parseFloat(document.getElementById('storeMarginSelect').value) || 0.12;
+            const grossProfit = Math.round(cachedMetrics.totalOmzet * marginRate);
+            const totalCost = Math.round(
+                cachedMetrics.diskonNotaVal +
+                cachedMetrics.komisiTukangVal +
+                cachedMetrics.totalKasirBonus +
+                cachedMetrics.totalPlatformFee
+            );
+            const netProfit = grossProfit - totalCost;
+
+            document.getElementById('roiGrossProfit').innerText = `Rp ${grossProfit.toLocaleString('id-ID')}`;
+            document.getElementById('roiTotalCost').innerText = `-Rp ${totalCost.toLocaleString('id-ID')}`;
+            const netEl = document.getElementById('roiNetProfit');
+            netEl.innerText = `${netProfit >= 0 ? '+' : ''}Rp ${netProfit.toLocaleString('id-ID')}`;
+            netEl.className = `text-base font-black font-mono ${netProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* GRAFIK PERTUMBUHAN OMZET (CHART.JS)                                       */
+        /* -------------------------------------------------------------------------- */
+
+        function setChartPeriod(period) {
+            chartPeriod = period;
+            document.getElementById('chartBtn-daily').className = period === 'daily'
+                ? 'px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950'
+                : 'px-2.5 py-1 rounded-lg text-slate-400 hover:text-white';
+            document.getElementById('chartBtn-monthly').className = period === 'monthly'
+                ? 'px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950'
+                : 'px-2.5 py-1 rounded-lg text-slate-400 hover:text-white';
+            renderOmzetGrowthChart();
+        }
+
+        function renderOmzetGrowthChart() {
+            const canvas = document.getElementById('omzetGrowthChart');
+            if (!canvas || typeof Chart === 'undefined') return;
+
+            const verifiedTrx = storeTransactions.filter(isVerifiedStatus);
+            const buckets = new Map();
+
+            if (chartPeriod === 'daily') {
+                const today = new Date();
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
+                    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                    const label = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+                    buckets.set(key, { label, omzetNota: 0, omzetTukang: 0 });
+                }
+
+                verifiedTrx.forEach(t => {
+                    const d = parseTrxDateObj(t.date);
+                    if (!d) return;
+                    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                    if (!buckets.has(key)) {
+                        const label = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+                        buckets.set(key, { label, omzetNota: 0, omzetTukang: 0 });
+                    }
+                    const entry = buckets.get(key);
+                    const omzet = Number(t.grandTotal || 0);
+                    if (isDiskonNotaTrx(t)) entry.omzetNota += omzet;
+                    else entry.omzetTukang += omzet;
+                });
+            } else {
+                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                const now = new Date();
+                for (let i = 5; i >= 0; i--) {
+                    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                    const label = `${monthNames[d.getMonth()]} ${String(d.getFullYear()).slice(-2)}`;
+                    buckets.set(key, { label, omzetNota: 0, omzetTukang: 0 });
+                }
+
+                verifiedTrx.forEach(t => {
+                    const d = parseTrxDateObj(t.date);
+                    if (!d) return;
+                    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                    if (!buckets.has(key)) {
+                        const label = `${monthNames[d.getMonth()]} ${String(d.getFullYear()).slice(-2)}`;
+                        buckets.set(key, { label, omzetNota: 0, omzetTukang: 0 });
+                    }
+                    const entry = buckets.get(key);
+                    const omzet = Number(t.grandTotal || 0);
+                    if (isDiskonNotaTrx(t)) entry.omzetNota += omzet;
+                    else entry.omzetTukang += omzet;
+                });
+            }
+
+            const sortedKeys = Array.from(buckets.keys()).sort();
+            const labels = sortedKeys.map(k => buckets.get(k).label);
+            const dataNota = sortedKeys.map(k => buckets.get(k).omzetNota);
+            const dataTukang = sortedKeys.map(k => buckets.get(k).omzetTukang);
+
+            if (omzetChartInstance) {
+                omzetChartInstance.destroy();
+            }
+
+            omzetChartInstance = new Chart(canvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Omzet Pemilik Rumah (Diskon Nota)',
+                            data: dataNota,
+                            backgroundColor: '#14B8A6',
+                            borderRadius: 6,
+                            stack: 'omzet'
+                        },
+                        {
+                            label: 'Omzet Tukang / Broker (Proyek)',
+                            data: dataTukang,
+                            backgroundColor: '#F59E0B',
+                            borderRadius: 6,
+                            stack: 'omzet'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#CBD5E1', font: { size: 11, family: 'Inter' } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    return ` ${ctx.dataset.label}: Rp ${Number(ctx.raw || 0).toLocaleString('id-ID')}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            ticks: { color: '#94A3B8', font: { size: 10 } },
+                            grid: { color: 'rgba(148, 163, 184, 0.08)' }
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#94A3B8',
+                                font: { size: 10 },
+                                callback: function(val) {
+                                    if (val >= 1000000) return 'Rp ' + (val / 1000000).toFixed(1) + 'jt';
+                                    if (val >= 1000) return 'Rp ' + (val / 1000).toFixed(0) + 'rb';
+                                    return 'Rp ' + val;
+                                }
+                            },
+                            grid: { color: 'rgba(148, 163, 184, 0.08)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* TABEL TRANSAKSI DENGAN FILTER BULAN/TAHUN + PAGINATION                      */
+        /* -------------------------------------------------------------------------- */
+
+        function setTrxModeFilter(mode) {
+            trxModeFilter = mode;
+            ['ALL', 'DISKON_NOTA', 'KOMISI_TUKANG'].forEach(key => {
+                const btn = document.getElementById(`trxFilter-${key}`);
+                if (!btn) return;
+                if (key === mode) {
+                    btn.className = 'trx-mode-btn bg-amber-500 text-slate-950 font-black text-[11px] px-3 py-1.5 rounded-xl transition';
+                } else {
+                    const colorClass = key === 'DISKON_NOTA' ? 'text-teal-300' : (key === 'KOMISI_TUKANG' ? 'text-amber-300' : 'text-slate-300');
+                    btn.className = `trx-mode-btn bg-slate-800 ${colorClass} hover:bg-slate-700 font-bold text-[11px] px-3 py-1.5 rounded-xl transition`;
+                }
+            });
+            resetTrxPageAndRender();
+        }
+
+        function setCurrentMonthFilter() {
+            const now = new Date();
+            document.getElementById('filterTrxMonth').value = String(now.getMonth() + 1).padStart(2, '0');
+            document.getElementById('filterTrxYear').value = String(now.getFullYear());
+            resetTrxPageAndRender();
+        }
+
+        function resetTrxPageAndRender() {
+            trxCurrentPage = 1;
+            renderTransactionsTable();
+        }
+
+        function changeTrxPage(delta) {
+            trxCurrentPage = Math.max(1, trxCurrentPage + delta);
+            renderTransactionsTable();
+        }
+
+        function getFilteredTransactions() {
+            const q = (document.getElementById('filterTrxInput').value || '').toLowerCase().trim();
+            const selMonth = document.getElementById('filterTrxMonth').value || 'ALL';
+            const selYear = document.getElementById('filterTrxYear').value || 'ALL';
+
+            return storeTransactions.filter(t => {
+                const isDiskon = isDiskonNotaTrx(t);
+                if (trxModeFilter === 'DISKON_NOTA' && !isDiskon) return false;
+                if (trxModeFilter === 'KOMISI_TUKANG' && isDiskon) return false;
+
+                if (selMonth !== 'ALL' || selYear !== 'ALL') {
+                    const d = parseTrxDateObj(t.date);
+                    if (!d) return false;
+                    const mStr = String(d.getMonth() + 1).padStart(2, '0');
+                    const yStr = String(d.getFullYear());
+                    if (selMonth !== 'ALL' && mStr !== selMonth) return false;
+                    if (selYear !== 'ALL' && yStr !== selYear) return false;
+                }
+
+                if (!q) return true;
+                return String(t.id || '').toLowerCase().includes(q) ||
+                    String(t.strukNo || '').toLowerCase().includes(q) ||
+                    String(t.tukangName || '').toLowerCase().includes(q) ||
+                    String(t.cashierName || '').toLowerCase().includes(q) ||
+                    String(t.custName || '').toLowerCase().includes(q);
+            });
+        }
+
+        function renderTransactionsTable() {
+            const tbody = document.getElementById('ownerTrxTableBody');
+            const filtered = getFilteredTransactions();
+
+            const pageSize = parseInt(document.getElementById('trxPageSizeSelect').value, 10) || 15;
+            const totalItems = filtered.length;
+            const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+            if (trxCurrentPage > totalPages) trxCurrentPage = totalPages;
+
+            const startIdx = (trxCurrentPage - 1) * pageSize;
+            const endIdx = Math.min(startIdx + pageSize, totalItems);
+            const pageItems = filtered.slice(startIdx, endIdx);
+
+            // Ringkasan omzet pada periode terfilter
+            const periodOmzet = filtered.filter(isVerifiedStatus).reduce((acc, t) => acc + Number(t.grandTotal || 0), 0);
+            document.getElementById('trxFilteredCountText').innerText = totalItems;
+            document.getElementById('trxFilteredOmzetText').innerText = `Rp ${Math.round(periodOmzet).toLocaleString('id-ID')}`;
+
+            document.getElementById('trxPageRangeInfo').innerText = totalItems === 0 ? '0–0 dari 0' : `${startIdx + 1}–${endIdx} dari ${totalItems}`;
+            document.getElementById('trxPageIndicator').innerText = `Hal ${trxCurrentPage} / ${totalPages}`;
+            document.getElementById('btnTrxPrevPage').disabled = trxCurrentPage <= 1;
+            document.getElementById('btnTrxNextPage').disabled = trxCurrentPage >= totalPages;
+
+            if (pageItems.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500">Tidak ada transaksi pada periode / filter yang dipilih.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = pageItems.map(t => {
+                const sk = resolveSkema(t.skemaDetail || t.skema || activeSkema);
+                const omzet = Number(t.grandTotal || 0);
+                const inc = pickNumeric(t.incentiveVal, Math.round(omzet * sk.incentiveRate));
+                const ksr = pickNumeric(t.kasirBonusVal, Math.round(omzet * sk.kasirRate));
+                const plt = pickNumeric(t.creatorFeeVal, Math.round(omzet * sk.creatorRate));
+                const fotoUrl = (t.fotoStrukUrl && t.fotoStrukUrl !== '-') ? t.fotoStrukUrl : '';
+                const isDiskonNota = isDiskonNotaTrx(t);
+
+                const modeBadge = isDiskonNota
+                    ? `<span class="text-[9px] font-black uppercase bg-teal-500/20 text-teal-300 border border-teal-500/30 px-2 py-0.5 rounded-md inline-block mb-1"><i class="fa-solid fa-tag mr-1"></i>Diskon Nota</span>`
+                    : `<span class="text-[9px] font-black uppercase bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-md inline-block mb-1"><i class="fa-solid fa-helmet-safety mr-1"></i>Komisi Tukang</span>`;
+
+                const actorTitle = isDiskonNota
+                    ? `${t.custName || 'Pemilik Rumah'}`
+                    : `${t.tukangName || 'Tukang / Mandor'}`;
+
+                const actorSub = isDiskonNota
+                    ? 'Potongan langsung di nota pembeli'
+                    : `WA: ${t.tukangPhone || '-'}`;
+
+                let statusBadge = '';
+                if (String(t.status || '').toUpperCase() === 'PENDING') {
+                    statusBadge = `<span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">Menunggu Kasir</span>`;
+                } else if (isDiskonNota) {
+                    statusBadge = `<span class="text-[10px] bg-teal-500/20 text-teal-300 border border-teal-500/30 px-2 py-0.5 rounded-full font-bold">Selesai (Diskon Nota)</span>`;
+                } else if (t.tukangVerified) {
+                    statusBadge = `<span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">Diterima Tukang</span>`;
+                } else {
+                    statusBadge = `<span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-bold">Menunggu Tukang</span>`;
+                }
+
+                const fotoBtn = fotoUrl
+                    ? `<button data-title="Struk ${escapeHtml(t.strukNo || t.id)}" data-url="${escapeHtml(fotoUrl)}" onclick="openImageModal(this.dataset.title, this.dataset.url)" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-emerald-300 px-2.5 py-1 rounded-lg border border-slate-700 font-bold"><i class="fa-solid fa-image"></i> Struk</button>`
+                    : `<span class="text-[10px] text-slate-500">-</span>`;
+
+                return `
+                    <tr class="hover:bg-slate-800/40">
+                        <td class="p-3">
+                            <strong class="font-mono text-emerald-400 block">${escapeHtml(t.id)}</strong>
+                            <span class="text-[10px] text-slate-400">${escapeHtml(t.date || '-')}</span>
+                            <span class="text-[9px] font-mono bg-slate-950 text-slate-300 px-1.5 py-0.5 rounded ml-1">${escapeHtml(sk.code)}</span>
+                        </td>
+                        <td class="p-3">
+                            <span class="font-mono font-bold text-white block">${escapeHtml(t.strukNo || '-')}</span>
+                            <span class="text-[10px] text-slate-400">Kasir: ${escapeHtml(t.cashierName || '-')}</span>
+                        </td>
+                        <td class="p-3">
+                            ${modeBadge}
+                            <strong class="text-white block">${escapeHtml(actorTitle)}</strong>
+                            <span class="text-[10px] text-slate-400">${escapeHtml(actorSub)}</span>
+                        </td>
+                        <td class="p-3 text-right font-mono font-bold text-white">Rp ${omzet.toLocaleString('id-ID')}</td>
+                        <td class="p-3 text-right font-mono text-[11px]">
+                            <span class="${isDiskonNota ? 'text-teal-400' : 'text-amber-400'} block">${isDiskonNota ? 'Diskon Nota' : 'Komisi Tukang'}: Rp ${inc.toLocaleString('id-ID')}</span>
+                            <span class="text-blue-400 block">Kasir (Wajib): Rp ${ksr.toLocaleString('id-ID')}</span>
+                            <span class="text-slate-400 block">Platform (Wajib): Rp ${plt.toLocaleString('id-ID')}</span>
+                        </td>
+                        <td class="p-3 text-center">${statusBadge}</td>
+                        <td class="p-3 text-center">${fotoBtn}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* KASIR, PEMBAYARAN BONUS & AUDIT LOG ABSENSI SELFIE                         */
+        /* -------------------------------------------------------------------------- */
+
+        function getCashierPaidMap() {
+            try {
+                return JSON.parse(localStorage.getItem(`MB_CASHIER_PAID_${activeStoreId}`) || '{}');
+            } catch (e) { return {}; }
+        }
+
+        function markCashierBonusPaid(kasirId, namaKasir, phone, totalHak) {
+            const paidMap = getCashierPaidMap();
+            const alreadyPaid = Number(paidMap[kasirId] || 0);
+            const sisa = Math.max(0, totalHak - alreadyPaid);
+            if (sisa <= 0) {
+                alert(`Seluruh saldo bonus kasir ${namaKasir} sudah tercatat lunas dibayarkan.`);
+                return;
+            }
+            if (!confirm(`Tandai bonus kasir "${namaKasir}" sebesar Rp ${sisa.toLocaleString('id-ID')} sudah dibayarkan oleh pemilik toko?`)) {
+                return;
+            }
+            paidMap[kasirId] = totalHak;
+            localStorage.setItem(`MB_CASHIER_PAID_${activeStoreId}`, JSON.stringify(paidMap));
+            renderCashiersTable();
+
+            const cleanPhone = String(phone || '').replace(/[^0-9]/g, '');
+            if (cleanPhone.length >= 10 && confirm('Kirim slip pemberitahuan transfer bonus ke WhatsApp kasir sekarang?')) {
+                let waNum = cleanPhone.startsWith('0') ? ('62' + cleanPhone.slice(1)) : cleanPhone;
+                const msg = `*SLIP BONUS KASIR - ${activeStoreObj ? activeStoreObj.name : activeStoreId}*\n\nHalo *${namaKasir}*,\nBonus verifikasi struk QR sebesar *Rp ${sisa.toLocaleString('id-ID')}* telah dibayarkan oleh Pemilik Toko.\nTerima kasih atas ketelitian kerja Anda!`;
+                window.open(`https://api.whatsapp.com/send?phone=${waNum}&text=${encodeURIComponent(msg)}`, '_blank');
+            }
+        }
+
+        function renderCashiersTable() {
+            const tbody = document.getElementById('ownerCashiersTableBody');
+            const summaryList = document.getElementById('cashierPayableSummaryList');
+            const paidMap = getCashierPaidMap();
+
+            if (storeCashiers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-500">Belum ada kasir terdaftar.</td></tr>`;
+                if (summaryList) {
+                    summaryList.innerHTML = `<p class="text-slate-500 text-[11px] italic">Belum ada kasir terdaftar di cabang ini.</p>`;
+                }
+                return;
+            }
+
+            if (summaryList) {
+                summaryList.innerHTML = storeCashiers.map(c => {
+                    const cid = c.kasirId || '';
+                    const cname = c.namaKasir || '-';
+                    const bonus = Number(c.totalBonus || 0);
+                    const paid = Number(paidMap[cid] || 0);
+                    const sisa = Math.max(0, bonus - paid);
+                    return `
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-slate-300 font-semibold truncate"><i class="fa-solid fa-user text-blue-400 mr-1.5 text-[10px]"></i>${escapeHtml(cname)}</span>
+                            <span class="font-mono font-bold ${sisa > 0 ? 'text-blue-300' : 'text-emerald-400'}">
+                                ${sisa > 0 ? `Sisa Wajib: Rp ${sisa.toLocaleString('id-ID')}` : 'Lunas'}
+                            </span>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            tbody.innerHTML = storeCashiers.map(c => {
+                const cid = c.kasirId || '';
+                const cname = c.namaKasir || '';
+                const phone = c.phone || '-';
+                const bonus = Number(c.totalBonus || 0);
+                const paid = Number(paidMap[cid] || 0);
+                const sisa = Math.max(0, bonus - paid);
+
+                return `
+                    <tr>
+                        <td class="p-3">
+                            <strong class="font-bold text-white block">${escapeHtml(cname)}</strong>
+                            <span class="font-mono text-[10px] text-emerald-400">${escapeHtml(cid)}</span>
+                        </td>
+                        <td class="p-3 font-mono text-slate-400">${escapeHtml(phone)}</td>
+                        <td class="p-3 text-right font-mono text-slate-300">Rp ${bonus.toLocaleString('id-ID')}</td>
+                        <td class="p-3 text-right font-mono text-emerald-400">Rp ${paid.toLocaleString('id-ID')}</td>
+                        <td class="p-3 text-right font-mono font-black ${sisa > 0 ? 'text-blue-400' : 'text-slate-500'}">Rp ${sisa.toLocaleString('id-ID')}</td>
+                        <td class="p-3 text-center">
+                            <div class="inline-flex items-center gap-1.5">
+                                <button data-cid="${escapeHtml(cid)}" data-cname="${escapeHtml(cname)}" data-phone="${escapeHtml(phone)}" data-bonus="${bonus}"
+                                    onclick="markCashierBonusPaid(this.dataset.cid, this.dataset.cname, this.dataset.phone, Number(this.dataset.bonus))"
+                                    class="text-[11px] ${sisa > 0 ? 'bg-blue-500 hover:bg-blue-400 text-slate-950 font-black' : 'bg-slate-800 text-slate-500 font-bold'} px-2.5 py-1 rounded-lg">
+                                    ${sisa > 0 ? 'Bayar' : 'Lunas'}
+                                </button>
+                                <button data-cid="${escapeHtml(cid)}" data-cname="${escapeHtml(cname)}" onclick="deleteStoreCashier(this.dataset.cid, this.dataset.cname)" class="text-[11px] bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 px-2 py-1 rounded-lg font-bold">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function resetShiftPageAndRender() {
+            shiftCurrentPage = 1;
+            renderShiftLogsGrid();
+        }
+
+        function changeShiftPage(delta) {
+            shiftCurrentPage = Math.max(1, shiftCurrentPage + delta);
+            renderShiftLogsGrid();
+        }
+
+        function renderShiftLogsGrid() {
+            const grid = document.getElementById('shiftSelfieLogsGrid');
+            const selCashier = document.getElementById('filterShiftCashier').value || 'ALL';
+            const selMonth = document.getElementById('filterShiftMonth').value || 'ALL';
+
+            const filteredLogs = storeShiftLogs.filter(log => {
+                if (selCashier !== 'ALL' && String(log.namaKasir || '').trim() !== selCashier) return false;
+                if (selMonth !== 'ALL') {
+                    const d = parseTrxDateObj(log.loginTime);
+                    if (!d) return false;
+                    if (String(d.getMonth() + 1).padStart(2, '0') !== selMonth) return false;
+                }
+                return true;
+            });
+
+            const totalLogs = filteredLogs.length;
+            const totalPages = Math.max(1, Math.ceil(totalLogs / SHIFT_PAGE_SIZE));
+            if (shiftCurrentPage > totalPages) shiftCurrentPage = totalPages;
+
+            const startIdx = (shiftCurrentPage - 1) * SHIFT_PAGE_SIZE;
+            const pageLogs = filteredLogs.slice(startIdx, startIdx + SHIFT_PAGE_SIZE);
+
+            document.getElementById('shiftLogCountInfo').innerText = `${totalLogs} catatan shift`;
+            document.getElementById('shiftPageIndicator').innerText = `${shiftCurrentPage}/${totalPages}`;
+            document.getElementById('btnShiftPrev').disabled = shiftCurrentPage <= 1;
+            document.getElementById('btnShiftNext').disabled = shiftCurrentPage >= totalPages;
+
+            if (pageLogs.length === 0) {
+                grid.innerHTML = `<p class="text-xs text-slate-500 col-span-full">Tidak ada catatan absensi shift pada filter ini.</p>`;
+                return;
+            }
+
+            grid.innerHTML = pageLogs.map(log => {
+                const rawSelfie = (log.selfieUrl && log.selfieUrl !== '-') ? log.selfieUrl : '';
+                const thumbSelfie = normalizeDriveImageUrl(rawSelfie, 'w200');
+                const nama = log.namaKasir || '-';
+                return `
+                    <div class="bg-slate-950 border border-slate-800 hover:border-emerald-500/40 rounded-xl p-2.5 flex items-center gap-3 transition">
+                        <div class="w-12 h-12 rounded-lg bg-slate-800 overflow-hidden shrink-0 border border-emerald-500/40 cursor-pointer relative group"
+                             data-title="Selfie Shift - ${escapeHtml(nama)} (${escapeHtml(log.loginTime || '')})" data-url="${escapeHtml(rawSelfie)}"
+                             onclick="if(this.dataset.url) openImageModal(this.dataset.title, this.dataset.url)">
+                            ${thumbSelfie
+                                ? `<img src="${escapeHtml(thumbSelfie)}" alt="Selfie" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" class="w-full h-full object-cover"><div style="display:none" class="w-full h-full items-center justify-center text-emerald-400 text-xs font-bold"><i class="fa-solid fa-camera"></i></div>`
+                                : `<div class="w-full h-full flex items-center justify-center text-slate-500"><i class="fa-solid fa-user"></i></div>`}
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center justify-between gap-1">
+                                <strong class="text-xs text-white block truncate">${escapeHtml(nama)}</strong>
+                                <span class="text-[9px] bg-emerald-500/15 text-emerald-300 px-1.5 py-0.5 rounded font-bold shrink-0">HADIR</span>
+                            </div>
+                            <span class="text-[10px] font-mono text-emerald-400 block">${escapeHtml(log.logId || '')}</span>
+                            <span class="text-[10px] text-slate-400 block"><i class="fa-regular fa-clock mr-1"></i>${escapeHtml(log.loginTime || '-')}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function addNewStoreCashier() {
+            const namaKasir = document.getElementById('newCashierName').value.trim();
+            const phone = document.getElementById('newCashierPhone').value.trim();
+            const pinKasir = document.getElementById('newCashierPin').value.trim();
+            if (!namaKasir) return alert("Nama kasir wajib diisi!");
+            if (!/^[0-9]{4,6}$/.test(pinKasir)) return alert("PIN pribadi wajib berupa 4 hingga 6 digit angka!");
+
+            const btn = document.getElementById('btnAddCashier');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...`;
+
+            try {
+                const res = await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'manageCashier',
+                        subAction: 'add',
+                        storeId: activeStoreId,
+                        ownerPin: verifiedOwnerPin,
+                        namaKasir,
+                        pinKasir,
+                        rekening: phone
+                    })
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    alert("❌ Gagal menambah kasir: " + (data.message || "Error"));
+                    return;
+                }
+                document.getElementById('newCashierName').value = "";
+                document.getElementById('newCashierPhone').value = "";
+                document.getElementById('newCashierPin').value = "";
+                await refreshAllOwnerData();
+                alert(`✅ Akun kasir "${namaKasir}" berhasil ditambahkan!`);
+            } catch (err) {
+                alert("❌ Gangguan jaringan: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Akun Kasir`;
+            }
+        }
+
+        async function deleteStoreCashier(kasirId, namaKasir) {
+            if (!confirm(`Hapus akun kasir "${namaKasir}" (${kasirId})?`)) return;
+            try {
+                const res = await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'manageCashier',
+                        subAction: 'delete',
+                        storeId: activeStoreId,
+                        ownerPin: verifiedOwnerPin,
+                        kasirId
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    await refreshAllOwnerData();
+                } else {
+                    alert("❌ " + (data.message || "Gagal menghapus kasir."));
+                }
+            } catch (err) { alert("Error: " + err.message); }
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* PERINGKAT PEMBAWA PROYEK (TUKANG/BROKER & PELANGGAN DISKON NOTA)           */
+        /* -------------------------------------------------------------------------- */
+
+        function getBrokerNotesMap() {
+            try {
+                return JSON.parse(localStorage.getItem(`MB_BROKER_NOTES_${activeStoreId}`) || '{}');
+            } catch (e) { return {}; }
+        }
+
+        function saveBrokerNote(key, val) {
+            const notes = getBrokerNotesMap();
+            notes[key] = val.trim();
+            localStorage.setItem(`MB_BROKER_NOTES_${activeStoreId}`, JSON.stringify(notes));
+        }
+
+        function followUpBrokerWA(nama, hp) {
+            const clean = String(hp || '').replace(/[^0-9]/g, '');
+            if (clean.length < 9) {
+                alert('Nomor WhatsApp tukang ini belum tercatat.');
+                return;
+            }
+            const waNum = clean.startsWith('0') ? ('62' + clean.slice(1)) : (clean.startsWith('8') ? ('62' + clean) : clean);
+            const storeName = activeStoreObj ? activeStoreObj.name : 'Toko Kami';
+            const msg = `Halo Pak *${nama}*, apa kabar proyeknya? Dari *${storeName}* ingin mengabari stok material lengkap & siap kirim hari ini. Jangan lupa gunakan QR Mitra Bangunan saat belanja agar komisi langsung cair di kasir ya Pak!`;
+            window.open(`https://api.whatsapp.com/send?phone=${waNum}&text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        function renderOwnerBrokersTable() {
+            const tbody = document.getElementById('ownerBrokersTableBody');
+            const podiumGrid = document.getElementById('topBrokersCardsGrid');
+            const q = (document.getElementById('filterBrokerOwnerInput').value || '').toLowerCase().trim();
+            const notesMap = getBrokerNotesMap();
+
+            const enrichedMap = new Map();
+            storeBrokers.forEach(b => {
+                const key = String(b.hp || b.nama || '').trim();
+                if (!key) return;
+                enrichedMap.set(key, {
+                    key,
+                    nama: b.nama || 'Tukang / Mandor',
+                    hp: b.hp || '-',
+                    totalTrx: Number(b.totalTrx || 0),
+                    totalOmzet: 0,
+                    totalKomisi: Number(b.totalKomisi || 0),
+                    lastVisit: b.lastVisit || '-'
+                });
+            });
+
+            const verifiedTrx = storeTransactions.filter(isVerifiedStatus);
+            const homeownerMap = new Map();
+
+            verifiedTrx.forEach(t => {
+                const omzet = Number(t.grandTotal || 0);
+                const sk = resolveSkema(t.skemaDetail || t.skema || activeSkema);
+                const inc = pickNumeric(t.incentiveVal, Math.round(omzet * sk.incentiveRate));
+
+                if (isDiskonNotaTrx(t)) {
+                    const custKey = String(t.custName || 'Umum').trim();
+                    if (!homeownerMap.has(custKey)) {
+                        homeownerMap.set(custKey, { nama: custKey, count: 0, totalOmzet: 0, totalDiskon: 0, lastDate: t.date || '-' });
+                    }
+                    const h = homeownerMap.get(custKey);
+                    h.count += 1;
+                    h.totalOmzet += omzet;
+                    h.totalDiskon += inc;
+                    if (t.date) h.lastDate = t.date;
+                } else {
+                    const bKey = String(t.tukangPhone || t.tukangName || '').trim();
+                    if (!bKey) return;
+                    if (!enrichedMap.has(bKey)) {
+                        enrichedMap.set(bKey, {
+                            key: bKey,
+                            nama: t.tukangName || 'Tukang / Mandor',
+                            hp: t.tukangPhone || '-',
+                            totalTrx: 0,
+                            totalOmzet: 0,
+                            totalKomisi: 0,
+                            lastVisit: t.date || '-'
+                        });
+                    }
+                    const entry = enrichedMap.get(bKey);
+                    entry.totalOmzet += omzet;
+                    if (storeBrokers.length === 0) {
+                        entry.totalTrx += 1;
+                        entry.totalKomisi += inc;
+                    }
+                }
+            });
+
+            const rankedBrokers = Array.from(enrichedMap.values()).sort((a, b) => (b.totalOmzet - a.totalOmzet) || (b.totalKomisi - a.totalKomisi));
+
+            if (rankedBrokers.length > 0) {
+                document.getElementById('kpiTopBrokerHint').innerText = `Top: ${rankedBrokers[0].nama} (${rankedBrokers[0].totalTrx}x)`;
+            } else {
+                document.getElementById('kpiTopBrokerHint').innerText = 'Belum ada tukang tercatat';
+            }
+
+            if (rankedBrokers.length === 0) {
+                podiumGrid.innerHTML = `<p class="text-xs text-slate-500 col-span-full italic">Belum ada data tukang pembawa proyek.</p>`;
+            } else {
+                const medals = [
+                    { badge: 'JUARA 1 PEMBAWA PROYEK', border: 'border-amber-400/60', icon: 'text-amber-400' },
+                    { badge: 'PERINGKAT 2', border: 'border-slate-600', icon: 'text-slate-300' },
+                    { badge: 'PERINGKAT 3', border: 'border-amber-700/50', icon: 'text-amber-600' }
+                ];
+                podiumGrid.innerHTML = rankedBrokers.slice(0, 3).map((b, idx) => {
+                    const m = medals[idx];
+                    return `
+                        <div class="bg-slate-950 border ${m.border} rounded-xl p-3.5 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[9px] font-black tracking-wider ${m.icon} uppercase"><i class="fa-solid fa-medal mr-1"></i>${m.badge}</span>
+                                <span class="text-[10px] font-mono bg-slate-900 px-2 py-0.5 rounded text-slate-300">${b.totalTrx} Proyek</span>
+                            </div>
+                            <div>
+                                <strong class="text-sm font-black text-white block truncate">${escapeHtml(b.nama)}</strong>
+                                <span class="text-[11px] font-mono text-emerald-400">${escapeHtml(b.hp)}</span>
+                            </div>
+                            <div class="flex items-center justify-between pt-1.5 border-t border-slate-800 text-[11px]">
+                                <div>
+                                    <span class="text-slate-400 block text-[10px]">Omzet Dibawa:</span>
+                                    <strong class="text-white font-mono">Rp ${b.totalOmzet.toLocaleString('id-ID')}</strong>
+                                </div>
+                                <button data-nama="${escapeHtml(b.nama)}" data-hp="${escapeHtml(b.hp)}" onclick="followUpBrokerWA(this.dataset.nama, this.dataset.hp)" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-[11px] px-2.5 py-1.5 rounded-lg inline-flex items-center gap-1">
+                                    <i class="fa-brands fa-whatsapp"></i> Sapa
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            const filtered = rankedBrokers.filter(b =>
+                String(b.nama || '').toLowerCase().includes(q) || String(b.hp || '').includes(q)
+            );
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500">Belum ada tukang/broker tercatat.</td></tr>`;
+            } else {
+                tbody.innerHTML = filtered.map((b, idx) => {
+                    const noteVal = notesMap[b.key] || '';
+                    return `
+                        <tr>
+                            <td class="p-3">
+                                <span class="text-[10px] font-mono font-bold text-amber-400 mr-1.5">#${idx + 1}</span>
+                                <strong class="font-bold text-white">${escapeHtml(b.nama)}</strong>
+                                <span class="text-[10px] text-slate-500 block">Terakhir: ${escapeHtml(b.lastVisit)}</span>
+                            </td>
+                            <td class="p-3 font-mono text-emerald-400">${escapeHtml(b.hp)}</td>
+                            <td class="p-3 text-center font-mono font-bold">${b.totalTrx}x</td>
+                            <td class="p-3 text-right font-mono font-bold text-white">Rp ${b.totalOmzet.toLocaleString('id-ID')}</td>
+                            <td class="p-3 text-right font-mono font-bold text-amber-400">Rp ${b.totalKomisi.toLocaleString('id-ID')}</td>
+                            <td class="p-3">
+                                <input type="text" value="${escapeHtml(noteVal)}" data-bkey="${escapeHtml(b.key)}" onchange="saveBrokerNote(this.dataset.bkey, this.value)" placeholder="Tulis catatan proyek..." class="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 rounded-lg px-2 py-1 text-[11px] text-slate-200 focus:outline-none">
+                            </td>
+                            <td class="p-3 text-center">
+                                <button data-nama="${escapeHtml(b.nama)}" data-hp="${escapeHtml(b.hp)}" onclick="followUpBrokerWA(this.dataset.nama, this.dataset.hp)" class="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 font-bold text-[11px] px-2.5 py-1 rounded-lg">
+                                    <i class="fa-brands fa-whatsapp"></i> WA
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            const homeTbody = document.getElementById('ownerHomeownersTableBody');
+            const homeowners = Array.from(homeownerMap.values()).sort((a, b) => b.totalOmzet - a.totalOmzet);
+            if (homeowners.length === 0) {
+                homeTbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">Belum ada transaksi mode Diskon Nota.</td></tr>`;
+            } else {
+                homeTbody.innerHTML = homeowners.map(h => `
+                    <tr>
+                        <td class="p-3 font-bold text-white">${escapeHtml(h.nama)}</td>
+                        <td class="p-3 text-center font-mono">${h.count}x</td>
+                        <td class="p-3 text-right font-mono font-bold text-white">Rp ${h.totalOmzet.toLocaleString('id-ID')}</td>
+                        <td class="p-3 text-right font-mono font-bold text-teal-400">Rp ${h.totalDiskon.toLocaleString('id-ID')}</td>
+                        <td class="p-3 text-right text-slate-400">${escapeHtml(h.lastDate)}</td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        function infoSetoranPlatform() {
+            const amountText = document.getElementById('unpaidPlatformAmount').innerText;
+            alert(`Tagihan setoran platform terutang untuk ${activeStoreObj ? activeStoreObj.name : activeStoreId}: ${amountText}.\n\nSilakan lakukan transfer setoran ke Admin Mitra Bangunan agar status dicatat PAID dan kuota limit Rp 500.000 kembali penuh.`);
+        }
+
+        function konfirmasiBayarPlatformWA() {
+            const storeName = activeStoreObj ? activeStoreObj.name : activeStoreId;
+            const amountText = document.getElementById('unpaidPlatformAmount').innerText;
+            const msg = `*KONFIRMASI SETORAN KOMISI PLATFORM*\n\nToko: *${storeName}* (${activeStoreId})\nSkema: ${activeSkema.code}\nSaldo Terutang Saat Ini: *${amountText}*\n\nMohon info rekening tujuan / verifikasi bukti transfer pelunasan setoran platform kami. Terima kasih.`;
+            window.open(`https://api.whatsapp.com/send?phone=${ADMIN_PLATFORM_WA}&text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        function openDailyClosingModal() {
+            const today = new Date();
+            const todayStr = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
+            const todayTrx = storeTransactions.filter(t => isVerifiedStatus(t) && String(t.date || '').startsWith(todayStr));
+
+            let omzetHariIni = 0, diskonHariIni = 0, komisiTukangHariIni = 0, bonusKasirHariIni = 0, feePlatformHariIni = 0;
+            todayTrx.forEach(t => {
+                const sk = resolveSkema(t.skemaDetail || t.skema || activeSkema);
+                const omzet = Number(t.grandTotal || 0);
+                const inc = pickNumeric(t.incentiveVal, Math.round(omzet * sk.incentiveRate));
+                const ksr = pickNumeric(t.kasirBonusVal, Math.round(omzet * sk.kasirRate));
+                const plt = pickNumeric(t.creatorFeeVal, Math.round(omzet * sk.creatorRate));
+
+                omzetHariIni += omzet;
+                bonusKasirHariIni += ksr;
+                feePlatformHariIni += plt;
+                if (isDiskonNotaTrx(t)) diskonHariIni += inc;
+                else komisiTukangHariIni += inc;
+            });
+
+            const body = document.getElementById('dailyClosingBody');
+            body.innerHTML = `
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2">
+                    <div class="flex justify-between text-slate-400">
+                        <span>Tanggal Tutup Buku:</span>
+                        <strong class="text-white font-mono">${todayStr}</strong>
+                    </div>
+                    <div class="flex justify-between text-slate-400">
+                        <span>Transaksi QR Sah Hari Ini:</span>
+                        <strong class="text-emerald-400 font-mono">${todayTrx.length} Transaksi</strong>
+                    </div>
+                    <div class="flex justify-between text-slate-400 pt-1 border-t border-slate-800">
+                        <span>Total Omzet QR Hari Ini:</span>
+                        <strong class="text-white font-mono text-sm">Rp ${omzetHariIni.toLocaleString('id-ID')}</strong>
+                    </div>
+                    <div class="flex justify-between text-teal-300">
+                        <span>• Potongan Diskon Nota:</span>
+                        <strong class="font-mono">Rp ${diskonHariIni.toLocaleString('id-ID')}</strong>
+                    </div>
+                    <div class="flex justify-between text-amber-300">
+                        <span>• Komisi Tunai Tukang:</span>
+                        <strong class="font-mono">Rp ${komisiTukangHariIni.toLocaleString('id-ID')}</strong>
+                    </div>
+                    <div class="flex justify-between text-blue-300 pt-1 border-t border-slate-800">
+                        <span>• Kewajiban Bonus Kasir:</span>
+                        <strong class="font-mono">Rp ${bonusKasirHariIni.toLocaleString('id-ID')}</strong>
+                    </div>
+                    <div class="flex justify-between text-slate-300">
+                        <span>• Kewajiban Fee Platform:</span>
+                        <strong class="font-mono">Rp ${feePlatformHariIni.toLocaleString('id-ID')}</strong>
+                    </div>
+                </div>
+                <p class="text-[11px] text-slate-400">Cocokkan angka di atas dengan uang fisik di laci kasir dan nota POS berparaf sebelum toko tutup.</p>
+            `;
+            document.getElementById('modalDailyClosing').classList.remove('hidden');
+        }
+
+        function closeDailyClosingModal() {
+            document.getElementById('modalDailyClosing').classList.add('hidden');
+        }
+
+        function shareDailyClosingWA() {
+            const text = document.getElementById('dailyClosingBody').innerText;
+            const title = `*REKAP TUTUP BUKU QR - ${activeStoreObj ? activeStoreObj.name : activeStoreId}*\n\n`;
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(title + text)}`, '_blank');
+        }
+
+        function switchOwnerTab(tabKey) {
+            document.querySelectorAll('.owner-tab-panel').forEach(p => p.classList.add('hidden'));
+            document.querySelectorAll('.owner-tab-btn').forEach(b => {
+                b.className = 'owner-tab-btn bg-slate-800 text-slate-300 hover:bg-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl transition';
+            });
+            document.getElementById(`tabPanel-${tabKey}`).classList.remove('hidden');
+            document.getElementById(`tabBtn-${tabKey}`).className = 'owner-tab-btn bg-amber-500 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl transition';
+        }
+
+        function copyKasirTerminalLink() {
+            if (!activeStoreId) return;
+            const kasirUrl = window.location.href.replace(/[^/]*$/, `kasir.html?s=${encodeURIComponent(activeStoreId)}`);
+            navigator.clipboard.writeText(kasirUrl).then(() => alert(`✅ Link Kasir disalin:\n${kasirUrl}`)).catch(() => prompt("Salin link Kasir:", kasirUrl));
+        }
+
+        function exportTransactionsCsv() {
+            const exportList = getFilteredTransactions();
+            if (exportList.length === 0) return alert("Belum ada data transaksi pada filter yang dipilih.");
+            const headers = ["ID Transaksi", "Tanggal", "Skema", "Kategori", "No Struk", "Kasir", "Pembeli/Tukang", "HP Tukang", "Omzet", "Diskon/Komisi", "Bonus Kasir", "Fee Platform"];
+            const rows = exportList.map(t => {
+                const sk = resolveSkema(t.skemaDetail || t.skema || activeSkema);
+                const omzet = Number(t.grandTotal || 0);
+                const inc = pickNumeric(t.incentiveVal, Math.round(omzet * sk.incentiveRate));
+                const ksr = pickNumeric(t.kasirBonusVal, Math.round(omzet * sk.kasirRate));
+                const plt = pickNumeric(t.creatorFeeVal, Math.round(omzet * sk.creatorRate));
+                const isDiskon = isDiskonNotaTrx(t);
+                const kategori = isDiskon ? 'Diskon Nota' : 'Komisi Tukang';
+                const aktor = isDiskon ? (t.custName || 'Umum') : (t.tukangName || 'Tukang');
+                return [t.id, t.date || '', sk.code, kategori, t.strukNo || '', t.cashierName || '', aktor, t.tukangPhone || '', omzet, inc, ksr, plt]
+                    .map(v => `"${String(v).replace(/"/g, '""')}"`).join(',');
+            });
+            const selMonth = document.getElementById('filterTrxMonth').value;
+            const selYear = document.getElementById('filterTrxYear').value;
+            const suffix = (selMonth !== 'ALL' || selYear !== 'ALL') ? `${selYear}-${selMonth}` : new Date().toISOString().slice(0, 10);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodeURI("data:text/csv;charset=utf-8," + [headers.join(','), ...rows].join('\n')));
+            link.setAttribute("download", `laporan-transaksi-${activeStoreId}-${suffix}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
